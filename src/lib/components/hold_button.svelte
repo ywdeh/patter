@@ -78,7 +78,7 @@
         class="absolute inset-0 overflow-hidden rounded-xl transition-[inset,border-radius] duration-200 ease-out group-hover/hitbox:inset-1 group-hover/hitbox:rounded-2xl group-active/hitbox:inset-2 group-active/hitbox:rounded-3xl"
     >
         <span
-            class="block h-full bg-mauve-100/20 transition-[width] ease-linear"
+            class="block h-full bg-mauve-100/6 transition-[width] ease-linear"
             class:w-full={isComplete}
             class:w-0={!isHolding && !isComplete}
             class:hold-progress={isHolding}
