@@ -10,7 +10,7 @@ caret-mauve-100" spellcheck="false">
 		<script>
 			(() => {
 				// Keep this early-paint path aligned with DEFAULT_BACKGROUND_SRC in background.svelte.js.
-				const defaults = { focus: 10, tint: 50, grain: 2, background: '/backgrounds/green_facade.jpg' };
+				const defaults = { focus: 10, tint: 50, grain: 2, textSize: 18, background: '/backgrounds/green_facade.jpg' };
 				let saved = {};
 				let fallbackBackground = defaults.background;
 				let backgroundPosition = 'center';
@@ -19,9 +19,11 @@ caret-mauve-100" spellcheck="false">
 					const focus = Number(saved.focus);
 					const tint = Number(saved.tint);
 					const grain = Number(saved.grain);
+					const textSize = Number(saved.textSize);
 					if (Number.isFinite(focus)) defaults.focus = Math.min(15, Math.max(5, focus));
 					if (Number.isFinite(tint)) defaults.tint = Math.min(80, Math.max(20, tint));
 					if (Number.isFinite(grain)) defaults.grain = Math.min(4, Math.max(0, grain));
+					if (Number.isFinite(textSize)) defaults.textSize = Math.min(32, Math.max(12, textSize));
 					backgroundPosition = ['top', 'center', 'bottom'].includes(saved.position) ? saved.position : 'center';
 					if (typeof saved.background === 'string' && /^\/backgrounds\/.+\.(?:avif|gif|jpe?g|png|webp)$/i.test(saved.background)) {
 						defaults.background = saved.background;
@@ -39,12 +41,13 @@ caret-mauve-100" spellcheck="false">
 				root.style.setProperty('--patter-focus', `${defaults.focus}px`);
 				root.style.setProperty('--patter-tint', `${defaults.tint / 100}`);
 				root.style.setProperty('--patter-grain', `${defaults.grain / 100}`);
+				root.style.setProperty('--patter-body-text-size', `${defaults.textSize}px`);
 				root.style.setProperty('--patter-background-position', backgroundPosition);
 				root.style.setProperty('--patter-background', `url("${fallbackBackground}")`);
 			})();
 		</script>
 		<script>
-			window.patterPrimeDocumentPreview = () => {
+			window.patterPrimeBodyPreview = () => {
 				try {
 					const saved = JSON.parse(localStorage.getItem('patter-doc') || 'null');
 					if (!saved || typeof saved !== 'object') return;
@@ -57,12 +60,11 @@ caret-mauve-100" spellcheck="false">
 					bodyHolder.querySelectorAll('p, div').forEach((node) => node.append('\n'));
 
 					const root = document.documentElement;
-					root.style.setProperty('--patter-saved-title', cssText(saved.title));
 					root.style.setProperty('--patter-saved-body', cssText(bodyHolder.textContent));
-					root.classList.add('has-patter-doc');
+					root.classList.add('has-patter-body');
 				} catch {}
 			};
-			window.patterPrimeDocumentPreview();
+			window.patterPrimeBodyPreview();
 		</script>
 
 		<link rel="preload" href="/fonts/Amarante.woff2" as="font" type="font/woff2" crossorigin>

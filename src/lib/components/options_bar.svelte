@@ -76,7 +76,7 @@
         if (!file) return;
         try {
             const documentText = await readTextImport(file);
-            window.dispatchEvent(new CustomEvent('patter-import-document', { detail: documentText }));
+            window.dispatchEvent(new CustomEvent('patter-import-document', { detail: { body: documentText } }));
             importError = '';
         } catch (error) {
             importError = error instanceof Error ? error.message : 'This file could not be imported.';
@@ -96,6 +96,7 @@ z-55 group/tools transition ease-in-out duration-200 delay-400 hover:delay-50 fo
             <InputPill text="Focus" min={5} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} unit="" onchange={(value) => persistBackgroundValues({ focus: value })} />
             <InputPill text="Tint" min={20} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} unit="" onchange={(value) => persistBackgroundValues({ tint: value })} />
             <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} unit="" onchange={(value) => persistBackgroundValues({ grain: value })} />
+            <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} unit="" onchange={(value) => persistBackgroundValues({ textSize: value })} />
             {#if has_return}
                 <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
                 <div class="flex w-full flex-col gap-4">

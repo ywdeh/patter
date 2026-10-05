@@ -10,9 +10,13 @@
 		if (!navigation.from || navigation.from.url.pathname === navigation.to.url.pathname) return;
 
 		const surface = document.querySelector('.route-surface');
-		if (!surface) return;
-		surface.classList.remove('route-fade-in');
-		surface.classList.add('route-fade-out');
+		const background = document.querySelector('.route-background');
+		for (const element of [surface, background]) {
+			if (!element) continue;
+			element.classList.remove('route-fade-in');
+			element.classList.add('route-fade-out');
+		}
+		if (!surface && !background) return;
 
 		return new Promise((resolve) => {
 			window.setTimeout(resolve, 400);
@@ -22,19 +26,25 @@
 	afterNavigate(({ from }) => {
 		if (!from) return;
 		const surface = document.querySelector('.route-surface');
-		if (!surface) return;
-		surface.classList.remove('route-fade-out', 'route-fade-in');
-		void surface.getBoundingClientRect();
-		surface.classList.add('route-fade-in');
+		const background = document.querySelector('.route-background');
+		for (const element of [surface, background]) {
+			if (!element) continue;
+			element.classList.remove('route-fade-out', 'route-fade-in');
+			void element.getBoundingClientRect();
+			element.classList.add('route-fade-in');
+		}
 	});
 
 	onMount(() => {
 		requestAnimationFrame(() => {
 			const surface = document.querySelector('.route-surface');
-			if (!surface) return;
-			surface.classList.remove('route-initial-hidden');
-			void surface.getBoundingClientRect();
-			surface.classList.add('route-fade-in');
+			const background = document.querySelector('.route-background');
+			for (const element of [surface, background]) {
+				if (!element) continue;
+				element.classList.remove('route-initial-hidden', 'route-fade-out', 'route-fade-in');
+				void element.getBoundingClientRect();
+				element.classList.add('route-fade-in');
+			}
 		});
 	});
 </script>

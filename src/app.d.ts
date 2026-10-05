@@ -2,7 +2,7 @@
 // for information about these interfaces
 declare global {
 	interface Window {
-		patterPrimeDocumentPreview?: () => void;
+		patterPrimeBodyPreview?: () => void;
 	}
 
 	namespace App {

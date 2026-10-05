@@ -7,7 +7,6 @@
     let { onwriting = () => {} } = $props();
 
     const STORAGE_KEY = "patter-doc";
-    let titleEl;
     let bodyEl;
     let scrollEl;
     let wordCount = $state(0);
@@ -15,59 +14,45 @@
     let sessionTime = $state('0m');
     let readingTime = $state('0m');
 
-    if (typeof window !== 'undefined') window.patterPrimeDocumentPreview?.();
-
     const CARET_LINE = 0.45; // keep in sync with pb-[45vh]
-
-    const defaults = {
-        title: "",
-        body: ""
-    };
 
     function load() {
         try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            return saved ? { ...defaults, ...JSON.parse(saved) } : { ...defaults };
+            const serialized = localStorage.getItem(STORAGE_KEY);
+            if (!serialized) return '';
+            const saved = JSON.parse(serialized);
+            const body = typeof saved?.body === 'string' ? saved.body : '';
+            return body;
         } catch {
-            return { ...defaults };
+            return '';
         }
     }
 
     function save() {
         try {
-            const title = normalizeTitle(titleEl.innerText);
             const body = bodyEl.innerHTML;
-            const saved = {};
-            if (title.trim() !== '') saved.title = title;
-            if (getEditorText(bodyEl).trim() !== '') saved.body = body;
-
-            if (Object.keys(saved).length > 0) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+            if (getEditorText(bodyEl).trim() !== '') {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ body }));
             } else {
                 localStorage.removeItem(STORAGE_KEY);
             }
         } catch {}
     }
 
-    function normalizeTitle(value) {
-        return String(value ?? '').replace(/[\r\n]+/gu, ' ');
-    }
-
     // --- placeholder: toggle data-empty so CSS can show it ---
     function updateEmpty() {
-        if (!titleEl || !bodyEl) return;
-        titleEl.dataset.empty = titleEl.innerText.trim() === "";
+        if (!bodyEl) return;
         bodyEl.dataset.empty = bodyEl.innerText.trim() === "";
     }
 
     function updateCounts() {
-        if (!titleEl || !bodyEl) return;
-        const counts = countEditorText(titleEl, bodyEl);
+        if (!bodyEl) return;
+        const counts = countEditorText(bodyEl);
         wordCount = counts.words;
         characterCount = counts.characters;
         readingTime = estimateReadingTime(counts.words);
         window.dispatchEvent(new CustomEvent('patter-editor-content-change', {
-            detail: { hasContent: titleEl.innerText.trim() !== '' || getEditorText(bodyEl).trim() !== '' }
+            detail: { hasContent: getEditorText(bodyEl).trim() !== '' }
         }));
     }
 
@@ -97,7 +82,6 @@
     function keepCaretCentered() {
         const sel = getSelection();
         if (!sel?.rangeCount || !scrollEl || !bodyEl) return;
-        // ignore the title and anything outside the body
         if (!bodyEl.contains(sel.anchorNode)) return;
 
         const range = sel.getRangeAt(0).cloneRange();
@@ -118,21 +102,15 @@
         if (delta > 0) scrollEl.scrollBy({ top: delta });
     }
 
-    function isSoundedEditorKey(event, isTitle = false) {
+    function isSoundedEditorKey(event) {
         if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return false;
-        if (event.key === 'Backspace' || event.key === ' ') return true;
-        if (event.key === 'Enter') return !isTitle;
+        if (event.key === 'Backspace' || event.key === 'Enter' || event.key === ' ') return true;
         return /^[^\p{C}\s]$/u.test(event.key);
     }
 
-    function handleEditorKeydown(event, isTitle = false) {
-        if (isSoundedEditorKey(event, isTitle)) playTapSound();
-        if (isTitle) {
-            handleSmartPunctuationKeydown(event);
-            if (event.key === 'Enter' && !event.isComposing) event.preventDefault();
-        } else {
-            handleSmartPunctuationKeydown(event);
-        }
+    function handleEditorKeydown(event) {
+        if (isSoundedEditorKey(event)) playTapSound();
+        handleSmartPunctuationKeydown(event);
     }
 
     function handleInput(e) {
@@ -150,48 +128,35 @@
         document.execCommand("insertText", false, text);
     }
 
-    function handleTitlePaste(event) {
-        event.preventDefault();
-        const text = normalizeTitle(event.clipboardData.getData('text/plain'));
-        document.execCommand('insertText', false, text);
-    }
-
     onMount(() => {
         // make Enter create <p> instead of <div> in the empty body
         document.execCommand("defaultParagraphSeparator", false, "p");
 
-        const data = load();
-        titleEl.innerText = normalizeTitle(data.title);
-        bodyEl.innerHTML = data.body;
-        clearEmptyMarkup(titleEl);
+        const savedBody = load();
+        bodyEl.innerHTML = savedBody;
         clearEmptyMarkup(bodyEl);
         updateEmpty();
         updateCounts();
-        document.documentElement.classList.remove('has-patter-doc');
-        document.documentElement.style.removeProperty('--patter-saved-title');
+        save();
+        document.documentElement.classList.remove('has-patter-body');
         document.documentElement.style.removeProperty('--patter-saved-body');
 
         const onSelection = () => requestAnimationFrame(keepCaretCentered);
         const onClearSavedData = () => {
-            titleEl.replaceChildren();
             bodyEl.replaceChildren();
             updateEmpty();
             updateCounts();
-            document.documentElement.classList.remove('has-patter-doc');
-            document.documentElement.style.removeProperty('--patter-saved-title');
+            document.documentElement.classList.remove('has-patter-body');
             document.documentElement.style.removeProperty('--patter-saved-body');
         };
         const onImportDocument = (event) => {
-            const importedTitle = normalizeTitle(event.detail?.title ?? '');
             const importedBody = String(event.detail?.body ?? '').replace(/\r\n?/gu, '\n');
-            titleEl.replaceChildren(document.createTextNode(importedTitle));
             const bodyNodes = [];
             importedBody.split('\n').forEach((line, index) => {
                 if (index > 0) bodyNodes.push(document.createElement('br'));
                 if (line) bodyNodes.push(document.createTextNode(line));
             });
             bodyEl.replaceChildren(...bodyNodes);
-            clearEmptyMarkup(titleEl);
             clearEmptyMarkup(bodyEl);
             updateEmpty();
             updateCounts();
@@ -221,22 +186,7 @@
 <div class="flex min-w-0 w-full gap-2 overflow-hidden h-full">
     <div class="h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
     <div class="flex min-w-0 flex-1 flex-col h-full min-h-0 overflow-hidden">
-        <div class="flex min-w-0 w-full overflow-hidden font-[Bitter]">
-            <div
-                bind:this={titleEl}
-                contenteditable
-                data-patter-title
-                data-placeholder="Untitled"
-                data-empty="true"
-                oninput={handleInput}
-                onkeydown={(event) => handleEditorKeydown(event, true)}
-                onpaste={handleTitlePaste}
-                class="min-w-0 w-full flex-1 overflow-hidden whitespace-nowrap p-8 text-2xl font-medium opacity-90 h-full flex items-center"
-            ></div>
-        </div>
-        <div class="h-0.5 bg-linear-to-l from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
-
-        <div bind:this={scrollEl} class="editor-body-scroll w-full h-full min-h-0 font-[Bitter] text-lg
+        <div bind:this={scrollEl} class="editor-body-scroll w-full h-full min-h-0 font-[Bitter]
         overflow-y-scroll scrollbar-thumb-mauve-100/12 scrollbar-thin">
             <div
                 bind:this={bodyEl}
@@ -247,6 +197,7 @@
                 oninput={handleInput}
                 onkeydown={(event) => handleEditorKeydown(event)}
                 onpaste={handlePaste}
+                style="font-size: var(--patter-body-text-size, 18px); line-height: 1.555556"
                 class="flex flex-col gap-2 p-8 pb-[45vh] min-h-full"
             ></div>
         </div>
@@ -271,24 +222,12 @@
 </div>
 
 <style>
-    [data-patter-title] {
-        -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 2.5rem), transparent 100%);
-        mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 5rem), transparent 100%);
-    }
-
     .editor-body-scroll {
         -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 2.5rem), transparent 100%);
         mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 5rem), transparent 100%);
     }
 
-    :global(html.has-patter-doc [data-patter-title]::before) {
-        content: var(--patter-saved-title, "") !important;
-        position: static !important;
-        opacity: 0.9 !important;
-        white-space: pre-wrap !important;
-    }
-
-    :global(html.has-patter-doc [data-patter-body]::before) {
+    :global(html.has-patter-body [data-patter-body]::before) {
         content: var(--patter-saved-body, "") !important;
         position: static !important;
         opacity: 0.9 !important;

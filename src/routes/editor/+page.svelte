@@ -1,12 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import Background from '$lib/components/background.svelte';
-    import Header from '$lib/components/header.svelte'
-
-    import Button from '$lib/components/button.svelte';
-
-    // editor imports
-    import Title from '$lib/components/editor/title.svelte';
+    import EditorBody from '$lib/components/editor/body.svelte';
     import OptionsBar from '$lib/components/options_bar.svelte';
 
     // Add selectors here as more interface elements should fade during writing.
@@ -56,7 +50,7 @@
 
 <div class="flex flex-col w-screen h-screen p-12">
     <div class="w-full h-full max-w-3xl self-center min-h-0">
-        <Title onwriting={handleWriting} />
+        <EditorBody onwriting={handleWriting} />
     </div>
 </div>
 

@@ -64,13 +64,11 @@ export function getEditorText(element) {
     return textFromNode(element);
 }
 
-export function countEditorText(titleElement, bodyElement) {
-    const title = getEditorText(titleElement);
+export function countEditorText(bodyElement) {
     const body = getEditorText(bodyElement);
-
     return {
-        words: countWords(`${title}\n${body}`),
-        characters: countCharacters(title) + countCharacters(body)
+        words: countWords(body),
+        characters: countCharacters(body)
     };
 }
 

@@ -39,7 +39,8 @@
 	box-shadow: none;
 }
 
-.route-surface {
+.route-surface,
+.route-background {
 	will-change: opacity;
 }
 

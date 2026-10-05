@@ -188,7 +188,7 @@
 
 </script>
 
-<div class="absolute inset-0 h-full w-full pointer-events-none -z-5 select-none">
+<div class="route-background route-initial-hidden absolute inset-0 h-full w-full pointer-events-none -z-5 select-none">
     {#each visible_backgrounds as background (background.id)}
         <div
             class="background-layer absolute inset-0 bg-cover bg-center bg-no-repeat"

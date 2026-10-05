@@ -12,6 +12,7 @@ export const defaults = {
     focus: 10,
     tint: 50,
     grain: 2,
+    textSize: 18,
     position: 'center',
     background: defaultBackground,
 };
@@ -29,6 +30,7 @@ function applyToDocument(values) {
     document.documentElement.style.setProperty("--patter-focus", `${values.focus}px`);
     document.documentElement.style.setProperty("--patter-tint", `${values.tint / 100}`);
     document.documentElement.style.setProperty("--patter-grain", `${values.grain / 100}`);
+    document.documentElement.style.setProperty('--patter-body-text-size', `${values.textSize}px`);
     document.documentElement.style.setProperty('--patter-background-position', values.position);
     if (!values.background.startsWith('upload:')) {
         const item = builtInBackground(values.background);
@@ -48,6 +50,7 @@ function load() {
         values.focus = Math.min(15, Math.max(5, Number(values.focus) || defaults.focus));
         values.tint = Math.min(80, Math.max(20, Number(values.tint) || defaults.tint));
         values.grain = Math.min(4, Math.max(0, Number(values.grain) || 0));
+        values.textSize = Math.min(32, Math.max(12, Number(values.textSize) || defaults.textSize));
         values.position = ['top', 'center', 'bottom'].includes(values.position) ? values.position : defaults.position;
         values.background = validBackground(values.background);
         return values;
@@ -108,6 +111,7 @@ export function resetBackgroundValues() {
     background_values.focus = defaults.focus;
     background_values.tint = defaults.tint;
     background_values.grain = defaults.grain;
+    background_values.textSize = defaults.textSize;
     background_values.position = defaults.position;
     selectBuiltInBackground(defaults.background);
 }
