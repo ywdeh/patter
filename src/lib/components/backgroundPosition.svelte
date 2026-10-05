@@ -1,5 +1,6 @@
 <script>
     import { background_values, persistBackgroundValues } from '$lib/state/background.svelte.js';
+    import { playTapSound } from '$lib/state/tap-sound.js';
 
     const positions = ['top', 'center', 'bottom'];
 
@@ -7,9 +8,7 @@
         if (background_values.position === position) return;
         background_values.position = position;
         persistBackgroundValues();
-        const audio = new Audio('/type.mp3');
-        audio.volume = 0.15;
-        audio.play().catch(() => {});
+        playTapSound();
     }
 </script>
 

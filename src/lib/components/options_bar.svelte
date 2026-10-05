@@ -85,11 +85,11 @@
 </script>
 
 <div class="
-z-55 group/tools transition ease-in-out duration-200 delay-400 hover:delay-50 focus-within:delay-50 absolute flex h-screen bottom-0 lg:right-0 items-center justify-center p-6 
+z-55 group/tools transition ease-in-out duration-200 delay-400 hover:delay-50 focus-within:delay-50 absolute flex h-dvh max-w-[calc(100vw-3rem)] bottom-0 lg:right-0 items-center justify-center p-6 
     translate-y-[50%] hover:translate-y-0 lg:translate-y-0 lg:translate-x-[50%] lg:hover:translate-x-0 focus-within:translate-x-0 opacity-30 hover:opacity-100 focus-within:opacity-100 saturate-0 focus-within:saturate-100 hover:saturate-100"
     data-zen-mode-ui="options">
-    <div class="flex flex-col gap-12 justify-end">
-        <div class="flex gap-6 flex-col items-end">
+    <div class="flex min-h-0 max-h-[calc(100dvh-3rem)] max-w-full flex-col gap-12 justify-start overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
+        <div class="flex min-w-0 max-w-full shrink-0 flex-col items-end gap-6">
             <Toggle text="Fullscreen" bind:value={isFullscreen} ontrue={enterFullscreen} onfalse={exitFullscreen} />
             <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
             <BackgroundPicker />
@@ -99,11 +99,11 @@ z-55 group/tools transition ease-in-out duration-200 delay-400 hover:delay-50 fo
             {#if has_return}
                 <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
                 <div class="flex w-full flex-col gap-4">
-                    <div class="flex w-full gap-4">
+                    <div class="flex w-full min-w-0 flex-wrap gap-4">
                         <Button text="Back home" href="/" />
                         <HoldButton text="Clear saved data" oncomplete={clearSavedData} />
                     </div>
-                    <div class="flex w-full gap-4">
+                    <div class="flex w-full min-w-0 flex-wrap gap-4">
                         <Button text="Import .txt" onclick={() => importInput?.click()} />
                         <Button text="Export as .txt" onclick={exportEditorDocument} disabled={!hasExportContent} />
                     </div>

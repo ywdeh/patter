@@ -5,6 +5,7 @@
     import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, upgradeImagePoster } from '$lib/state/background-posters.js';
     import BackgroundThumbnail from '$lib/components/backgroundThumbnail.svelte';
     import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background-formats.js';
+    import { playTapSound } from '$lib/state/tap-sound.js';
 
     let uploadInput;
     let uploadError = $state('');
@@ -45,9 +46,7 @@
     });
 
     function playClick() {
-        const audio = new Audio("/type.mp3");
-        audio.volume = 0.15;
-        audio.play();
+        playTapSound();
     }
 
     function select(item) {

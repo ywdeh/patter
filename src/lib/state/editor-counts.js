@@ -8,6 +8,7 @@ const blockTags = new Set([
 const horizontalSpaces = /[\t \u00a0]+/gu;
 const trailingHorizontalSpaces = /[\t \u00a0]+$/u;
 const wordSeparators = /\s+/u;
+const DEFAULT_READING_WORDS_PER_MINUTE = 270;
 
 const graphemeSegmenter = typeof Intl.Segmenter === 'function'
     ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
@@ -71,4 +72,15 @@ export function countEditorText(titleElement, bodyElement) {
         words: countWords(`${title}\n${body}`),
         characters: countCharacters(title) + countCharacters(body)
     };
+}
+
+export function estimateReadingTime(wordCount, wordsPerMinute = DEFAULT_READING_WORDS_PER_MINUTE) {
+    const words = Math.max(0, Number(wordCount) || 0);
+    const rate = Math.max(1, Number(wordsPerMinute) || DEFAULT_READING_WORDS_PER_MINUTE);
+    let minutes = words === 0 ? 0 : Math.ceil(words / rate);
+    const hours = Math.floor(minutes / 60);
+    minutes %= 60;
+    if (hours === 0) return `${minutes}m`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h ${minutes}m`;
 }

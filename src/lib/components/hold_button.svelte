@@ -1,5 +1,6 @@
 <script>
     import { onDestroy } from 'svelte';
+    import { playTapSound } from '$lib/state/tap-sound.js';
 
     let {
         text = 'Hold to confirm',
@@ -12,15 +13,10 @@
     let isComplete = $state(false);
     let holdTimer;
     let resetTimer;
-    let lastPlayed = 0;
     let activeKey = null;
 
     function playSound() {
-        if (!sound || performance.now() - lastPlayed < 150) return;
-        lastPlayed = performance.now();
-        const audio = new Audio(sound);
-        audio.volume = 0.15;
-        audio.play().catch(() => {});
+        if (sound) playTapSound();
     }
 
     function startHold() {

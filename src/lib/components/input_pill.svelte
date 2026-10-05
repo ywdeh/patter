@@ -1,6 +1,7 @@
 <script>
     import { untrack } from "svelte";
     import { fly } from "svelte/transition";
+    import { playTapSound } from '$lib/state/tap-sound.js';
 
     let {
         text = null,
@@ -26,9 +27,7 @@
     const inDuration = 145;
 
     function playClick() {
-        const audio = new Audio("/type.mp3");
-        audio.volume = 0.15;
-        audio.play();
+        playTapSound();
     }
 
     function clamp(v) {

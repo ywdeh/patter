@@ -1,25 +1,12 @@
 <script>
 	import { goto } from '$app/navigation';
+	import { playTapSound } from '$lib/state/tap-sound.js';
 
-	let { text = null, href = null, icon = null, sound = "/type.mp3", onclick = null, cooldown = 150, disabled = false } = $props();
-
-	let lastPlayed = 0;
-
-	function playSound(src) {
-		if (!src) return;
-
-		const now = performance.now();
-		if (now - lastPlayed < cooldown) return;
-		lastPlayed = now;
-
-		const audio = new Audio(src);
-		audio.volume = 0.15;
-		audio.play();
-	}
+	let { text = null, href = null, icon = null, sound = "/type.mp3", onclick = null, disabled = false } = $props();
 
 	function handleClick(event) {
 		if (disabled) return;
-		playSound(sound);
+		if (sound) playTapSound();
 		onclick?.(event);
 
 		if (!href || event.defaultPrevented) return;

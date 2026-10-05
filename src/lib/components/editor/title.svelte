@@ -1,11 +1,11 @@
 <script>
     import { onMount } from "svelte";
-    import { countEditorText, getEditorText } from '$lib/state/editor-counts.js';
+    import { countEditorText, estimateReadingTime, getEditorText } from '$lib/state/editor-counts.js';
     import { handleSmartPunctuationInput, handleSmartPunctuationKeydown } from '$lib/state/editor-smart-punctuation.js';
+    import { playTapSound } from '$lib/state/tap-sound.js';
 
     let { onwriting = () => {} } = $props();
 
-    const typeSound = '/type.mp3';
     const STORAGE_KEY = "patter-doc";
     let titleEl;
     let bodyEl;
@@ -13,6 +13,7 @@
     let wordCount = $state(0);
     let characterCount = $state(0);
     let sessionTime = $state('0m');
+    let readingTime = $state('0m');
 
     if (typeof window !== 'undefined') window.patterPrimeDocumentPreview?.();
 
@@ -22,25 +23,6 @@
         title: "",
         body: ""
     };
-
-    // --- typing sound: pooled audio, browser-only ---
-    const MAX_VOICES = 4;
-    const audioPool = typeof window !== "undefined"
-        ? Array.from({ length: MAX_VOICES }, () => {
-            const a = new Audio(typeSound);
-            a.volume = 0.15;
-            return a;
-        })
-        : [];
-    let poolIndex = 0;
-
-    function playType() {
-        if (audioPool.length === 0) return;
-        const audio = audioPool[poolIndex];
-        poolIndex = (poolIndex + 1) % MAX_VOICES;
-        audio.currentTime = 0;
-        audio.play();
-    }
 
     function load() {
         try {
@@ -83,6 +65,7 @@
         const counts = countEditorText(titleEl, bodyEl);
         wordCount = counts.words;
         characterCount = counts.characters;
+        readingTime = estimateReadingTime(counts.words);
         window.dispatchEvent(new CustomEvent('patter-editor-content-change', {
             detail: { hasContent: titleEl.innerText.trim() !== '' || getEditorText(bodyEl).trim() !== '' }
         }));
@@ -135,22 +118,27 @@
         if (delta > 0) scrollEl.scrollBy({ top: delta });
     }
 
-    const soundedInputTypes = [
-        "insertText",
-        "insertParagraph",
-        "insertFromPaste",
-        "insertLineBreak",
-        "deleteContentBackward",
-        "deleteContentForward"
-    ];
+    function isSoundedEditorKey(event, isTitle = false) {
+        if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return false;
+        if (event.key === 'Backspace' || event.key === ' ') return true;
+        if (event.key === 'Enter') return !isTitle;
+        return /^[^\p{C}\s]$/u.test(event.key);
+    }
+
+    function handleEditorKeydown(event, isTitle = false) {
+        if (isSoundedEditorKey(event, isTitle)) playTapSound();
+        if (isTitle) {
+            handleSmartPunctuationKeydown(event);
+            if (event.key === 'Enter' && !event.isComposing) event.preventDefault();
+        } else {
+            handleSmartPunctuationKeydown(event);
+        }
+    }
 
     function handleInput(e) {
         if (handleSmartPunctuationInput(e)) return;
         clearEmptyMarkup(e.currentTarget);
         onwriting();
-        if (e.inputType && soundedInputTypes.includes(e.inputType)) {
-            playType();
-        }
         updateEmpty();
         updateCounts();
         save();
@@ -160,11 +148,6 @@
         e.preventDefault();
         const text = e.clipboardData.getData("text/plain");
         document.execCommand("insertText", false, text);
-    }
-
-    function handleTitleKeydown(event) {
-        handleSmartPunctuationKeydown(event);
-        if (event.key === 'Enter' && !event.isComposing) event.preventDefault();
     }
 
     function handleTitlePaste(event) {
@@ -246,7 +229,7 @@
                 data-placeholder="Untitled"
                 data-empty="true"
                 oninput={handleInput}
-                onkeydown={handleTitleKeydown}
+                onkeydown={(event) => handleEditorKeydown(event, true)}
                 onpaste={handleTitlePaste}
                 class="min-w-0 w-full flex-1 overflow-hidden whitespace-nowrap p-8 text-2xl font-medium opacity-90 h-full flex items-center"
             ></div>
@@ -262,7 +245,7 @@
                 data-placeholder="Once, there was a glorious kingdom..."
                 data-empty="true"
                 oninput={handleInput}
-                onkeydown={handleSmartPunctuationKeydown}
+                onkeydown={(event) => handleEditorKeydown(event)}
                 onpaste={handlePaste}
                 class="flex flex-col gap-2 p-8 pb-[45vh] min-h-full"
             ></div>
@@ -273,8 +256,14 @@
                 <p>{characterCount} {characterCount === 1 ? 'character' : 'characters'}</p>
             </div>
             <div class="flex gap-4 items-center">
-                <p>Session time</p>
-                <p>{sessionTime}</p>
+                <div class="flex gap-1 items-center">
+                    <p>Reading time</p>
+                    <p>{readingTime}</p>
+                </div>
+                <div class="flex gap-1 items-center">
+                    <p>Session time</p>
+                    <p>{sessionTime}</p>
+                </div>
             </div>
         </div>
     </div>
