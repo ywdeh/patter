@@ -4,7 +4,7 @@
     import OptionsBar from '$lib/components/options_bar.svelte';
 
     // Add selectors here as more interface elements should fade during writing.
-    const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-stats"]', '[data-zen-mode-ui="editor-toolbar"]'];
+    const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-toolbar"]'];
     let zenMode = false;
     let lastPointer = null;
     let pointerOrigin = null;
