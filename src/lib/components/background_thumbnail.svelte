@@ -127,7 +127,7 @@
             {/if}
         </div>
         <div
-            class="patter_surface absolute rounded-lg pointer-events-none
+        class="patter_surface patter_surface_no_shadow absolute rounded-lg pointer-events-none
             {selected
                 ? 'patter_surface_selected inset-1'
                 : 'patter_hover patter_active inset-0'}"></div>

@@ -124,6 +124,10 @@
 	transition-duration: var(--patter_motion_standard);
 }
 
+.patter_surface_no_shadow {
+	box-shadow: none;
+}
+
 .patter_surface_dashed {
 	@apply outline-2 outline-offset-2 outline-mauve-100/20 transition-[inset,outline-color] ease-out;
 	box-shadow: 0 0 12px var(--patter_shadow_color);
