@@ -42,13 +42,13 @@
 
 @font-face {
 	font-family: 'Amarante';
-	src: url('/fonts/amarante.woff2') format('woff2');
+	src: url('/fonts/amarante_regular.woff2') format('woff2');
 	font-display: swap;
 }
 
 @font-face {
 	font-family: 'Bitter';
-	src: url('/fonts/bitter.woff2') format('woff2');
+	src: url('/fonts/bitter_regular.woff2') format('woff2');
 	font-display: swap;
 }
 
