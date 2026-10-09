@@ -1,4 +1,3 @@
-// Flip this to false to return to the browser's native caret.
 export const CUSTOM_CARET_ENABLED = true;
 
 const STYLE_ID = 'patter-custom-caret-style';

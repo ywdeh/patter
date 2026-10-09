@@ -21,8 +21,6 @@
         onfalse = null,
         onchange = null
     } = $props();
-
-    // Fallback only used when no defaultValue is passed
     const initialValue = untrack(() => value);
     const resetTo = $derived(clamp(defaultValue ?? initialValue));
     const displayValue = $derived(displayValues?.[value] ?? `${value}${unit}`);
@@ -44,14 +42,10 @@
     }
 
     async function setToggle(next, event) {
-        // Toggle mode changes only from an actual button activation, never a wheel event.
         if (event?.type !== "click" || !event.isTrusted || next === value) return;
 
         playClick();
         direction = next ? 1 : -1;
-
-        // Invoke the action before awaiting it, so click-based browser APIs
-        // such as requestFullscreen still run inside the user gesture.
         const actionResult = (next ? ontrue : onfalse)?.();
         if (actionResult instanceof Promise && await actionResult === false) return;
 

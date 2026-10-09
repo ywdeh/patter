@@ -1,8 +1,6 @@
 @import 'tailwindcss';
-/* Quick-to-slow motion scale; specialized loops and hold_progress timing stay separate. */
 :root {
-	/* Shared visual tokens: edit these to tune Patter's global look. */
-	--patter_font_header: 'Amarante', serif;
+--patter_font_header: 'Amarante', serif;
 	--patter_font_body: 'Bitter', serif;
 	--patter_font_ui: 'Google Sans', sans-serif;
 	--patter_font_mono: 'Departure Mono', monospace;

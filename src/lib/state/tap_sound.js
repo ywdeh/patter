@@ -1,8 +1,5 @@
 const SOUND_SRC = '/type.mp3';
 const VOICE_COUNT = 4;
-
-// Start fetching the sound as soon as this module is imported, then reuse the
-// warmed audio elements so interactions do not create a cold player on demand.
 const voices = typeof Audio === 'undefined'
     ? []
     : Array.from({ length: VOICE_COUNT }, () => {

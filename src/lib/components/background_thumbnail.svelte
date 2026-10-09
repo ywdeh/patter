@@ -28,8 +28,6 @@
 
     onMount(() => {
         if (kind !== 'video' || !preview_video) return;
-        // Ask the browser to decode the opening frame while the card is idle.
-        // The paused frame can then be cached as the still thumbnail.
         preview_video.load();
         return () => preview_video?.pause();
     });
@@ -47,7 +45,6 @@
     }
 
     function captureVideoPoster(event) {
-        // Refresh any poster cached at the older, smaller thumbnail size.
         const poster = createVideoPoster(event.currentTarget);
         if (poster) {
             preview_poster = poster;

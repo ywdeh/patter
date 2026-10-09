@@ -20,8 +20,6 @@ function textFromNode(node) {
 
     const children = Array.from(node.childNodes);
     if (node.tagName === 'BR') return '\n';
-
-    // Contenteditable uses one or more BRs as the visual marker for a blank line.
     if (children.length > 0 && children.every((child) => child.nodeName === 'BR')) {
         return '\n'.repeat(Math.max(0, children.length - 1));
     }

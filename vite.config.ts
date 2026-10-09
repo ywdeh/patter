@@ -26,7 +26,6 @@ function discoverBackgrounds() {
 				const thumbnailStat = await fs.promises.stat(thumbnailPath);
 				if (thumbnailStat.mtimeMs >= sourceStat.mtimeMs) return true;
 			} catch {
-				// Generate a missing thumbnail below.
 			}
 
 			await fs.promises.mkdir(thumbnailDirectory, { recursive: true });
@@ -77,8 +76,6 @@ function discoverBackgrounds() {
 
 export default defineConfig({
 	server: {
-		// Vite's recursive public-directory watcher can fail on locked image files on Windows.
-		// The background catalog is discovered again on the next dev-server start.
 		watch: {
 			ignored: ['**/static/backgrounds/**']
 		}
@@ -88,7 +85,6 @@ export default defineConfig({
 		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
-				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 				runes: ({ filename }) => filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 			adapter: adapter()

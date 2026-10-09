@@ -41,8 +41,6 @@
                 }).catch(() => {});
             }
             if (records.length > 1) void replaceBackgroundUpload(record);
-            // Keep an uploaded image available as a thumbnail without
-            // overriding a built-in background selected before reload.
             if (selectedId && selectedId !== record.id) selectUploadedBackground(record.id, record.kind, url);
         }).catch(() => {});
         return () => {
@@ -93,7 +91,6 @@
         }
 
         hasUserAction = true;
-        // Play directly from the file selection gesture, before IndexedDB's async write.
         playClick();
         try {
             const id = crypto.randomUUID();

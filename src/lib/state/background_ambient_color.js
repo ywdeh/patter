@@ -1,5 +1,3 @@
-// Toggle ambient color sampling here. This module only changes the page's
-// underlying color; it does not alter the image/video layers or tint control.
 export const BACKGROUND_AMBIENT_COLOR_ENABLED = true;
 
 export const DEFAULT_AMBIENT_BACKGROUND_COLOR = '#0b120f';
@@ -44,7 +42,6 @@ function saveCachedBackgroundScrim(key, opacity) {
         }
         localStorage.setItem(SCRIM_CACHE_KEY, JSON.stringify(values));
     } catch {
-        // Brightness is a visual cache; storage limits must not block writing.
     }
 }
 
@@ -82,7 +79,6 @@ export async function sampleBackgroundScrim(source, kind = 'image') {
         const opacity = Math.min(0.62, Math.max(0, (averageLuminance - 0.12) * 0.8));
         return Math.round(opacity * 100) / 100;
     } catch {
-        // Tainted or unreadable media keeps the current scrim value.
         return null;
     }
 }
@@ -107,7 +103,6 @@ export function setAmbientBackgroundColor(color, key) {
         }
         localStorage.setItem(CACHE_KEY, JSON.stringify(colors));
     } catch {
-        // The color is only a visual cache; storage limits must not affect writing.
     }
 }
 
@@ -156,12 +151,9 @@ export async function sampleAmbientBackgroundColor(source, kind = 'image') {
 
         const channels = [red, green, blue].map((channel) => channel / weightTotal);
         const maximum = Math.max(...channels);
-        // Keep the sampled hue, but cap its brightest channel near the old
-        // near-black page background so the tint stays quiet behind the image.
         const darkening = Math.min(1, 14 / Math.max(maximum, 1));
         return `#${channels.map((channel) => Math.round(channel * darkening).toString(16).padStart(2, '0')).join('')}`;
     } catch {
-        // Tainted or unreadable media keeps the last safe dark background color.
         return null;
     }
 }

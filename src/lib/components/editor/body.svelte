@@ -36,7 +36,6 @@
         try {
             const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
             if (typeof saved?.markdown === 'string') return saved.markdown;
-            // Migrate the old HTML-backed document once into canonical Markdown.
             if (typeof saved?.body === 'string' && saved.body) {
                 const legacy = document.createElement('div');
                 legacy.innerHTML = saved.body;
@@ -126,9 +125,6 @@
         ));
         const distance = target - scrollEl.scrollTop;
         if (Math.abs(distance) < CARET_SCROLL_DEAD_ZONE) return;
-
-        // Wait for meaningful drift, then ease gently so normal typing does not
-        // make the whole page visibly nudge on each character.
         dimTextWhileScrolling();
         scrollEl.scrollTop += distance * CARET_SCROLL_EASING;
         caretScrollFrame = requestAnimationFrame(scrollCaretDownWhenNeeded);
@@ -162,7 +158,6 @@
         updateEmpty();
         updateCounts();
         scheduleCaretScroll();
-        // Milkdown's listener provides the canonical source string; input only refreshes view stats.
     }
 
     function replaceDocument(markdown) {

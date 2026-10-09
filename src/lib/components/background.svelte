@@ -79,7 +79,6 @@
                 document.documentElement.style.setProperty('--patter_background', `url("${poster}")`);
             }
         } catch {
-            // Poster capture is an enhancement; video playback continues without it.
         }
     }
 
@@ -127,8 +126,6 @@
             if (!incomingLayer || incomingLayer.id !== incoming.id) return;
             incomingLayer.opacity = 1;
             transitionInProgress = false;
-            // Leave the ending frame fully opaque underneath the restarted
-            // video until the new video has completely covered it.
             transitionTimer = window.setTimeout(() => {
                 if (untrack(() => visible_backgrounds.at(-1)?.id) === incoming.id) {
                     visible_backgrounds = [incomingLayer];
@@ -148,13 +145,10 @@
         window.clearTimeout(transitionTimer);
 
         const prepareAndTransition = async () => {
-            // Decode incoming stills before exposing their layer. This avoids a
-            // blank frame when switching away from video or large uploaded images.
             if (next.kind === 'image') {
                 try {
                     await loadBackgroundImage(next.url);
                 } catch {
-                    // Keep the previous background visible if an image cannot load.
                     if (id === transitionId && background_values.background === next.posterKey) {
                         selectBuiltInBackground(defaults.background);
                     }
@@ -182,8 +176,6 @@
                 videoOpacity: 1,
                 useBackgroundVariable: false
             };
-            // Keep the outgoing keyed layer in the DOM. In particular, this
-            // preserves the live video element and its current playback frame.
             transitionInProgress = true;
             visible_backgrounds = [outgoing, incoming];
             await tick();
@@ -200,9 +192,6 @@
             incomingLayer.position = background_values.position;
             incomingLayer.opacity = 1;
             transitionInProgress = false;
-            // Keep the outgoing image fully opaque underneath the incoming
-            // layer. Fading both layers exposes the dark page background
-            // halfway through the crossfade.
             transitionTimer = window.setTimeout(() => {
                 if (id === transitionId) visible_backgrounds = [incomingLayer];
             }, backgroundLayerCleanupDelay);
@@ -217,7 +206,6 @@
     });
 
     onMount(async () => {
-        // Keep the CSS-variable fallback active until the saved image decodes.
         const initialLayer = visible_backgrounds[0];
         const selection = background_values.background;
         if (!selection.startsWith('upload:')) {

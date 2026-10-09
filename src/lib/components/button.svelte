@@ -12,9 +12,9 @@
 		if (!href || event.defaultPrevented) return;
 
 		if (/^(https?:)?\/\//.test(href)) {
-			window.location.href = href; // external
+			window.location.href = href;
 		} else {
-			goto(href); // internal SvelteKit navigation
+			goto(href);
 		}
 	}
 </script>

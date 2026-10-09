@@ -1,6 +1,4 @@
 const preloadedImages = new Map();
-
-/** Load and decode a built-in background once, retaining the image in memory. */
 export function loadBackgroundImage(src) {
     if (typeof window === 'undefined' || !src) return Promise.resolve(null);
 
@@ -15,7 +13,6 @@ export function loadBackgroundImage(src) {
                 if (typeof image.decode === 'function') await image.decode();
                 resolve(image);
             } catch (error) {
-                // Some browsers can reject decode even when the image loaded.
                 if (image.naturalWidth > 0) resolve(image);
                 else reject(error);
             }
@@ -28,7 +25,6 @@ export function loadBackgroundImage(src) {
     });
 
     preloadedImages.set(src, { image, promise });
-    // Failed requests can be retried later if the user selects that background.
     void promise.catch(() => preloadedImages.delete(src));
     return promise;
 }

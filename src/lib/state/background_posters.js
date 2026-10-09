@@ -23,7 +23,6 @@ export function saveBackgroundPoster(key, dataUrl) {
         }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(posters));
     } catch {
-        // A poster is a cache. Storage limits should never block video playback.
     }
 }
 
@@ -34,7 +33,6 @@ export function removeBackgroundPoster(key) {
         delete posters[key];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(posters));
     } catch {
-        // Ignore unavailable storage; poster data can be regenerated.
     }
 }
 
@@ -49,9 +47,6 @@ export async function createImagePoster(blob) {
         const image = new Image();
         image.src = imageUrl;
         await image.decode();
-        // Image previews paint before IndexedDB restores the full upload.
-        // Keep enough detail to make the transition to the original subtle,
-        // including for portrait photos. Video posters stay smaller below.
         return encodePoster(image, image.naturalWidth, image.naturalHeight, 1280, 1280, 0.76);
     } finally {
         URL.revokeObjectURL(imageUrl);
@@ -70,7 +65,6 @@ export async function upgradeImagePoster(key, blob) {
             await image.decode();
             if (image.naturalWidth >= 1280 || image.naturalHeight >= 1280) return;
         } catch {
-            // Replace unreadable or older low-resolution previews below.
         }
     }
 

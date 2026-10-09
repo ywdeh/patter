@@ -1,5 +1,3 @@
-// Milkdown handles Markdown editing. This serializer only migrates legacy
-// HTML-backed documents into Markdown when an existing document is loaded.
 
 function inlineMarkdown(node) {
 	if (node.nodeType === Node.TEXT_NODE) return node.nodeValue ?? '';
