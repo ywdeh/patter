@@ -62,11 +62,12 @@
     function updateCounts() {
         if (!bodyEl) return;
         const counts = countEditorText(bodyEl);
+        const bodyText = getEditorText(bodyEl);
         wordCount = counts.words;
         characterCount = counts.characters;
         readingTime = estimateReadingTime(counts.words);
         window.dispatchEvent(new CustomEvent('patter-editor-content-change', {
-            detail: { hasContent: getEditorText(bodyEl).trim() !== '' }
+            detail: { hasContent: bodyText.trim() !== '', text: bodyText }
         }));
     }
 

@@ -6,6 +6,19 @@
     let zenMode = false;
     let lastPointer = null;
     let pointerOrigin = null;
+    let pageTitle = $state('Patter');
+
+    function updatePageTitle(text = '') {
+        const normalized = String(text).replace(/\s+/gu, ' ').trim();
+        if (!normalized) {
+            pageTitle = 'Patter';
+            return;
+        }
+        const symbols = typeof Intl.Segmenter === 'function'
+            ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(normalized), (part) => part.segment)
+            : Array.from(normalized);
+        pageTitle = `Patter - ${symbols.slice(0, 16).join('')}${symbols.length > 16 ? '…' : ''}`;
+    }
 
     function setZenMode(active) {
         zenMode = active;
@@ -25,6 +38,9 @@
     }
 
     onMount(() => {
+        const handleContentChange = (event) => updatePageTitle(event.detail?.text ?? '');
+        window.addEventListener('patter-editor-content-change', handleContentChange);
+
         function handlePointerMove(event) {
             if (event.pointerType !== 'mouse') return;
             const position = { x: event.clientX, y: event.clientY };
@@ -39,6 +55,7 @@
 
         window.addEventListener('pointermove', handlePointerMove);
         return () => {
+            window.removeEventListener('patter-editor-content-change', handleContentChange);
             window.removeEventListener('pointermove', handlePointerMove);
             setZenMode(false);
         };
@@ -48,7 +65,7 @@
 <OptionsBar />
 
 <svelte:head>
-    <title>Editor — Patter</title>
+    <title>{pageTitle}</title>
 </svelte:head>
 
 <main aria-label="Editor" class="flex h-dvh w-screen flex-col px-12 py-12">
