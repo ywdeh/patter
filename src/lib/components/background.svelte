@@ -37,6 +37,7 @@
     let transitionTimer;
     let transitionId = 0;
     let transitionInProgress = $state(false);
+    let prefersReducedMotion = false;
 
     $effect(() => {
         const position = background_values.position;
@@ -65,6 +66,8 @@
     }
 
     function handleVideoReady(background, video) {
+        if (prefersReducedMotion) video.pause();
+        else video.play().catch(() => {});
         void updateAmbientColor(video, background.posterKey || background.url, 'video');
         const layer = untrack(() => visible_backgrounds.find((item) => item.id === background.id));
         if (layer) layer.videoOpacity = 1;
@@ -81,6 +84,20 @@
         } catch {
         }
     }
+
+    onMount(() => {
+        const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const syncMotionPreference = () => {
+            prefersReducedMotion = motionPreference.matches;
+            document.querySelectorAll('.route_background video').forEach((video) => {
+                if (prefersReducedMotion) video.pause();
+                else video.play().catch(() => {});
+            });
+        };
+        syncMotionPreference();
+        motionPreference.addEventListener('change', syncMotionPreference);
+        return () => motionPreference.removeEventListener('change', syncMotionPreference);
+    });
 
     function handleVideoError(background) {
         if (background.url === defaults.background) return;
@@ -262,7 +279,7 @@
             style:background-image={background.kind === 'video' ? "var(--patter_background), url('/backgrounds/lantern_in_the_forest.webp')" : 'none'}
         >
             {#if background.kind === 'video'}
-                <video class="absolute h-full w-full object-cover" style={`object-position: center ${background.position}; opacity: ${background.videoOpacity}; transition: object-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--patter_motion_slow) ease-in-out`} src={background.url} autoplay muted preload="auto" playsinline disablepictureinpicture aria-hidden="true" onloadeddata={(event) => handleVideoReady(background, event.currentTarget)} onerror={() => handleVideoError(background)} onended={() => handleVideoEnded(background)}></video>
+                <video class="absolute h-full w-full object-cover" style={`object-position: center ${background.position}; opacity: ${background.videoOpacity}; transition: object-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--patter_motion_slow) ease-in-out`} src={background.url} muted preload="auto" playsinline disablepictureinpicture aria-hidden="true" onloadeddata={(event) => handleVideoReady(background, event.currentTarget)} onerror={() => handleVideoError(background)} onended={() => handleVideoEnded(background)}></video>
             {:else}
                 <div class="absolute inset-0 bg-cover" style={`background-position: center ${background.position}; transition: background-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1); ${background.useBackgroundVariable ? "background-image: var(--patter_background), url('/backgrounds/lantern_in_the_forest.webp')" : `background-image: url("${background.url}")`}`}></div>
             {/if}

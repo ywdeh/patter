@@ -79,6 +79,13 @@
         }
     }
 
+    function backgroundLabel(src) {
+        return (src.split('/').at(-1) ?? src)
+            .replace(/\.[^.]+$/u, '')
+            .replace(/[_-]+/gu, ' ')
+            .replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
+    }
+
     async function upload(event) {
         const file = event.currentTarget.files?.[0];
         event.currentTarget.value = '';
@@ -145,7 +152,7 @@
             thumbnailSrc={item.thumbnail ?? item.src}
             {selected}
             position={background_values.position}
-            label="Select built-in background"
+            label={`Select background ${backgroundLabel(item.src)}`}
             onselect={() => select(item)}
             onposition={(position) => selectPosition(item, position)} />
     {/each}
@@ -156,6 +163,7 @@
         type="file"
         accept={backgroundFileAccept}
         onchange={upload}
+        tabindex="-1"
         aria-label="Upload an image or video background" />
     <div class="col-span-2 grid grid-cols-2 gap-4">
         {#if uploads.length > 0}

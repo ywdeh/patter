@@ -18,22 +18,32 @@
     const positions = ['top', 'center', 'bottom'];
     let video_preview_active = $state(false);
     let preview_poster = $state(null);
-    let preview_video;
+    let preview_video = $state(null);
     let wheelLocked = false;
     let wheelLockTimer = null;
+    let prefersReducedMotion = false;
 
     $effect(() => {
         preview_poster = poster ?? getBackgroundPoster(posterKey);
     });
 
     onMount(() => {
-        if (kind !== 'video' || !preview_video) return;
-        preview_video.load();
-        return () => preview_video?.pause();
+        const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const syncMotionPreference = () => {
+            prefersReducedMotion = motionPreference.matches;
+            if (prefersReducedMotion) stopVideoPreview();
+        };
+        syncMotionPreference();
+        motionPreference.addEventListener('change', syncMotionPreference);
+        if (kind === 'video' && preview_video) preview_video.load();
+        return () => {
+            motionPreference.removeEventListener('change', syncMotionPreference);
+            preview_video?.pause();
+        };
     });
 
     function startVideoPreview() {
-        if (kind !== 'video') return;
+        if (kind !== 'video' || prefersReducedMotion) return;
         video_preview_active = true;
         preview_video?.play().catch(() => {});
     }
@@ -86,8 +96,8 @@
         aria-label={label}
         aria-pressed={selected}
         class="patter_control patter_control_compact absolute inset-0 w-full cursor-pointer">
-        <div
-            class="media_viewport absolute inset-0 rounded-lg bg-center patter_shadow overflow-hidden {selected ? 'is-selected' : ''}">
+        <span
+            class="media_viewport absolute inset-0 block rounded-lg bg-center patter_shadow overflow-hidden {selected ? 'is-selected' : ''}">
             {#if kind === 'video'}
                 {#if preview_poster || thumbnailSrc !== src}
                     <img
@@ -98,7 +108,7 @@
                         decoding="async"
                         aria-hidden="true">
                 {:else}
-                    <div class="absolute inset-0 bg-mauve-100/5" aria-hidden="true"></div>
+                    <span class="absolute inset-0 bg-mauve-100/5" aria-hidden="true"></span>
                 {/if}
                 <video
                     bind:this={preview_video}
@@ -122,12 +132,12 @@
                     decoding="async"
                     aria-hidden="true">
             {/if}
-        </div>
-        <div
+        </span>
+        <span
         class="patter_surface absolute rounded-lg pointer-events-none
             {selected
                 ? 'patter_surface_selected inset-1'
-                : 'patter_hover patter_active inset-0'}"></div>
+                : 'patter_hover patter_active inset-0'}"></span>
     </button>
 
     <div

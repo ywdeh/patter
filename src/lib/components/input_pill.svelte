@@ -146,7 +146,7 @@
 
 </script>
 
-<div class="flex gap-4 items-center w-full">
+<div role="group" aria-label={text ?? 'Setting controls'} class="flex gap-4 items-center w-full">
     <p class="flex-1 select-none">{text}</p>
     {#if mode === "toggle"}
     <div class="flex flex-[1.5] gap-4 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
@@ -154,10 +154,10 @@
             onclick={(event) => setToggle(false, event)}
             disabled={!value}
             class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <div class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>
-            <p class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+            <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+            <span class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
                 <img src="/sub.svg" alt={falseLabel} class="size-5">
-            </p>
+            </span>
         </button>
 
         <div class="min-w-15 h-6 relative overflow-hidden select-none">
@@ -176,10 +176,10 @@
             onclick={(event) => setToggle(true, event)}
             disabled={value}
             class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <div class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>
-            <p class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+            <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+            <span class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
                 <img src="/add.svg" alt={trueLabel} class="size-5">
-            </p>
+            </span>
         </button>
     </div>
     {:else}
@@ -192,16 +192,17 @@
             disabled={value <= min}
             class:wheel_pressed={wheelPressedDirection === -1}
             class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <div
+            <span
+                aria-hidden="true"
                 class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
-            </div>
+            </span>
 
-            <p class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+            <span class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
                 <img src="/sub.svg" alt="decrease" class="size-5">
-            </p>
+            </span>
         </button>
 
-        <div class="min-w-20 h-6 relative overflow-hidden select-none" role="button" tabindex="0" aria-label="Reset to default; double-click or press Enter to reset" title="Double-click to reset" onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
+        <div class="min-w-20 h-6 relative overflow-hidden select-none" role="button" tabindex="0" aria-label={`${displayValue}; press Enter or Space, or double-click, to reset to default`} title="Double-click to reset" onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
             {#key value}
                 <p
                     class="absolute inset-0"
@@ -221,13 +222,14 @@
             disabled={value >= max}
             class:wheel_pressed={wheelPressedDirection === 1}
             class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <div
+            <span
+                aria-hidden="true"
                 class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
-            </div>
+            </span>
 
-            <p class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+            <span class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
                 <img src="/add.svg" alt="increase" class="size-5">
-            </p>
+            </span>
         </button>
 
         <button
@@ -235,13 +237,14 @@
             disabled={value === resetTo}
             aria-label="Reset to default"
             class="patter_control patter_control_round group transition h-6 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <div
+            <span
+                aria-hidden="true"
                 class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
-            </div>
+            </span>
 
-            <p class="flex items-center gap-2 px-1 relative pointer-events-none select-none">
-                <img src="/undo.svg" alt="reset" class="size-5">
-            </p>
+            <span class="flex items-center gap-2 px-1 relative pointer-events-none select-none">
+                <img src="/undo.svg" alt="" class="size-5">
+            </span>
         </button>
     </div>
     {/if}

@@ -13,6 +13,7 @@
 
 	let root;
 	let menu = $state(null);
+	let menuTrigger;
 	let open = $state(false);
 	let selectedValue = $state('');
 	let menuPosition = $state({ top: 0, left: 0, minWidth: 0 });
@@ -61,12 +62,14 @@
 		open = true;
 		await tick();
 		updateMenuPosition();
+		menu?.querySelector('button')?.focus();
 	}
 
 	function selectOption(option) {
 		if (!option) return;
 		selectedValue = option.value;
 		closeMenu();
+		menuTrigger?.focus();
 		playTapSound();
 		onselect?.(option.value, option);
 	}
@@ -82,7 +85,10 @@
 	}
 
 	function handleDocumentKeydown(event) {
-		if (event.key === 'Escape' && open) closeMenu();
+		if (event.key === 'Escape' && open) {
+			closeMenu();
+			menuTrigger?.focus();
+		}
 	}
 
 	function handleViewportChange() {
@@ -103,7 +109,7 @@
 	});
 </script>
 
-<div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group">
+<div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group" aria-label={text}>
 	<div class="patter_control group/hitbox relative flex items-center w-fit" class:patter_disabled={disabled}>
 		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
 		<button type="button" disabled={disabled} class="relative min-h-12 cursor-pointer select-none px-4 py-3 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
@@ -115,7 +121,7 @@
 			</span>
 		</button>
 		<div aria-hidden="true" class="relative h-5 w-0.5 shrink-0 bg-mauve-100/12"></div>
-		<button type="button" disabled={disabled} aria-label={ariaLabel} aria-haspopup="menu" aria-expanded={open} class="relative flex min-h-12 min-w-10 cursor-pointer items-center justify-center px-2 transition-colors hover:text-white disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
+		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="relative flex min-h-12 min-w-10 cursor-pointer items-center justify-center px-2 transition-colors hover:text-white disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
 			<svg aria-hidden="true" viewBox="0 0 12 8" class="h-2 w-3 transition-transform" class:rotate-180={open} fill="none"><path d="m1 1 5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
 		</button>
 	</div>
@@ -124,13 +130,15 @@
 		<div
 			bind:this={menu}
 			use:portalToBody
-			role="menu"
+			id="export-format-options"
+			role="group"
+			aria-label="Export format"
 			class="patter_control_text fixed z-[10000] min-w-max rounded-xl p-1 outline-2 outline-offset-2 outline-mauve-100/16"
 			style={`top:${menuPosition.top}px;left:${menuPosition.left}px;min-width:${menuPosition.minWidth}px`}
 		>
 			<div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
 			{#each options as option (option.value)}
-				<button type="button" role="menuitemradio" aria-checked={selectedValue === option.value} class="relative z-10 block w-full whitespace-nowrap rounded-lg px-4 py-3 text-left transition-colors hover:bg-mauve-100/10 focus-visible:bg-mauve-100/10 focus-visible:outline-2 focus-visible:outline-mauve-100/40" onclick={() => selectOption(option)}>
+				<button type="button" aria-pressed={selectedValue === option.value} class="relative z-10 block w-full whitespace-nowrap rounded-lg px-4 py-3 text-left transition-colors hover:bg-mauve-100/10 focus-visible:bg-mauve-100/10 focus-visible:outline-2 focus-visible:outline-mauve-100/40" onclick={() => selectOption(option)}>
 					{option.menuLabel ?? option.label}
 					{#if selectedValue === option.value}<span class="ml-3 opacity-60" aria-hidden="true">✓</span>{/if}
 				</button>

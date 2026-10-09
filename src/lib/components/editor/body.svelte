@@ -123,6 +123,10 @@
             scrollEl.scrollHeight - scrollEl.clientHeight,
             scrollEl.scrollTop + caretCenter - centerLine
         ));
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            scrollEl.scrollTop = target;
+            return;
+        }
         const distance = target - scrollEl.scrollTop;
         if (Math.abs(distance) < CARET_SCROLL_DEAD_ZONE) return;
         dimTextWhileScrolling();
@@ -209,7 +213,11 @@
             if (!bodyEl) return;
             unmountCustomCaret = mountCustomCaret(scrollEl, bodyEl);
             bodyEl.setAttribute('data-patter-body', '');
+            bodyEl.setAttribute('role', 'textbox');
+            bodyEl.setAttribute('aria-label', 'Writing area');
+            bodyEl.setAttribute('aria-multiline', 'true');
             bodyEl.dataset.placeholder = 'Once, there was a glorious kingdom...';
+            bodyEl.setAttribute('aria-placeholder', bodyEl.dataset.placeholder);
             bodyEl.dataset.empty = 'true';
             bodyEl.classList.add('flex', 'flex-col', 'gap-2', 'p-8', 'pb-[45vh]', 'min-h-full');
             bodyEl.style.lineHeight = '1.555556';

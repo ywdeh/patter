@@ -5,7 +5,11 @@
 
 <OptionsBar />
 
+<svelte:head>
+    <title>Page not found — Patter</title>
+</svelte:head>
+
 <main class="flex h-screen w-screen flex-col items-center justify-center gap-12 p-8 text-center">
-    <h1 class="patter_font_header text-9xl tracking-tight">Patter</h1>
+    <h1 aria-label="Page not found — Patter" class="patter_font_header text-9xl tracking-tight">Patter</h1>
     <Button href="/" text="Back home" sound="/type.mp3" />
 </main>

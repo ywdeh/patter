@@ -12,6 +12,7 @@
         for (const selector of zenModeUiSelectors) {
             document.querySelectorAll(selector).forEach((element) => {
                 element.classList.toggle('zen-mode-hidden', active);
+                element.inert = active;
             });
         }
         if (!active) pointerOrigin = null;
@@ -46,11 +47,16 @@
 
 <OptionsBar />
 
-<div class="flex h-dvh w-screen flex-col px-12 py-12">
+<svelte:head>
+    <title>Editor — Patter</title>
+</svelte:head>
+
+<main aria-label="Editor" class="flex h-dvh w-screen flex-col px-12 py-12">
+    <h1 class="sr-only">Patter editor</h1>
     <div class="w-full h-full max-w-3xl self-center min-h-0" data-editor-container>
         <EditorBody onwriting={handleWriting} />
     </div>
-</div>
+</main>
 
 <style>
     :global([data-zen-mode-ui]) {

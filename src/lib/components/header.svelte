@@ -2,18 +2,18 @@
     import Button from '$lib/components/button.svelte';
 </script>
 
-<div class="flex flex-col p-24 items-center justify-center gap-12 w-screen h-screen">
+<main class="flex flex-col p-24 items-center justify-center gap-12 w-screen h-screen">
 
     <div class="flex flex-col gap-24 items-center text-center">
 
         <div class="flex flex-col gap-4">
             <h1 class="patter_font_header text-9xl tracking-tight">Patter</h1>
-            <h2 class="patter_text_secondary">
+            <div class="patter_text_secondary">
                 <p>Ambient text editor for you to focus on writing.</p>
-                <div class="mask-[linear-gradient(to_right,rgba(0,0,0,1)_0%,rgba(0,0,0,0.4)_100%)]">
+                <p class="mask-[linear-gradient(to_right,rgba(0,0,0,1)_0%,rgba(0,0,0,0.4)_100%)]">
                     Everything else stays out of sight
-                </div>
-            </h2>
+                </p>
+            </div>
         </div>
 
         <div class="flex gap-2 px-1 self-center items-center">
@@ -31,4 +31,4 @@
         </div>
 
     </div>
-</div>
+</main>

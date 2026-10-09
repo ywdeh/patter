@@ -8,30 +8,28 @@
 		if (disabled) return;
 		if (sound) playTapSound();
 		onclick?.(event);
-
 		if (!href || event.defaultPrevented) return;
-
-		if (/^(https?:)?\/\//.test(href)) {
-			window.location.href = href;
-		} else {
-			goto(href);
-		}
+		if (/^(https?:)?\/\//.test(href)) window.location.href = href;
+		else goto(href);
 	}
 </script>
 
-<button type="button"
-	disabled={disabled}
-	aria-label={ariaLabel}
-    onclick={handleClick}
-	class="patter_control patter_control_text group/hitbox flex items-center relative w-fit cursor-pointer disabled:cursor-default  disabled:pointer-events-none">
-    <div
-        class="patter_surface patter_hover active:patter_active {disabled ? '' : 'patter_active'} absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
-    </div>
-
-    <span class="flex items-center gap-2 relative px-4 py-3 pointer-events-none select-none min-h-12">
+{#snippet buttonContent()}
+    <span class="flex min-h-12 items-center gap-2 relative px-4 py-3 pointer-events-none select-none">
         {text}
         {#if icon}
-            <img src="{icon}" alt="" class="size-5 fill-black select-none pointer-events-none opacity-80" draggable="false">
+            <img src={icon} alt="" class="size-5 fill-black select-none pointer-events-none opacity-80" draggable="false">
         {/if}
     </span>
+{/snippet}
+
+<button
+    type="button"
+    disabled={disabled}
+    aria-label={ariaLabel}
+    onclick={handleClick}
+    class="patter_control patter_control_text group/hitbox relative flex w-fit cursor-pointer items-center disabled:cursor-default disabled:pointer-events-none"
+>
+    <span class="patter_surface patter_hover {disabled ? '' : 'patter_active'} absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0" aria-hidden="true"></span>
+    {@render buttonContent()}
 </button>
