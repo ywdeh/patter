@@ -1,8 +1,12 @@
 import backgroundsFromFolder from 'virtual:patter-backgrounds';
 import { getBackgroundPoster } from '$lib/state/background_posters.js';
+import { preloadBackgroundImages } from '$lib/state/background_preloader.js';
 
 const STORAGE_KEY = "background-values";
 export const backgrounds = backgroundsFromFolder;
+// Built-in stills are small enough to keep warm for immediate background changes.
+// Videos remain lazy so they do not compete with the initial page load.
+preloadBackgroundImages(backgrounds);
 export const DEFAULT_BACKGROUND_SRC = '/backgrounds/lantern_in_the_forest.webp';
 const defaultBackground = backgrounds.find((item) => item.src === DEFAULT_BACKGROUND_SRC)?.src
     ?? backgrounds[0]?.src

@@ -4,6 +4,7 @@
     import { tick } from 'svelte';
     import { active_background, background_values, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
     import { getBackgroundUpload } from '$lib/state/background_media.js';
+    import { loadBackgroundImage } from '$lib/state/background_preloader.js';
     import { createVideoPoster, getBackgroundPoster, saveBackgroundPoster } from '$lib/state/background_posters.js';
     import {
         BACKGROUND_AMBIENT_COLOR_ENABLED,
@@ -150,10 +151,8 @@
             // Decode incoming stills before exposing their layer. This avoids a
             // blank frame when switching away from video or large uploaded images.
             if (next.kind === 'image') {
-                const image = new Image();
-                image.src = next.url;
                 try {
-                    await image.decode();
+                    await loadBackgroundImage(next.url);
                 } catch {
                     // Keep the previous background visible if an image cannot load.
                     if (id === transitionId && background_values.background === next.posterKey) {
@@ -230,10 +229,8 @@
                 initialLayer.useBackgroundVariable = true;
             }
             if (active_background.kind === 'image') {
-                const image = new Image();
-                image.src = active_background.url;
                 try {
-                    await image.decode();
+                    await loadBackgroundImage(active_background.url);
                 } catch {
                     if (background_values.background === selection && selection !== defaults.background) {
                         selectBuiltInBackground(defaults.background);
