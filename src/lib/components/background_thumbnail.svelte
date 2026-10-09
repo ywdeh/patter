@@ -112,6 +112,7 @@
                     loop
                     preload="auto"
                     playsinline
+                    disablepictureinpicture
                     aria-hidden="true"
                     onloadeddata={captureVideoPoster}></video>
             {:else}
