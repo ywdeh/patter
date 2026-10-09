@@ -274,6 +274,8 @@
         mask-image: var(--editor-mask);
     }
     :global(.editor_body_scroll::-webkit-scrollbar-button) { display: none; width: 0; height: 0; }
+    :global(.editor_body_scroll.zen-mode-scrollbar-hidden) { scrollbar-width: none; -ms-overflow-style: none; }
+    :global(.editor_body_scroll.zen-mode-scrollbar-hidden::-webkit-scrollbar) { display: none; width: 0; height: 0; }
     :global(.editor_body_scroll .ProseMirror) {
         font-size: var(--patter_body_text_size, 18px);
         transition: font-size var(--patter_motion_standard) ease, opacity var(--patter_motion_gentle) ease;

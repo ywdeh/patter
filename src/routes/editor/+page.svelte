@@ -5,6 +5,7 @@
 
     // Add selectors here as more interface elements should fade during writing.
     const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-toolbar"]'];
+    const zenModeScrollbarSelectors = ['.editor_body_scroll'];
     let zenMode = false;
     let lastPointer = null;
     let pointerOrigin = null;
@@ -14,6 +15,11 @@
         for (const selector of zenModeUiSelectors) {
             document.querySelectorAll(selector).forEach((element) => {
                 element.classList.toggle('zen-mode-hidden', active);
+            });
+        }
+        for (const selector of zenModeScrollbarSelectors) {
+            document.querySelectorAll(selector).forEach((element) => {
+                element.classList.toggle('zen-mode-scrollbar-hidden', active);
             });
         }
         if (!active) pointerOrigin = null;
