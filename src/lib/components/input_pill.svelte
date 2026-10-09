@@ -1,33 +1,62 @@
 <script>
     import { untrack } from "svelte";
     import { fly } from "svelte/transition";
-    import { playTapSound } from '$lib/state/tap-sound.js';
+    import { playTapSound } from '$lib/state/tap_sound.js';
+    import { motionDuration } from '$lib/state/motion.js';
 
     let {
         text = null,
         value = $bindable(60),
+        mode = "stepper",
         defaultValue = null,
         min = 0,
         max = 100,
         step = 10,
-        unit = "%",
+        unit = "",
+        displayValues = null,
         holdInterval = 200,
+        trueLabel = "On",
+        falseLabel = "Off",
+        ontrue = null,
+        onfalse = null,
         onchange = null
     } = $props();
 
     // Fallback only used when no defaultValue is passed
     const initialValue = untrack(() => value);
     const resetTo = $derived(clamp(defaultValue ?? initialValue));
+    const displayValue = $derived(displayValues?.[value] ?? `${value}${unit}`);
 
     let holdTimer = null;
     let holdStarted = false;
     let direction = $state(1);
+    let wheelRemainder = 0;
+    let wheelOnCooldown = false;
+    let wheelCooldownTimer = null;
+    let wheelPressedDirection = $state(0);
+    let wheelAnimationTimer = null;
 
-    const outDuration = 110;
-    const inDuration = 145;
+    const outDuration = motionDuration('quick', 100);
+    const inDuration = motionDuration('short', 150);
 
     function playClick() {
         playTapSound();
+    }
+
+    async function setToggle(next, event) {
+        // Toggle mode changes only from an actual button activation, never a wheel event.
+        if (event?.type !== "click" || !event.isTrusted || next === value) return;
+
+        playClick();
+        direction = next ? 1 : -1;
+
+        // Invoke the action before awaiting it, so click-based browser APIs
+        // such as requestFullscreen still run inside the user gesture.
+        const actionResult = (next ? ontrue : onfalse)?.();
+        if (actionResult instanceof Promise && await actionResult === false) return;
+
+        value = next;
+        onchange?.(next);
     }
 
     function clamp(v) {
@@ -44,13 +73,61 @@
         }
     }
 
-    function reset() {
+    function handleWheel(event) {
+        if (mode === "toggle") return;
+        event.preventDefault();
+        if (wheelOnCooldown) return;
+
+        const delta = event.deltaY * (event.deltaMode === 1 ? 40 : event.deltaMode === 2 ? window.innerHeight : 1);
+        wheelRemainder -= delta;
+
+        if (Math.abs(wheelRemainder) >= 5) {
+            const direction = Math.sign(wheelRemainder);
+            const previousValue = value;
+            step_(direction * step);
+            wheelRemainder = 0;
+            if (value !== previousValue) {
+                wheelPressedDirection = direction;
+                clearTimeout(wheelAnimationTimer);
+                wheelAnimationTimer = setTimeout(() => {
+                    wheelPressedDirection = 0;
+                    wheelAnimationTimer = null;
+                }, 100);
+            }
+            wheelOnCooldown = true;
+            wheelCooldownTimer = setTimeout(() => {
+                wheelOnCooldown = false;
+                wheelCooldownTimer = null;
+            }, holdInterval / 2);
+        }
+    }
+
+    function attachNonPassiveWheel(node) {
+        node.addEventListener('wheel', handleWheel, { passive: false });
+        return () => {
+            node.removeEventListener('wheel', handleWheel);
+            clearTimeout(wheelCooldownTimer);
+            clearTimeout(wheelAnimationTimer);
+        };
+    }
+
+    function reset(playSound = true) {
         if (resetTo !== value) {
-            playClick();
+            if (playSound) playClick();
             direction = resetTo > value ? 1 : -1;
             value = resetTo;
             onchange?.(resetTo);
         }
+    }
+
+    function playResetClick() {
+        if (value !== resetTo) playClick();
+    }
+
+    function handleValueKeydown(event) {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        reset();
     }
 
     function startHold(delta) {
@@ -77,6 +154,41 @@
 
 <div class="flex gap-4 items-center w-full">
     <p class="flex-1 select-none">{text}</p>
+    {#if mode === "toggle"}
+    <div class="flex flex-[1.5] gap-4 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
+        <button
+            onclick={(event) => setToggle(false, event)}
+            disabled={!value}
+            class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
+            <div class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>
+            <p class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+                <img src="/sub.svg" alt={falseLabel} class="size-5">
+            </p>
+        </button>
+
+        <div class="min-w-15 h-6 relative overflow-hidden select-none">
+            {#key value}
+                <p
+                    class="absolute inset-0"
+                    in:fly={{ x: direction * 20, duration: inDuration, delay: outDuration }}
+                    out:fly={{ x: direction * -20, duration: outDuration }}
+                >
+                    {value ? trueLabel : falseLabel}
+                </p>
+            {/key}
+        </div>
+
+        <button
+            onclick={(event) => setToggle(true, event)}
+            disabled={value}
+            class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
+            <div class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>
+            <p class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+                <img src="/add.svg" alt={trueLabel} class="size-5">
+            </p>
+        </button>
+    </div>
+    {:else}
     <div class="flex flex-[1.5] gap-4 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
         <button
             onclick={() => handleClick(-step)}
@@ -84,16 +196,10 @@
             onpointerup={endHold}
             onpointerleave={endHold}
             disabled={value <= min}
-            class="group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer disabled:opacity-30 disabled:pointer-events-none">
+            class:wheel_pressed={wheelPressedDirection === -1}
+            class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <div
-                class="absolute inset-0 rounded-full
-                bg-linear-to-b from-mauve-100/6 to-mauve-100/0
-                backdrop-blur-none
-                outline-2 outline-offset-2 outline-mauve-100/12 group-hover/inputpill:outline-mauve-100/24
-                patter_shadow
-                transition-[inset,border-radius,outline] duration-200 ease-out
-                group-hover/inputpill:inset-1
-                group-active/inputpill:inset-2 group-disabled:inset-2">
+                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
             </div>
 
             <p class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
@@ -101,14 +207,14 @@
             </p>
         </button>
 
-        <div class="min-w-15 h-6 relative overflow-hidden select-none tabular-nums">
+        <div class="min-w-20 h-6 relative overflow-hidden select-none" role="button" tabindex="0" aria-label="Reset to default; double-click or press Enter to reset" title="Double-click to reset" onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
             {#key value}
                 <p
                     class="absolute inset-0"
                     in:fly={{ x: direction * 20, duration: inDuration, delay: outDuration }}
                     out:fly={{ x: direction * -20, duration: outDuration }}
                 >
-                    {value}{unit}
+                    {displayValue}
                 </p>
             {/key}
         </div>
@@ -119,16 +225,10 @@
             onpointerup={endHold}
             onpointerleave={endHold}
             disabled={value >= max}
-            class="group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer disabled:opacity-30 disabled:pointer-events-none">
+            class:wheel_pressed={wheelPressedDirection === 1}
+            class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <div
-                class="absolute inset-0 rounded-full
-                bg-linear-to-b from-mauve-100/6 to-mauve-100/0
-                backdrop-blur-none
-                outline-2 outline-offset-2 outline-mauve-100/12 group-hover/inputpill:outline-mauve-100/24
-                patter_shadow
-                transition-[inset,border-radius,outline] duration-200 ease-out
-                group-hover/inputpill:inset-1
-                group-active/inputpill:inset-2 group-disabled:inset-2">
+                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
             </div>
 
             <p class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
@@ -137,19 +237,12 @@
         </button>
 
         <button
-            onclick={reset}
+            onclick={() => reset()}
             disabled={value === resetTo}
             aria-label="Reset to default"
-            class="group transition h-6 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer disabled:opacity-30 disabled:pointer-events-none">
+            class="patter_control patter_control_round group transition h-6 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <div
-                class="absolute inset-0 rounded-full
-                bg-linear-to-b from-mauve-100/6 to-mauve-100/0
-                backdrop-blur-none
-                outline-2 outline-offset-2 outline-mauve-100/12 group-hover/inputpill:outline-mauve-100/24
-                patter_shadow
-                transition-[inset,border-radius,outline] duration-200 ease-out
-                group-hover/inputpill:inset-1
-                group-active/inputpill:inset-2 group-disabled:inset-2">
+                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
             </div>
 
             <p class="flex items-center gap-2 px-1 relative pointer-events-none select-none">
@@ -157,4 +250,5 @@
             </p>
         </button>
     </div>
+    {/if}
 </div>

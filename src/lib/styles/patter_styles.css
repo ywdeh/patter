@@ -1,0 +1,238 @@
+@import 'tailwindcss';
+/* Quick-to-slow motion scale; specialized loops and hold_progress timing stay separate. */
+:root {
+	/* Shared visual tokens: edit these to tune Patter's global look. */
+	--patter_font_header: 'Amarante', serif;
+	--patter_font_body: 'Bitter', serif;
+	--patter_font_ui: 'Google Sans', sans-serif;
+	--patter_font_mono: 'Departure Mono', monospace;
+	--patter_font_size_small: 0.75rem;
+	--patter_line_height_small: 1rem;
+	--patter_opacity_subtle: 0.4;
+	--patter_opacity_secondary: 0.6;
+	--patter_opacity_muted: 0.65;
+	--patter_opacity_disabled: 0.3;
+	--patter_color_text: oklch(96% 0.003 325.6);
+	--patter_color_base: #0b120f;
+	--patter_background_base: var(--patter_color_base);
+	--patter_background_scrim: 0;
+	--patter_shadow_color: color-mix(in srgb, var(--patter_background_base) 40%, transparent);
+	--patter_shadow_text_color: color-mix(in srgb, var(--patter_background_base) 20%, transparent);
+	--patter_body_text_size: 18px;
+	--patter_motion_quick: 100ms;
+	--patter_motion_short: 150ms;
+	--patter_motion_standard: 200ms;
+	--patter_motion_slow: 400ms;
+	--patter_motion_gentle: 600ms;
+	--patter_motion_fullscreen_out: 250ms;
+	--patter_motion_fullscreen: 600ms;
+	--patter_delay_short: 50ms;
+	--patter_delay_reveal: 400ms;
+}
+
+.patter_ambient_background {
+	background-color: var(--patter_background_base, #0b120f);
+	transition: background-color var(--patter_motion_slow) ease;
+}
+
+@theme {
+	--default-transition-duration: var(--patter_motion_short);
+	--font-departure-mono: var(--patter_font_mono);
+}
+
+@font-face {
+	font-family: 'Amarante';
+	src: url('/fonts/amarante.woff2') format('woff2');
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Bitter';
+	src: url('/fonts/bitter.woff2') format('woff2');
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Departure Mono';
+	src: url('/fonts/departure_mono_regular.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Google Sans';
+	src: url('/fonts/google_sans.woff2') format('woff2');
+	font-display: swap;
+}
+
+.patter_shadow {
+	box-shadow: 0 0 12px var(--patter_shadow_color);
+}
+
+.patter_shadow_text {
+	text-shadow: 0 0 12px var(--patter_shadow_text_color);
+}
+
+.patter_text_subtle {
+	font-size: var(--patter_font_size_small);
+	line-height: var(--patter_line_height_small);
+	letter-spacing: 0.025em;
+	opacity: var(--patter_opacity_subtle);
+}
+
+.patter_text_small {
+	font-size: var(--patter_font_size_small);
+	line-height: var(--patter_line_height_small);
+	letter-spacing: 0.025em;
+}
+
+.patter_text_secondary {
+	font-family: var(--patter_font_body);
+	opacity: var(--patter_opacity_secondary);
+}
+
+.patter_font_header { font-family: var(--patter_font_header); }
+.patter_font_body { font-family: var(--patter_font_body); }
+.patter_font_ui { font-family: var(--patter_font_ui); }
+.patter_font_mono { font-family: var(--patter_font_mono); }
+
+.patter_text_color {
+	color: var(--patter_color_text);
+}
+
+.patter_duration_quick { transition-duration: var(--patter_motion_quick); }
+.patter_duration_short { transition-duration: var(--patter_motion_short); }
+.patter_duration_standard { transition-duration: var(--patter_motion_standard); }
+.patter_duration_slow { transition-duration: var(--patter_motion_slow); }
+.patter_duration_gentle { transition-duration: var(--patter_motion_gentle); }
+
+.patter_options_motion {
+	transition-duration: var(--patter_motion_standard);
+	transition-delay: var(--patter_delay_reveal);
+	opacity: var(--patter_opacity_disabled);
+}
+.patter_options_motion:hover,
+.patter_options_motion:focus-within {
+	transition-delay: var(--patter_delay_short);
+	opacity: 1;
+}
+
+.patter_options_shadow {
+	opacity: 0;
+	transition: opacity var(--patter_motion_standard);
+}
+
+.patter_options_motion:hover .patter_options_shadow,
+.patter_options_motion:focus-within .patter_options_shadow {
+	opacity: 1;
+}
+
+.patter_surface {
+	@apply outline-2 outline-offset-2 outline-mauve-100/12 transition-[inset,border-radius,outline] ease-out;
+	box-shadow: 0 0 12px var(--patter_shadow_color);
+	transition-duration: var(--patter_motion_standard);
+}
+
+.patter_surface_dashed {
+	@apply outline-2 outline-offset-2 outline-mauve-100/20 transition-[inset,outline-color] ease-out;
+	box-shadow: 0 0 12px var(--patter_shadow_color);
+	transition-duration: var(--patter_motion_standard);
+	outline-style: dashed;
+}
+
+.patter_surface_selected {
+	@apply outline-mauve-100/40;
+}
+
+.patter_control {
+	--patter_hover_radius: 1rem;
+	--patter_active_radius: 1.5rem;
+}
+
+.patter_control_text {
+	@apply text-mauve-100;
+	font-family: var(--patter_font_body);
+}
+
+.patter_control_round {
+	--patter_hover_radius: 9999px;
+	--patter_active_radius: 9999px;
+}
+
+.patter_control_compact {
+	--patter_hover_radius: 0.5rem;
+	--patter_active_radius: 0.5rem;
+}
+
+.patter_hover,
+.patter_active {
+	transition: inset var(--patter_motion_standard) ease-out, border-radius var(--patter_motion_standard) ease-out, outline-color var(--patter_motion_standard) ease-out;
+}
+
+.patter_control:hover > .patter_hover {
+	@apply inset-1 outline-mauve-100/24;
+    border-radius: var(--patter_hover_radius);
+}
+
+.patter_control:active > .patter_active,
+.patter_control.wheel_pressed > .patter_active {
+	@apply inset-2;
+	border-radius: var(--patter_active_radius);
+}
+
+.patter_control:disabled > .patter_active {
+	@apply inset-2;
+}
+
+.patter_control:disabled,
+.patter_disabled {
+	opacity: var(--patter_opacity_disabled);
+}
+
+:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+[contenteditable]:focus,
+[contenteditable]:focus-visible {
+	outline: none;
+	box-shadow: none;
+}
+
+.route_surface,
+.route_background {
+	will-change: opacity;
+}
+
+.route_initial_hidden {
+	opacity: 0;
+}
+
+.route_fade_in {
+	animation: route_fade_in var(--patter_motion_slow) ease both;
+}
+
+.route_fullscreen_fade_in {
+	animation: route_fade_in var(--patter_motion_fullscreen) ease-in-out both;
+}
+
+.route_fullscreen_fade_out {
+	animation: route_fade_out var(--patter_motion_fullscreen_out) ease-in-out both;
+}
+
+.route_fade_out {
+	animation: route_fade_out var(--patter_motion_slow) ease both;
+}
+
+@keyframes route_fade_in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes route_fade_out {
+	from { opacity: 1; }
+	to { opacity: 0; }
+}
+

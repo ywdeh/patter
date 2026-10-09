@@ -1,6 +1,6 @@
 <script>
     import { onDestroy } from 'svelte';
-    import { playTapSound } from '$lib/state/tap-sound.js';
+    import { playTapSound } from '$lib/state/tap_sound.js';
 
     let {
         text = 'Hold to confirm',
@@ -71,22 +71,22 @@
     onkeydown={handleKeydown}
     onkeyup={handleKeyup}
     onblur={cancelHold}
-    class="group/hitbox relative flex w-fit cursor-pointer select-none touch-none items-center font-[Bitter]"
+    class="patter_control group/hitbox relative flex w-fit cursor-pointer select-none touch-none items-center patter_font_body"
 >
     <span
         aria-hidden="true"
-        class="absolute inset-0 overflow-hidden rounded-xl transition-[inset,border-radius] duration-200 ease-out group-hover/hitbox:inset-1 group-hover/hitbox:rounded-2xl group-active/hitbox:inset-2 group-active/hitbox:rounded-3xl"
+        class="patter_hover patter_active absolute inset-0 overflow-hidden rounded-xl"
     >
         <span
             class="block h-full bg-mauve-100/6 transition-[width] ease-linear"
             class:w-full={isComplete}
             class:w-0={!isHolding && !isComplete}
-            class:hold-progress={isHolding}
+            class:hold_progress={isHolding}
             style:--hold-duration={`${duration}ms`}
         ></span>
     </span>
     <span
-        class="absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg outline-2 outline-offset-2 outline-mauve-100/12 patter_shadow transition-[inset,border-radius,outline] duration-200 ease-out group-hover/hitbox:inset-1 group-hover/hitbox:rounded-2xl group-hover/hitbox:outline-mauve-100/24 group-active/hitbox:inset-2 group-active/hitbox:rounded-3xl"
+        class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"
     ></span>
     <span class="relative flex min-h-12 items-center px-4 py-3 pointer-events-none select-none">
         {text}
@@ -94,7 +94,7 @@
 </button>
 
 <style>
-    .hold-progress {
+    .hold_progress {
         width: 100%;
         transition-duration: var(--hold-duration);
     }

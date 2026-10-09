@@ -1,20 +1,37 @@
 <script lang="ts">
 	import Background from '$lib/components/background.svelte';
-	import './layout.css';
+	import '$lib/styles/patter_styles.css';
 	import { afterNavigate, onNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 
 	let { children } = $props();
+	let routeRevealVersion = 0;
+
+	function fadeIn(element: HTMLElement | null | undefined, animationClass = 'route_fade_in') {
+		if (!element) return;
+		element.classList.remove('route_initial_hidden', 'route_fade_out', 'route_fade_in', 'route_fullscreen_fade_in', 'route_fullscreen_fade_out');
+		void element.getBoundingClientRect();
+		element.classList.add(animationClass);
+	}
+
+	function revealSurfaceWhenFontsReady() {
+		const version = ++routeRevealVersion;
+		void document.fonts.ready.then(() => {
+			if (version !== routeRevealVersion) return;
+			fadeIn(document.querySelector<HTMLElement>('.route_surface'));
+		});
+	}
 
 	onNavigate((navigation) => {
-		if (!navigation.from || navigation.from.url.pathname === navigation.to.url.pathname) return;
+		const destination = navigation.to;
+		if (!navigation.from || !destination || navigation.from.url.pathname === destination.url.pathname) return;
 
-		const surface = document.querySelector('.route-surface');
-		const background = document.querySelector('.route-background');
+		const surface = document.querySelector('.route_surface');
+		const background = document.querySelector<HTMLElement>('.route_background');
 		for (const element of [surface, background]) {
 			if (!element) continue;
-			element.classList.remove('route-fade-in');
-			element.classList.add('route-fade-out');
+			element.classList.remove('route_fade_in');
+			element.classList.add('route_fade_out');
 		}
 		if (!surface && !background) return;
 
@@ -25,27 +42,25 @@
 
 	afterNavigate(({ from }) => {
 		if (!from) return;
-		const surface = document.querySelector('.route-surface');
-		const background = document.querySelector('.route-background');
-		for (const element of [surface, background]) {
-			if (!element) continue;
-			element.classList.remove('route-fade-out', 'route-fade-in');
-			void element.getBoundingClientRect();
-			element.classList.add('route-fade-in');
-		}
+		const background = document.querySelector<HTMLElement>('.route_background');
+		fadeIn(background);
+		revealSurfaceWhenFontsReady();
 	});
 
 	onMount(() => {
+		const handleFullscreenChange = () => {
+			fadeIn(document.querySelector<HTMLElement>('.route_surface'), 'route_fullscreen_fade_in');
+			fadeIn(document.querySelector<HTMLElement>('.route_background'), 'route_fullscreen_fade_in');
+		};
+		document.addEventListener('fullscreenchange', handleFullscreenChange);
+
 		requestAnimationFrame(() => {
-			const surface = document.querySelector('.route-surface');
-			const background = document.querySelector('.route-background');
-			for (const element of [surface, background]) {
-				if (!element) continue;
-				element.classList.remove('route-initial-hidden', 'route-fade-out', 'route-fade-in');
-				void element.getBoundingClientRect();
-				element.classList.add('route-fade-in');
-			}
+			const background = document.querySelector<HTMLElement>('.route_background');
+			fadeIn(background);
 		});
+		revealSurfaceWhenFontsReady();
+
+		return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
 	});
 </script>
 
@@ -53,6 +68,6 @@
 
 <Background />
 
-<div class="route-surface route-initial-hidden">
+<div class="route_surface route_initial_hidden">
 	{@render children()}
 </div>

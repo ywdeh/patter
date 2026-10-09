@@ -1,7 +1,8 @@
 {
 	"name": "lune",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.1.0",
+	"releaseName": "",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -16,10 +17,9 @@
 		"@sveltejs/adapter-cloudflare": "^7.2.8",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
-		"@tailwindcss/forms": "^0.5.11",
-		"@tailwindcss/typography": "^0.5.19",
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/node": "^26.6.2",
+		"sharp": "^0.35.4",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.0",
@@ -30,5 +30,8 @@
 	"allowScripts": {
 		"esbuild@0.28.1": true,
 		"workerd@1.20260923.1": true
+	},
+	"dependencies": {
+		"@milkdown/kit": "^7.22.2"
 	}
 }

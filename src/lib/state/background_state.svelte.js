@@ -1,9 +1,9 @@
 import backgroundsFromFolder from 'virtual:patter-backgrounds';
-import { getBackgroundPoster } from '$lib/state/background-posters.js';
+import { getBackgroundPoster } from '$lib/state/background_posters.js';
 
 const STORAGE_KEY = "background-values";
 export const backgrounds = backgroundsFromFolder;
-export const DEFAULT_BACKGROUND_SRC = '/backgrounds/green_facade.jpg';
+export const DEFAULT_BACKGROUND_SRC = '/backgrounds/lantern_in_the_forest.webp';
 const defaultBackground = backgrounds.find((item) => item.src === DEFAULT_BACKGROUND_SRC)?.src
     ?? backgrounds[0]?.src
     ?? DEFAULT_BACKGROUND_SRC;
@@ -17,7 +17,11 @@ export const defaults = {
     background: defaultBackground,
 };
 
-const validBackground = (value) => backgrounds.some((item) => item.src === value) || /^upload:[a-z0-9-]+$/i.test(value) ? value : defaults.background;
+const validBackground = (value) => {
+    return backgrounds.some((item) => item.src === value) || /^upload:[a-z0-9-]+$/i.test(value)
+        ? value
+        : defaults.background;
+};
 
 export const active_background = $state({ kind: 'image', url: defaults.background });
 
@@ -27,17 +31,17 @@ function builtInBackground(src) {
 
 function applyToDocument(values) {
     if (typeof document === "undefined") return;
-    document.documentElement.style.setProperty("--patter-focus", `${values.focus}px`);
-    document.documentElement.style.setProperty("--patter-tint", `${values.tint / 100}`);
-    document.documentElement.style.setProperty("--patter-grain", `${values.grain / 100}`);
-    document.documentElement.style.setProperty('--patter-body-text-size', `${values.textSize}px`);
-    document.documentElement.style.setProperty('--patter-background-position', values.position);
+    document.documentElement.style.setProperty("--patter_focus", `${values.focus}px`);
+    document.documentElement.style.setProperty("--patter_tint", `${values.tint / 100}`);
+    document.documentElement.style.setProperty("--patter_grain", `${values.grain / 100}`);
+    document.documentElement.style.setProperty('--patter_body_text_size', `${values.textSize}px`);
+    document.documentElement.style.setProperty('--patter_background_position', values.position);
     if (!values.background.startsWith('upload:')) {
         const item = builtInBackground(values.background);
         const preview = item?.kind === 'video'
             ? getBackgroundPoster(values.background) ?? defaults.background
             : values.background;
-        document.documentElement.style.setProperty("--patter-background", `url("${preview}")`);
+        document.documentElement.style.setProperty("--patter_background", `url("${preview}")`);
     }
 }
 
@@ -47,10 +51,12 @@ function load() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (!saved) return { ...defaults };
         const values = { ...defaults, ...JSON.parse(saved) };
-        values.focus = Math.min(15, Math.max(5, Number(values.focus) || defaults.focus));
-        values.tint = Math.min(80, Math.max(20, Number(values.tint) || defaults.tint));
+        const focus = Number(values.focus);
+        values.focus = Math.min(15, Math.max(0, Number.isFinite(focus) ? focus : defaults.focus));
+        const tint = Number(values.tint);
+        values.tint = Math.min(80, Math.max(0, Number.isFinite(tint) ? tint : defaults.tint));
         values.grain = Math.min(4, Math.max(0, Number(values.grain) || 0));
-        values.textSize = Math.min(32, Math.max(12, Number(values.textSize) || defaults.textSize));
+        values.textSize = Math.min(24, Math.max(14, Number(values.textSize) || defaults.textSize));
         values.position = ['top', 'center', 'bottom'].includes(values.position) ? values.position : defaults.position;
         values.background = validBackground(values.background);
         return values;
@@ -127,7 +133,7 @@ if (typeof window !== 'undefined') {
             const preview = poster ?? (active_background.kind === 'image' && !posterKey.startsWith('upload:')
                 ? active_background.url
                 : defaults.background);
-            document.documentElement.style.setProperty('--patter-background', `url("${preview}")`);
+            document.documentElement.style.setProperty('--patter_background', `url("${preview}")`);
         });
     });
 }

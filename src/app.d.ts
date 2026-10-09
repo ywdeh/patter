@@ -1,10 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
-	interface Window {
-		patterPrimeBodyPreview?: () => void;
-	}
-
 	namespace App {
 		interface Platform {
 			env: Env;
@@ -21,7 +17,7 @@ declare global {
 }
 
 declare module 'virtual:patter-backgrounds' {
-	const backgrounds: Array<{ src: string; kind: 'image' | 'video' }>;
+	const backgrounds: Array<{ src: string; kind: 'image' | 'video'; thumbnail?: string | null }>;
 	export default backgrounds;
 }
 

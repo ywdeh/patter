@@ -40,7 +40,7 @@ export function removeBackgroundPoster(key) {
 
 export function createVideoPoster(video) {
     if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) return null;
-    return encodePoster(video, video.videoWidth, video.videoHeight);
+    return encodePoster(video, video.videoWidth, video.videoHeight, 1920, 1080, 0.82);
 }
 
 export async function createImagePoster(blob) {

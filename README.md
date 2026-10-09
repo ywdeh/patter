@@ -1,42 +1,26 @@
-# sv
+# Patter
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Patter is an ambient writing editor built with SvelteKit, Svelte 5, Tailwind CSS, and Milkdown.
 
-## Creating a project
+## Development
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+Install dependencies and start the Vite development server:
 
 ```sh
-# recreate this project
-npx sv@0.17.1 create --template minimal --types ts --add tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:cloudflare+cfTarget:workers" --install npm ./
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+## Backgrounds
 
-To create a production version of your app:
+Add built-in image or video files to `static/backgrounds`. The Vite plugin discovers supported files automatically. Image thumbnail WebPs are generated under `static/backgrounds/thumbnails` when the catalog is loaded; full-size originals remain in use for the page background. The dev server ignores changes under this folder to avoid Windows file-watcher lock errors, so restart it after adding or replacing a background.
+
+Videos are muted in the picker and play only while their thumbnail is hovered. The selected background video continues to play in the page background.
+
+## Checks and production preview
 
 ```sh
+npm run check
 npm run build
+npm run preview
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.

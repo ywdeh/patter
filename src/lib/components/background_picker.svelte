@@ -1,11 +1,12 @@
 <script>
     import { onMount } from 'svelte';
-    import { background_values, backgrounds, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background.svelte.js';
-    import { clearBackgroundUploads, listBackgroundUploads, replaceBackgroundUpload } from '$lib/state/background-media.js';
-    import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, upgradeImagePoster } from '$lib/state/background-posters.js';
-    import BackgroundThumbnail from '$lib/components/backgroundThumbnail.svelte';
-    import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background-formats.js';
-    import { playTapSound } from '$lib/state/tap-sound.js';
+    import { background_values, backgrounds, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
+    import { clearBackgroundUploads, listBackgroundUploads, replaceBackgroundUpload } from '$lib/state/background_media.js';
+    import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, upgradeImagePoster } from '$lib/state/background_posters.js';
+    import { getBackgroundPoster } from '$lib/state/background_posters.js';
+    import BackgroundThumbnail from '$lib/components/background_thumbnail.svelte';
+    import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background_formats.js';
+    import { playTapSound } from '$lib/state/tap_sound.js';
 
     let uploadInput;
     let uploadError = $state('');
@@ -31,8 +32,14 @@
                 return;
             }
             const url = URL.createObjectURL(record.blob);
-            uploads = [{ ...record, url }];
-            if (record.kind === 'image') void upgradeImagePoster(`upload:${record.id}`, record.blob).catch(() => {});
+            const posterKey = `upload:${record.id}`;
+            uploads = [{ ...record, url, poster: getBackgroundPoster(posterKey) }];
+            if (record.kind === 'image') {
+                void upgradeImagePoster(posterKey, record.blob).then(() => {
+                    const poster = getBackgroundPoster(posterKey);
+                    if (poster) uploads = uploads.map((item) => item.id === record.id ? { ...item, poster } : item);
+                }).catch(() => {});
+            }
             if (records.length > 1) void replaceBackgroundUpload(record);
             // Keep an uploaded image available as a thumbnail without
             // overriding a built-in background selected before reload.
@@ -97,13 +104,14 @@
                 URL.revokeObjectURL(oldUpload.url);
                 removeBackgroundPoster(`upload:${oldUpload.id}`);
             }
-            uploads = [{ id, kind, name: file.name, blob: file, url }];
+            uploads = [{ id, kind, name: file.name, blob: file, url, poster: null }];
             selectUploadedBackground(id, kind, url);
             uploadError = '';
             if (kind === 'image') {
                 createImagePoster(file).then((poster) => {
-                    if (poster && background_values.background === `upload:${id}`) {
+                    if (poster) {
                         saveBackgroundPoster(`upload:${id}`, poster);
+                        uploads = uploads.map((item) => item.id === id ? { ...item, poster } : item);
                     }
                 }).catch(() => {});
             }
@@ -113,7 +121,9 @@
     }
 
     async function removeUpload() {
+        if (uploads.length === 0) return;
         hasUserAction = true;
+        playClick();
         try {
             await clearBackgroundUploads();
             for (const uploadItem of uploads) {
@@ -123,7 +133,6 @@
             uploads = [];
             selectBuiltInBackground(defaults.background);
             uploadError = '';
-            playClick();
         } catch {
             uploadError = 'This background could not be removed from browser storage.';
         }
@@ -136,22 +145,12 @@
         <BackgroundThumbnail
             src={item.src}
             kind={item.kind}
+            thumbnailSrc={item.thumbnail ?? item.src}
             {selected}
             position={background_values.position}
             label="Select built-in background"
             onselect={() => select(item)}
             onposition={(position) => selectPosition(item, position)} />
-    {/each}
-
-    {#each uploads as uploadItem (uploadItem.id)}
-        <BackgroundThumbnail
-            src={uploadItem.url}
-            kind={uploadItem.kind}
-            selected={background_values.background === `upload:${uploadItem.id}`}
-            position={background_values.position}
-            label={`Select uploaded background ${uploadItem.name}`}
-            onselect={() => selectUpload(uploadItem)}
-            onposition={(position) => selectPosition({ ...uploadItem, uploaded: true }, position)} />
     {/each}
 
     <input
@@ -162,24 +161,39 @@
         onchange={upload}
         aria-label="Upload an image or video background" />
     <div class="col-span-2 grid grid-cols-2 gap-4">
-        <button
-            type="button"
-            onclick={() => uploadInput?.click()}
-            class="group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 text-xs">
-            <span class="absolute inset-0 rounded-lg outline-2 outline-dashed outline-offset-2 outline-mauve-100/20 patter_shadow transition-[inset,border-color] duration-200 group-hover/inputpill:inset-1 group-hover/inputpill:border-mauve-100/45"></span>
-            <span class="relative text-xl leading-none" aria-hidden="true">＋</span>
-            <span class="relative tracking-wide">Upload</span>
-        </button>
+        {#if uploads.length > 0}
+            {#each uploads as uploadItem (uploadItem.id)}
+                <BackgroundThumbnail
+                    src={uploadItem.url}
+                    kind={uploadItem.kind}
+                    posterKey={`upload:${uploadItem.id}`}
+                    poster={uploadItem.poster}
+                    selected={background_values.background === `upload:${uploadItem.id}`}
+                    position={background_values.position}
+                    label={`Select uploaded background ${uploadItem.name}`}
+                    onselect={() => selectUpload(uploadItem)}
+                    onposition={(position) => selectPosition({ ...uploadItem, uploaded: true }, position)} />
+            {/each}
+        {:else}
+            <button
+                type="button"
+                onclick={() => uploadInput?.click()}
+                class="patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small">
+                <span class="patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+                <span class="relative text-xl leading-none" aria-hidden="true">＋</span>
+                <span class="relative tracking-wide">Upload</span>
+            </button>
+        {/if}
         <button
             type="button"
             onclick={removeUpload}
             disabled={uploads.length === 0}
             aria-label="Remove uploaded background"
-            class="group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-red-100 text-xs disabled:cursor-default disabled:opacity-30 disabled:pointer-events-none">
-            <span class="absolute inset-0 rounded-lg outline-2 outline-dashed outline-offset-2 outline-mauve-100/20 patter_shadow transition-[inset,border-color] duration-200 group-hover/inputpill:inset-1 group-hover/inputpill:border-red-200/50"></span>
+            class="patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small disabled:cursor-default  disabled:pointer-events-none">
+            <span class="patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
             <span class="relative text-xl leading-none" aria-hidden="true">−</span>
             <span class="relative tracking-wide">Remove</span>
         </button>
     </div>
 </div>
-{#if uploadError}<p class="px-2 text-xs text-red-200/80" role="status">{uploadError}</p>{/if}
+{#if uploadError}<p class="patter_text_small px-2 text-red-200/80" role="status">{uploadError}</p>{/if}

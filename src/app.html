@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="bg-mauve-950 text-mauve-100 cursor-default selection:bg-mauve-100/12 font-[Google_Sans] patter_shadow_text
+<html lang="en" class="patter_ambient_background patter_text_color cursor-default selection:bg-mauve-100/12 patter_font_ui patter_shadow_text
 caret-mauve-100" spellcheck="false">
 
 	<head>
@@ -9,10 +9,11 @@ caret-mauve-100" spellcheck="false">
 
 		<script>
 			(() => {
-				// Keep this early-paint path aligned with DEFAULT_BACKGROUND_SRC in background.svelte.js.
-				const defaults = { focus: 10, tint: 50, grain: 2, textSize: 18, background: '/backgrounds/green_facade.jpg' };
+				// Keep this early-paint path aligned with DEFAULT_BACKGROUND_SRC in background_state.svelte.js.
+				const defaults = { focus: 10, tint: 50, grain: 2, textSize: 18, background: '/backgrounds/lantern_in_the_forest.webp' };
 				let saved = {};
 				let fallbackBackground = defaults.background;
+				let selectedBackground = defaults.background;
 				let backgroundPosition = 'center';
 				try {
 					saved = JSON.parse(localStorage.getItem('background-values') || '{}');
@@ -20,66 +21,59 @@ caret-mauve-100" spellcheck="false">
 					const tint = Number(saved.tint);
 					const grain = Number(saved.grain);
 					const textSize = Number(saved.textSize);
-					if (Number.isFinite(focus)) defaults.focus = Math.min(15, Math.max(5, focus));
-					if (Number.isFinite(tint)) defaults.tint = Math.min(80, Math.max(20, tint));
+					const savedBackground = saved.background;
+					if (Number.isFinite(focus)) defaults.focus = Math.min(15, Math.max(0, focus));
+					if (Number.isFinite(tint)) defaults.tint = Math.min(80, Math.max(0, tint));
 					if (Number.isFinite(grain)) defaults.grain = Math.min(4, Math.max(0, grain));
-					if (Number.isFinite(textSize)) defaults.textSize = Math.min(32, Math.max(12, textSize));
+					if (Number.isFinite(textSize)) defaults.textSize = Math.min(24, Math.max(14, textSize));
 					backgroundPosition = ['top', 'center', 'bottom'].includes(saved.position) ? saved.position : 'center';
-					if (typeof saved.background === 'string' && /^\/backgrounds\/.+\.(?:avif|gif|jpe?g|png|webp)$/i.test(saved.background)) {
-						defaults.background = saved.background;
-						fallbackBackground = saved.background;
+					if (typeof savedBackground === 'string' && /^\/backgrounds\/.+\.(?:avif|gif|jpe?g|png|webp)$/i.test(savedBackground)) {
+						defaults.background = savedBackground;
+						selectedBackground = savedBackground;
+						fallbackBackground = savedBackground;
 					}
-					if (typeof saved.background === 'string' && (/^\/backgrounds\/.+\.(?:mp4|webm|ogv|ogg)$/i.test(saved.background) || saved.background.startsWith('upload:'))) {
+					if (typeof savedBackground === 'string' && (/^\/backgrounds\/.+\.(?:mp4|webm|ogv|ogg)$/i.test(savedBackground) || savedBackground.startsWith('upload:'))) {
+						selectedBackground = savedBackground;
 						const posters = JSON.parse(localStorage.getItem('patter-video-posters') || '{}');
-						const poster = posters[saved.background];
+						const poster = posters[savedBackground];
 						if (typeof poster === 'string' && /^data:image\/(?:webp|jpeg|png);base64,/i.test(poster) && poster.length < 2500000) {
 							fallbackBackground = poster;
 						}
 					}
 				} catch {}
 				const root = document.documentElement;
-				root.style.setProperty('--patter-focus', `${defaults.focus}px`);
-				root.style.setProperty('--patter-tint', `${defaults.tint / 100}`);
-				root.style.setProperty('--patter-grain', `${defaults.grain / 100}`);
-				root.style.setProperty('--patter-body-text-size', `${defaults.textSize}px`);
-				root.style.setProperty('--patter-background-position', backgroundPosition);
-				root.style.setProperty('--patter-background', `url("${fallbackBackground}")`);
+				let ambientColor = '#0b120f';
+				let backgroundScrim = 0;
+				try {
+					const colors = JSON.parse(localStorage.getItem('patter-background-ambient-colors-v3') || '{}');
+					const cachedColor = colors[selectedBackground];
+					if (typeof cachedColor === 'string' && /^#[\da-f]{6}$/i.test(cachedColor)) ambientColor = cachedColor;
+				} catch {}
+				try {
+					const scrims = JSON.parse(localStorage.getItem('patter-background-scrim-v1') || '{}');
+					const cachedScrim = Number(scrims[selectedBackground]);
+					if (Number.isFinite(cachedScrim)) backgroundScrim = Math.min(0.62, Math.max(0, cachedScrim));
+				} catch {}
+				root.style.setProperty('--patter_background_base', ambientColor);
+				root.style.setProperty('--patter_background_scrim', `${backgroundScrim}`);
+				root.style.setProperty('--patter_focus', `${defaults.focus}px`);
+				root.style.setProperty('--patter_tint', `${defaults.tint / 100}`);
+				root.style.setProperty('--patter_grain', `${defaults.grain / 100}`);
+				root.style.setProperty('--patter_body_text_size', `${defaults.textSize}px`);
+				root.style.setProperty('--patter_background_position', backgroundPosition);
+				root.style.setProperty('--patter_background', `url("${fallbackBackground}")`);
 			})();
 		</script>
-		<script>
-			window.patterPrimeBodyPreview = () => {
-				try {
-					const saved = JSON.parse(localStorage.getItem('patter-doc') || 'null');
-					if (!saved || typeof saved !== 'object') return;
-
-					const cssText = (value) => JSON.stringify(String(value ?? ''))
-						.replace(/\\r\\n|\\n|\\r/g, '\\A ');
-					const bodyHolder = document.createElement('div');
-					bodyHolder.innerHTML = typeof saved.body === 'string' ? saved.body : '';
-					bodyHolder.querySelectorAll('br').forEach((node) => node.replaceWith('\n'));
-					bodyHolder.querySelectorAll('p, div').forEach((node) => node.append('\n'));
-
-					const root = document.documentElement;
-					root.style.setProperty('--patter-saved-body', cssText(bodyHolder.textContent));
-					root.classList.add('has-patter-body');
-				} catch {}
-			};
-			window.patterPrimeBodyPreview();
-		</script>
-
-		<link rel="preload" href="/fonts/Amarante.woff2" as="font" type="font/woff2" crossorigin>
-		<link rel="preload" href="/fonts/Bitter.woff2" as="font" type="font/woff2" crossorigin>
-		<link rel="preload" href="/fonts/GoogleSans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/amarante.woff2" as="font" type="font/woff2" crossorigin>
+		<link rel="preload" href="/fonts/bitter.woff2" as="font" type="font/woff2" crossorigin>
+		<link rel="preload" href="/fonts/departure_mono_regular.woff2" as="font" type="font/woff2" crossorigin>
+		<link rel="preload" href="/fonts/google_sans.woff2" as="font" type="font/woff2" crossorigin>
 
 		<link rel="preload" href="/type.mp3" as="audio" type="audio/mpeg" crossorigin="anonymous">
 
 		%sveltekit.head%
 
 		<title>Patter</title>
-
-		<script src="https://cdn.jsdelivr.net/npm/gsap@3.13/dist/gsap.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/gsap@3.13/dist/ScrollTrigger.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/gsap@3.13/dist/Draggable.min.js"></script>
 	</head>
 
 	<body data-sveltekit-preload-data="hover" class="overflow-hidden">

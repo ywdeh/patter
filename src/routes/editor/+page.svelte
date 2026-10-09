@@ -4,7 +4,7 @@
     import OptionsBar from '$lib/components/options_bar.svelte';
 
     // Add selectors here as more interface elements should fade during writing.
-    const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-stats"]'];
+    const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-stats"]', '[data-zen-mode-ui="editor-toolbar"]'];
     let zenMode = false;
     let lastPointer = null;
     let pointerOrigin = null;
@@ -48,15 +48,15 @@
 
 <OptionsBar has_return={true} />
 
-<div class="flex flex-col w-screen h-screen p-12">
-    <div class="w-full h-full max-w-3xl self-center min-h-0">
+<div class="flex h-dvh w-screen flex-col px-12 py-12">
+    <div class="w-full h-full max-w-3xl self-center min-h-0" data-editor-container>
         <EditorBody onwriting={handleWriting} />
     </div>
 </div>
 
 <style>
     :global([data-zen-mode-ui]) {
-        transition-duration: 400ms !important;
+        transition-duration: var(--patter_motion_slow) !important;
         transition-delay: 0ms !important;
     }
 
@@ -64,4 +64,5 @@
         opacity: 0 !important;
         pointer-events: none !important;
     }
+
 </style>
