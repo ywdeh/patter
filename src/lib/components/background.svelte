@@ -265,6 +265,7 @@
 </script>
 
 <div class="route_background route_initial_hidden fixed inset-0 pointer-events-none -z-5 select-none">
+    <div class="wallpaper_blur_layer absolute inset-0" style="filter: blur(var(--patter_focus, 10px)); transition: filter var(--patter_motion_standard) ease">
     {#each visible_backgrounds as background (background.id)}
         <div
             class="background-layer absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -279,10 +280,7 @@
             {/if}
         </div>
     {/each}
-
-    <div 
-        class="transition absolute inset-0 h-full w-full"
-        style="backdrop-filter: blur(var(--patter_focus, 10px))"></div>
+    </div>
 
     <div
         aria-hidden="true"
