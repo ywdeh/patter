@@ -46,7 +46,7 @@
     });
 </script>
 
-<OptionsBar has_return={true} />
+<OptionsBar />
 
 <div class="flex h-dvh w-screen flex-col px-12 py-12">
     <div class="w-full h-full max-w-3xl self-center min-h-0" data-editor-container>

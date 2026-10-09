@@ -273,16 +273,16 @@
             style:background-image={background.kind === 'video' ? "var(--patter_background), url('/backgrounds/lantern_in_the_forest.webp')" : 'none'}
         >
             {#if background.kind === 'video'}
-                <video class="background-media absolute object-cover" style={`object-position: center ${background.position}; opacity: ${background.videoOpacity}; transition: object-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--patter_motion_slow) ease-in-out`} src={background.url} autoplay muted preload="auto" playsinline aria-hidden="true" onloadeddata={(event) => handleVideoReady(background, event.currentTarget)} onerror={() => handleVideoError(background)} onended={() => handleVideoEnded(background)}></video>
+                <video class="absolute h-full w-full object-cover" style={`object-position: center ${background.position}; opacity: ${background.videoOpacity}; transition: object-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--patter_motion_slow) ease-in-out`} src={background.url} autoplay muted preload="auto" playsinline aria-hidden="true" onloadeddata={(event) => handleVideoReady(background, event.currentTarget)} onerror={() => handleVideoError(background)} onended={() => handleVideoEnded(background)}></video>
             {:else}
-                <div class="background-media absolute bg-cover" style={`background-position: center ${background.position}; transition: background-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1); ${background.useBackgroundVariable ? "background-image: var(--patter_background), url('/backgrounds/lantern_in_the_forest.webp')" : `background-image: url("${background.url}")`}`}></div>
+                <div class="absolute inset-0 bg-cover" style={`background-position: center ${background.position}; transition: background-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1); ${background.useBackgroundVariable ? "background-image: var(--patter_background), url('/backgrounds/lantern_in_the_forest.webp')" : `background-image: url("${background.url}")`}`}></div>
             {/if}
         </div>
     {/each}
 
     <div 
         class="transition absolute inset-0 h-full w-full"
-        style="-webkit-backdrop-filter: blur(var(--patter_focus, 10px)); backdrop-filter: blur(var(--patter_focus, 10px))"></div>
+        style="backdrop-filter: blur(var(--patter_focus, 10px))"></div>
 
     <div
         aria-hidden="true"
@@ -297,11 +297,3 @@
         class="absolute h-full w-full bg-repeat z-50"
         style="background-image: url({grain_image}); opacity: var(--patter_grain, 0.02)"></div>
 </div>
-
-<style>
-    /* Extend the media beyond the viewport so blur sampling never reaches a
-       transparent edge, which can appear as dark seams in some browsers. */
-    .background-media {
-        inset: calc(var(--patter_focus, 10px) * -3);
-    }
-</style>

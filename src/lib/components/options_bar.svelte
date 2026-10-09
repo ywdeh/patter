@@ -20,8 +20,6 @@
         return () => document.removeEventListener("fullscreenchange", sync);
     });
 
-	let { has_return = false } = $props();
-
     let optionsScrollEl;
     let optionsHasOverflow = $state(false);
     let optionsScrolledDown = $state(false);
@@ -75,14 +73,12 @@ z-55 isolate group/tools patter_options_motion transition ease-in-out absolute r
             <InputPill text="Tint" min={0} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} displayValues={tintLabels} unit="%" onchange={(value) => persistBackgroundValues({ tint: value })} />
             <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grainLabels} onchange={(value) => persistBackgroundValues({ grain: value })} />
             <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => persistBackgroundValues({ textSize: value })} />
-            {#if has_return}
-                <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
-                <div class="flex w-full flex-col gap-4">
-                    <div class="flex w-full justify-end min-w-0 flex-wrap gap-4">
-                        <HoldButton text="Reset everything" oncomplete={clearSavedData} />
-                    </div>
+            <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
+            <div class="flex w-full flex-col gap-4">
+                <div class="flex w-full justify-end min-w-0 flex-wrap gap-4">
+                    <HoldButton text="Reset everything" oncomplete={clearSavedData} />
                 </div>
-            {/if}
+            </div>
         </div>
     </div>
 </div>
