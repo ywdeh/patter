@@ -118,16 +118,6 @@
 	opacity: 1;
 }
 
-.patter_options_shadow {
-	opacity: 0;
-	transition: opacity var(--patter_motion_standard);
-}
-
-.patter_options_motion:hover .patter_options_shadow,
-.patter_options_motion:focus-within .patter_options_shadow {
-	opacity: 1;
-}
-
 .patter_surface {
 	@apply outline-2 outline-offset-2 outline-mauve-100/12 transition-[inset,border-radius,outline] ease-out;
 	box-shadow: 0 0 12px var(--patter_shadow_color);
