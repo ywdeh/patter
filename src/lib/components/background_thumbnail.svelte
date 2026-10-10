@@ -102,6 +102,7 @@
                 {#if preview_poster || thumbnailSrc !== src}
                     <img
                         class="absolute inset-0 h-full w-full object-cover"
+                        draggable="false"
                         src={preview_poster ?? thumbnailSrc}
                         alt=""
                         loading={selected ? 'eager' : 'lazy'}
