@@ -1,0 +1,33 @@
+{
+  "id": "/",
+  "name": "Patter — Ambient Writing",
+  "short_name": "Patter",
+  "description": "A calm space for focused writing, with customizable ambient backgrounds.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b120f",
+  "theme_color": "#0b120f",
+  "categories": ["productivity", "writing"],
+  "icons": [
+    {
+      "src": "/icons/patter_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/patter_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/patter_maskable_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
