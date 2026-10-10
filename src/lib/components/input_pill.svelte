@@ -147,7 +147,7 @@
 </script>
 
 <div role="group" aria-label={text ?? 'Setting controls'} class="flex gap-4 items-center w-full">
-    <p class="flex-1 select-none">{text}</p>
+    <p class="flex-1">{text}</p>
     {#if mode === "toggle"}
     <div class="flex flex-[1.5] gap-4 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
         <button
@@ -155,12 +155,12 @@
             disabled={!value}
             class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
-            <span class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+            <span class="flex items-center gap-2 relative px-2 pointer-events-none">
                 <img src="/sub.svg" alt={falseLabel} class="size-5">
             </span>
         </button>
 
-        <div class="min-w-15 h-6 relative overflow-hidden select-none">
+        <div class="min-w-15 h-6 relative overflow-hidden">
             {#key value}
                 <p
                     class="absolute inset-0"
@@ -177,7 +177,7 @@
             disabled={value}
             class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
-            <span class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+            <span class="flex items-center gap-2 relative px-2 pointer-events-none">
                 <img src="/add.svg" alt={trueLabel} class="size-5">
             </span>
         </button>
@@ -197,12 +197,12 @@
                 class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
             </span>
 
-            <span class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+            <span class="flex items-center gap-2 relative px-2 pointer-events-none">
                 <img src="/sub.svg" alt="decrease" class="size-5">
             </span>
         </button>
 
-        <div class="min-w-20 h-6 relative overflow-hidden select-none" role="button" tabindex="0" aria-label={`${displayValue}; press Enter or Space, or double-click, to reset to default`} title="Double-click to reset" onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
+        <div class="min-w-20 h-6 relative overflow-hidden" role="button" tabindex="0" aria-label={`${displayValue}; press Enter or Space, or double-click, to reset to default`} title="Double-click to reset" onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
             {#key value}
                 <p
                     class="absolute inset-0"
@@ -227,7 +227,7 @@
                 class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
             </span>
 
-            <span class="flex items-center gap-2 relative px-2 pointer-events-none select-none">
+            <span class="flex items-center gap-2 relative px-2 pointer-events-none">
                 <img src="/add.svg" alt="increase" class="size-5">
             </span>
         </button>
@@ -242,7 +242,7 @@
                 class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
             </span>
 
-            <span class="flex items-center gap-2 px-1 relative pointer-events-none select-none">
+            <span class="flex items-center gap-2 px-1 relative pointer-events-none">
                 <img src="/undo.svg" alt="" class="size-5">
             </span>
         </button>

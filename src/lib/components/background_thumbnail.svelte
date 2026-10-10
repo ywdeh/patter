@@ -92,6 +92,7 @@
 <div role="group" aria-label={label} class="group/inputpill relative w-full aspect-video" onpointerenter={startVideoPreview} onpointerleave={stopVideoPreview} {@attach attachNonPassiveWheel}>
     <button
         type="button"
+        draggable="false"
         onclick={onselect}
         aria-label={label}
         aria-pressed={selected}

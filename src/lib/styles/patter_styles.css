@@ -100,6 +100,19 @@
 	color: var(--patter_color_text);
 }
 
+button,
+button * {
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.patter_unselectable,
+.patter_unselectable * {
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-user-drag: none;
+}
+
 .patter_duration_quick { transition-duration: var(--patter_motion_quick); }
 .patter_duration_short { transition-duration: var(--patter_motion_short); }
 .patter_duration_standard { transition-duration: var(--patter_motion_standard); }

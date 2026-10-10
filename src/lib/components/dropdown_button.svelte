@@ -112,7 +112,7 @@
 <div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group" aria-label={text}>
 	<div class="patter_control group/hitbox relative flex items-center w-fit" class:patter_disabled={disabled}>
 		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
-		<button type="button" disabled={disabled} class="relative min-h-12 cursor-pointer select-none px-4 py-3 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
+		<button type="button" disabled={disabled} class="relative min-h-12 cursor-pointer px-4 py-3 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
 			<span class="grid whitespace-nowrap">
 				<span class="col-start-1 row-start-1">{selectedText}</span>
 				{#each options as option (option.value)}
