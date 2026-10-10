@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import sharp from 'sharp';
 
-const sourcePath = 'static/unused/media/ripples.svg';
-const outputPath = 'static/ripples.webp';
+const sourcePath = 'unused/media_ripples.svg';
+const outputPath = 'unused/ripples.webp';
 const durationMs = 12_000;
 const framesPerSecond = 15;
 const frameCount = (durationMs / 1000) * framesPerSecond;
@@ -64,7 +64,7 @@ for (let index = 0; index < frameCount; index += 1) {
 	if ((index + 1) % 30 === 0) console.log(`Rendered ${index + 1}/${frameCount} frames`);
 }
 
-await fs.mkdir('static', { recursive: true });
+await fs.mkdir('unused', { recursive: true });
 await sharp(Buffer.concat(frameBuffers), {
 	raw: { width, height: height * frameCount, channels: 4, pageHeight: height }
 })

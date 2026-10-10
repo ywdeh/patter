@@ -1,21 +1,24 @@
 # Patter
 
-Patter is an ambient writing editor built with SvelteKit, Svelte 5, Tailwind CSS, and Milkdown.
+Patter is an ambient writing editor built with SvelteKit, Svelte 5, and Tailwind CSS. Drafts are stored locally in the browser; users should export important writing for backup.
+
+## Project layout
+
+- `src/routes` contains the home, editor, and error routes.
+- `src/lib/components` contains the page and control components.
+- `src/lib/state` contains focused editor, background, and interaction logic.
+- `src/lib/styles/patter_styles.css` contains shared design tokens and component styles.
+- `static` contains files served publicly, including fonts, sounds, icons, and built-in backgrounds.
+- `unused` is a flat archive of retired assets and one-off scripts. It is outside `static` and is not deployed as public content.
 
 ## Development
-
-Install dependencies and start the Vite development server:
 
 ```sh
 npm install
 npm run dev
 ```
 
-## Backgrounds
-
-Add built-in image or video files to `static/backgrounds`. The Vite plugin discovers supported files automatically. Image thumbnail WebPs are generated under `static/backgrounds/thumbnails` when the catalog is loaded; full-size originals remain in use for the page background. The dev server ignores changes under this folder to avoid Windows file-watcher lock errors, so restart it after adding or replacing a background.
-
-Videos are muted in the picker and play only while their thumbnail is hovered. The selected background video continues to play in the page background.
+Add supported built-in image or video backgrounds directly to `static/backgrounds`. The Vite plugin discovers the supported formats and creates image thumbnails under `static/backgrounds/thumbnails` when the catalog loads. The dev server deliberately ignores changes in this folder to avoid Windows file-watcher lock errors, so restart it after adding or replacing a background.
 
 ## Checks and production preview
 
@@ -24,3 +27,5 @@ npm run check
 npm run build
 npm run preview
 ```
+
+There is no automated test suite configured yet. Before a release, also smoke-test the editor, import/export, background selection and upload, and fullscreen behavior in the target browsers.
