@@ -1,25 +1,18 @@
 <script>
     import { onMount } from 'svelte';
-    import { Editor, defaultValueCtx, rootCtx } from '@milkdown/kit/core';
-    import { commonmark } from '@milkdown/kit/preset/commonmark';
-    import { listener, listenerCtx } from '@milkdown/kit/plugin/listener';
-    import { replaceAll } from '@milkdown/kit/utils';
     import { countEditorText, estimateReadingTime, getEditorText } from '$lib/state/editor_counts.js';
-    import { serializeEditorMarkdown } from '$lib/state/editor_markdown.js';
-    import { setEditorDocument, getEditorDocument } from '$lib/state/editor_document.js';
-    import { smartPunctuation } from '$lib/state/editor_smart_punctuation.js';
+    import { setEditorDocument } from '$lib/state/editor_document.js';
     import { playTapSound } from '$lib/state/tap_sound.js';
-    import { mountCustomCaret } from '$lib/state/editor_caret.js';
+    import { getCaretRect, mountCustomCaret } from '$lib/state/editor_caret.js';
     import EditorToolbar from './editor_toolbar.svelte';
 
     let { onwriting = () => {} } = $props();
     const STORAGE_KEY = 'patter-doc';
-    let hostEl;
     let bodyEl;
     let scrollEl;
-    let editor;
     let unmountCustomCaret = () => {};
     let caretScrollFrame = 0;
+    let caretScrollTarget = 0;
     let typewriterDimTimer = 0;
     let wordCount = $state(0);
     let characterCount = $state(0);
@@ -28,35 +21,47 @@
     let hasScrolledDown = $state(false);
     const bottomFadeMask = 'linear-gradient(to bottom, #000 0, #000 calc(100% - 5rem), transparent 100%)';
     const topAndBottomFadeMask = 'linear-gradient(to bottom, transparent 0, #000 2rem, #000 calc(100% - 2rem), transparent 100%)';
-    const CARET_CENTER_POSITION = 0.5;
-    const CARET_SCROLL_DEAD_ZONE = 2;
-    const CARET_SCROLL_EASING = 0.12;
+    const CARET_SCROLL_EASING = 0.2;
+
+    function plainTextFromHtml(html) {
+        if (!html) return '';
+        const parsed = new DOMParser().parseFromString(html, 'text/html');
+        const blockTags = new Set(['DIV', 'LI', 'P', 'H1', 'H2', 'H3', 'BLOCKQUOTE']);
+
+        function readNode(node) {
+            if (node.nodeType === Node.TEXT_NODE) return node.nodeValue ?? '';
+            if (node.nodeType !== Node.ELEMENT_NODE) return '';
+            if (node.matches('script, style, iframe, object, embed, video, audio')) return '';
+            if (node.nodeName === 'IMG') return node.getAttribute('alt') ?? '';
+            if (node.nodeName === 'BR') return '\n';
+            const text = Array.from(node.childNodes, readNode).join('');
+            return blockTags.has(node.nodeName) ? `${text}\n` : text;
+        }
+
+        return Array.from(parsed.body.childNodes, readNode).join('').replace(/\n{3,}/gu, '\n\n');
+    }
 
     function load() {
         try {
             const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
+            if (typeof saved?.text === 'string') return saved.text;
             if (typeof saved?.markdown === 'string') return saved.markdown;
-            if (typeof saved?.body === 'string' && saved.body) {
-                const legacy = document.createElement('div');
-                legacy.innerHTML = saved.body;
-                return serializeEditorMarkdown(legacy);
-            }
+            if (typeof saved?.body === 'string' && saved.body) return plainTextFromHtml(saved.body);
         } catch {}
         return '';
     }
 
-    function save(markdown = getEditorDocument()) {
-        setEditorDocument(markdown);
+    function save(text = getEditorText(bodyEl)) {
+        setEditorDocument(text);
         try {
-            if (markdown.trim()) localStorage.setItem(STORAGE_KEY, JSON.stringify({ markdown }));
+            if (text.trim()) localStorage.setItem(STORAGE_KEY, JSON.stringify({ text }));
             else localStorage.removeItem(STORAGE_KEY);
         } catch {}
     }
 
     function updateEmpty() {
         if (!bodyEl) return;
-        const isEmpty = getEditorText(bodyEl).trim() === '';
-        bodyEl.dataset.empty = isEmpty;
+        bodyEl.dataset.empty = String(getEditorText(bodyEl).trim() === '');
     }
 
     function updateCounts() {
@@ -78,16 +83,6 @@
         return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
     }
 
-    function getCaretRect(range) {
-        const rect = range.getBoundingClientRect();
-        if (rect.height > 0) return rect;
-
-        const node = range.startContainer;
-        const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
-        const block = element?.closest('p, h1, h2, h3, li, blockquote, pre');
-        return block?.getBoundingClientRect() ?? null;
-    }
-
     function stopCaretScroll() {
         if (!caretScrollFrame) return;
         cancelAnimationFrame(caretScrollFrame);
@@ -104,39 +99,58 @@
         }, 220);
     }
 
-    function scrollCaretDownWhenNeeded() {
-        caretScrollFrame = 0;
+    function getCaretScrollTarget() {
+        if (!scrollEl || !bodyEl || document.activeElement !== bodyEl) return null;
         const selection = getSelection();
-        if (!selection?.rangeCount || !scrollEl || !bodyEl || !selection.isCollapsed) return;
-        if (document.activeElement !== bodyEl || !bodyEl.contains(selection.anchorNode)) return;
+        if (!selection?.rangeCount || !selection.isCollapsed || !bodyEl.contains(selection.anchorNode)) return null;
 
-        const range = selection.getRangeAt(0).cloneRange();
-        range.collapse(true);
-        const caretRect = getCaretRect(range);
-        if (!caretRect) return;
-
-        const box = scrollEl.getBoundingClientRect();
-        const centerLine = box.top + scrollEl.clientHeight * CARET_CENTER_POSITION;
+        const caretRect = getCaretRect(selection.getRangeAt(0), bodyEl);
+        if (!caretRect) return null;
+        const viewport = scrollEl.getBoundingClientRect();
         const caretCenter = caretRect.top + caretRect.height / 2;
-        if (caretCenter <= centerLine) return;
-
-        const target = Math.max(0, Math.min(
+        const viewportCenter = viewport.top + scrollEl.clientHeight / 2;
+        return Math.max(0, Math.min(
             scrollEl.scrollHeight - scrollEl.clientHeight,
-            scrollEl.scrollTop + caretCenter - centerLine
+            scrollEl.scrollTop + caretCenter - viewportCenter
         ));
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            scrollEl.scrollTop = target;
+    }
+
+    function animateCaretScroll() {
+        caretScrollFrame = 0;
+        if (!scrollEl) return;
+
+        const maxScroll = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+        caretScrollTarget = Math.max(0, Math.min(maxScroll, caretScrollTarget));
+        const distance = caretScrollTarget - scrollEl.scrollTop;
+        if (Math.abs(distance) < 0.5) {
+            scrollEl.scrollTop = caretScrollTarget;
             return;
         }
-        const distance = target - scrollEl.scrollTop;
-        if (Math.abs(distance) < CARET_SCROLL_DEAD_ZONE) return;
+
         dimTextWhileScrolling();
         scrollEl.scrollTop += distance * CARET_SCROLL_EASING;
-        caretScrollFrame = requestAnimationFrame(scrollCaretDownWhenNeeded);
+        caretScrollFrame = requestAnimationFrame(animateCaretScroll);
     }
 
     function scheduleCaretScroll() {
-        if (!caretScrollFrame) caretScrollFrame = requestAnimationFrame(scrollCaretDownWhenNeeded);
+        const target = getCaretScrollTarget();
+        if (target === null) return;
+        caretScrollTarget = target;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            stopCaretScroll();
+            scrollEl.scrollTop = target;
+        } else if (!caretScrollFrame) {
+            caretScrollFrame = requestAnimationFrame(animateCaretScroll);
+        }
+    }
+
+    function updateTypewriterPadding() {
+        if (!scrollEl || !bodyEl) return;
+        const bodyStyle = getComputedStyle(bodyEl);
+        const fontSize = Number.parseFloat(bodyStyle.fontSize) || 18;
+        const lineHeight = Number.parseFloat(bodyStyle.lineHeight) || fontSize * 1.555556;
+        const bottomPadding = Math.max(0, scrollEl.clientHeight / 2 - lineHeight / 2);
+        bodyEl.style.paddingBottom = `${bottomPadding}px`;
     }
 
     function handleEditorScroll() {
@@ -154,28 +168,74 @@
         if (isSoundedEditorKey(event)) playTapSound();
     }
 
-    function handleEditorKeyup(event) {
-        if (event.key === 'Enter') scheduleCaretScroll();
+    function dispatchInput(inputType, data = null) {
+        bodyEl.dispatchEvent(new InputEvent('input', { bubbles: true, inputType, data }));
     }
 
-    function handleInput(event) {
+    function insertPlainText(text, range = null) {
+        if (!bodyEl || !text) return;
+        const selection = getSelection();
+        const insertionRange = range ?? (selection?.rangeCount ? selection.getRangeAt(0) : null);
+        if (!insertionRange || !bodyEl.contains(insertionRange.startContainer)) return;
+
+        insertionRange.deleteContents();
+        const textNode = document.createTextNode(text);
+        insertionRange.insertNode(textNode);
+        insertionRange.setStart(textNode, textNode.length);
+        insertionRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(insertionRange);
+        bodyEl.focus();
+        dispatchInput('insertFromPaste', text);
+    }
+
+    function handleEditorPaste(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const clipboard = event.clipboardData;
+        const text = clipboard?.getData('text/plain') || plainTextFromHtml(clipboard?.getData('text/html') ?? '');
+        insertPlainText(text.replace(/\r\n?/gu, '\n'));
+    }
+
+    function handleEditorDrop(event) {
+        const transfer = event.dataTransfer;
+        if (!transfer) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const html = transfer.getData('text/html');
+        const text = transfer.getData('text/plain') || plainTextFromHtml(html);
+        const range = document.caretRangeFromPoint?.(event.clientX, event.clientY) ?? null;
+        insertPlainText(text.replace(/\r\n?/gu, '\n'), range);
+    }
+
+    function handleInput() {
         onwriting();
         updateEmpty();
         updateCounts();
+        save();
         scheduleCaretScroll();
     }
 
-    function replaceDocument(markdown) {
-        if (!editor) return;
-        editor.action((ctx) => replaceAll(markdown, true)(ctx));
-        setEditorDocument(markdown);
-        save(markdown);
+    function replaceDocument(text) {
+        if (!bodyEl) return;
+        bodyEl.textContent = String(text ?? '').replace(/\r\n?/gu, '\n');
+        save();
         updateEmpty();
         updateCounts();
     }
 
     onMount(() => {
-        const initialMarkdown = load();
+        bodyEl.textContent = load();
+        bodyEl.dataset.empty = 'true';
+        updateEmpty();
+        updateCounts();
+        save();
+        unmountCustomCaret = mountCustomCaret(scrollEl, bodyEl);
+        updateTypewriterPadding();
+        const typewriterResizeObserver = new ResizeObserver(updateTypewriterPadding);
+        typewriterResizeObserver.observe(scrollEl);
+        typewriterResizeObserver.observe(bodyEl);
+
         let sessionTimer;
         const sessionStartedAt = performance.now();
         const updateSessionTime = () => {
@@ -185,70 +245,31 @@
         };
         updateSessionTime();
 
-        let cancelled = false;
-        hostEl.addEventListener('input', handleInput);
-        hostEl.addEventListener('keydown', handleEditorKeydown);
-        hostEl.addEventListener('keyup', handleEditorKeyup);
-        const create = async () => {
-            const instance = Editor.make()
-                .config((ctx) => {
-                    ctx.set(rootCtx, hostEl);
-                    ctx.set(defaultValueCtx, initialMarkdown);
-                    ctx.get(listenerCtx).markdownUpdated((_ctx, markdown) => {
-                        setEditorDocument(markdown);
-                        save(markdown);
-                        updateEmpty();
-                        updateCounts();
-                    });
-                })
-                .use(commonmark)
-                .use(smartPunctuation)
-                .use(listener);
-            await instance.create();
-            if (cancelled) {
-                await instance.destroy();
-                return;
-            }
-            editor = instance;
-            bodyEl = hostEl.querySelector('.ProseMirror');
-            if (!bodyEl) return;
-            unmountCustomCaret = mountCustomCaret(scrollEl, bodyEl);
-            bodyEl.setAttribute('data-patter-body', '');
-            bodyEl.setAttribute('role', 'textbox');
-            bodyEl.setAttribute('aria-label', 'Writing area');
-            bodyEl.setAttribute('aria-multiline', 'true');
-            bodyEl.dataset.placeholder = 'Once, there was a glorious kingdom...';
-            bodyEl.setAttribute('aria-placeholder', bodyEl.dataset.placeholder);
-            bodyEl.dataset.empty = 'true';
-            bodyEl.classList.add('flex', 'flex-col', 'gap-2', 'p-4', 'sm:p-8', 'pb-[45vh]', 'min-h-full');
-            bodyEl.style.lineHeight = '1.555556';
-            updateEmpty();
-            updateCounts();
-            save(initialMarkdown);
-        };
-        create();
-
         const onManualScrollIntent = stopCaretScroll;
         const onClearSavedData = () => replaceDocument('');
-        const onImportDocument = (event) => replaceDocument(String(event.detail?.body ?? '').replace(/\r\n?/gu, '\n'));
+        const onImportDocument = (event) => replaceDocument(String(event.detail?.body ?? ''));
+        bodyEl.addEventListener('input', handleInput);
+        bodyEl.addEventListener('keydown', handleEditorKeydown);
+        bodyEl.addEventListener('paste', handleEditorPaste, true);
+        bodyEl.addEventListener('drop', handleEditorDrop, true);
         scrollEl.addEventListener('wheel', onManualScrollIntent, { passive: true });
         scrollEl.addEventListener('touchstart', onManualScrollIntent, { passive: true });
         window.addEventListener('patter-clear-saved-data', onClearSavedData);
         window.addEventListener('patter-import-document', onImportDocument);
         return () => {
-            cancelled = true;
             window.clearTimeout(sessionTimer);
             window.clearTimeout(typewriterDimTimer);
+            typewriterResizeObserver.disconnect();
             scrollEl.removeEventListener('wheel', onManualScrollIntent);
             scrollEl.removeEventListener('touchstart', onManualScrollIntent);
             stopCaretScroll();
             unmountCustomCaret();
             window.removeEventListener('patter-clear-saved-data', onClearSavedData);
             window.removeEventListener('patter-import-document', onImportDocument);
-            hostEl.removeEventListener('input', handleInput);
-            hostEl.removeEventListener('keydown', handleEditorKeydown);
-            hostEl.removeEventListener('keyup', handleEditorKeyup);
-            editor?.destroy();
+            bodyEl.removeEventListener('input', handleInput);
+            bodyEl.removeEventListener('keydown', handleEditorKeydown);
+            bodyEl.removeEventListener('paste', handleEditorPaste, true);
+            bodyEl.removeEventListener('drop', handleEditorDrop, true);
         };
     });
 </script>
@@ -256,11 +277,24 @@
 <div class="flex h-full min-h-0 min-w-0 w-full flex-col gap-4 overflow-visible">
     <EditorToolbar />
     <div class="flex min-h-0 min-w-0 w-full flex-1 gap-2 overflow-hidden">
-    <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
+        <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
         <div bind:this={scrollEl} class="editor_body_scroll h-full w-full min-h-0 flex-1 patter_font_body overflow-y-scroll scrollbar-thumb-mauve-100/12 scrollbar-thin" style={`--editor-mask: ${hasScrolledDown ? topAndBottomFadeMask : bottomFadeMask}`} onscroll={handleEditorScroll}>
-            <div bind:this={hostEl} data-patter-editor-host></div>
+            <div
+                bind:this={bodyEl}
+                data-patter-body
+                data-empty="true"
+                data-placeholder="Once, there was a glorious kingdom..."
+                contenteditable="plaintext-only"
+                role="textbox"
+                aria-label="Writing area"
+                aria-multiline="true"
+                aria-placeholder="Once, there was a glorious kingdom..."
+                spellcheck="true"
+                class="block min-h-full p-4 outline-none sm:p-8"
+                style="line-height: 1.555556;"
+            ></div>
         </div>
-    <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
+        <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
     </div>
     <div class="flex w-full shrink-0 items-center justify-between gap-6 px-4 sm:px-8 patter_text_subtle" data-zen-mode-ui="editor-stats">
         <div class="flex items-center gap-2"><p>{wordCount} {wordCount === 1 ? 'word' : 'words'}</p><p>{characterCount} {characterCount === 1 ? 'character' : 'characters'}</p></div>
@@ -277,22 +311,13 @@
         -webkit-mask-image: var(--editor-mask);
         mask-image: var(--editor-mask);
     }
-    :global(.editor_body_scroll::-webkit-scrollbar-button) { display: none; width: 0; height: 0; }
-    :global(.editor_body_scroll .ProseMirror) {
+    :global(.editor_body_scroll [data-patter-body]) {
         font-size: var(--patter_body_text_size, 18px);
         transition: font-size var(--patter_motion_standard) ease, opacity var(--patter_motion_gentle) ease;
-    }
-    :global([data-patter-body]) { position: relative; min-height: 100%; outline: none; white-space: pre-wrap; overflow-wrap: anywhere; }
-    :global([data-patter-body]) {
-        transition: opacity var(--patter_motion_gentle) ease;
+        position: relative;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
     }
     :global([data-patter-body].typewriter-scrolling) { opacity: 0.8; }
     :global([data-patter-body][data-empty="true"]::before) { content: attr(data-placeholder); position: absolute; pointer-events: none; opacity: 0.3; }
-    :global([data-patter-body] > *) { margin-block: 0; }
-    :global([data-patter-body] h1), :global([data-patter-body] h2), :global([data-patter-body] h3) { font-weight: 700; line-height: 1.25; }
-    :global([data-patter-body] h1) { font-size: 1.8em; }
-    :global([data-patter-body] h2) { font-size: 1.5em; }
-    :global([data-patter-body] h3) { font-size: 1.25em; }
-    :global([data-patter-body] ul) { list-style: disc; padding-inline-start: 1.5em; }
-    :global(.milkdown) { min-height: 100%; }
 </style>

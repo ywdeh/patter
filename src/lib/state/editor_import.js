@@ -8,8 +8,8 @@ export function parseTextImport(value) {
 }
 
 export async function readTextImport(file) {
-    if (!file || !/\.(txt|md)$/iu.test(file.name)) {
-        throw new TypeError('Choose a .txt or .md file to import.');
+	if (!file || !/\.(txt|md)$/iu.test(file.name)) {
+		throw new TypeError('Choose a .txt or .md file to import.');
     }
     return parseTextImport(await file.text());
 }

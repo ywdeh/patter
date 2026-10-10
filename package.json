@@ -30,8 +30,5 @@
 	"allowScripts": {
 		"esbuild@0.28.1": true,
 		"workerd@1.20260923.1": true
-	},
-	"dependencies": {
-		"@milkdown/kit": "^7.22.2"
 	}
 }

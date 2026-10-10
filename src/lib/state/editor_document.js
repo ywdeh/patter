@@ -1,9 +1,9 @@
-let markdown = '';
+let text = '';
 
 export function setEditorDocument(value) {
-    markdown = String(value ?? '');
+    text = String(value ?? '');
 }
 
 export function getEditorDocument() {
-    return markdown;
+    return text;
 }

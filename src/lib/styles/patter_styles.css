@@ -194,10 +194,6 @@
 		transition-duration: 0.01ms !important;
 	}
 
-	.patter-custom-caret {
-		animation: none !important;
-		opacity: 1 !important;
-	}
 }
 
 [contenteditable]:focus,

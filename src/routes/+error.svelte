@@ -6,7 +6,7 @@
 <OptionsBar />
 
 <svelte:head>
-    <title>Page not found — Patter</title>
+    <title>Patter</title>
 </svelte:head>
 
 <main class="flex h-screen w-screen flex-col items-center justify-center gap-12 p-8 text-center">

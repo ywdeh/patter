@@ -8,6 +8,10 @@
 	let hasContent = $state(false);
 	let importInput;
 	let importError = $state('');
+	const exportOptions = [
+		{ label: 'Export as .txt', menuLabel: 'Select .txt', value: 'txt', primary: true },
+		{ label: 'Export as .md', menuLabel: 'Select .md', value: 'md' }
+	];
 
 	onMount(() => {
 		const update = (event) => { hasContent = event.detail?.hasContent ?? editorHasContent(); };
@@ -29,10 +33,6 @@
 		}
 	}
 
-	const exportOptions = [
-		{ label: 'Export as .txt', menuLabel: 'Select .txt', value: 'txt', primary: true },
-		{ label: 'Export as .md', menuLabel: 'Select .md', value: 'md' }
-	];
 </script>
 
 <div class="flex w-full shrink-0 min-w-0 items-center justify-between gap-4 px-4 sm:px-8" data-zen-mode-ui="editor-toolbar">
@@ -41,6 +41,6 @@
 		<Button text="Import" onclick={() => importInput?.click()} />
 		<DropdownButton text="Export" options={exportOptions} disabled={!hasContent} onexport={(format) => exportEditorDocument(format)} />
 	</div>
-	<input bind:this={importInput} class="sr-only" type="file" accept=".txt,.md,text/plain,text/markdown" onchange={importDocument} aria-label="Import a text file" tabindex="-1" />
+	<input bind:this={importInput} class="sr-only" type="file" accept=".txt,.md,text/plain,text/markdown" onchange={importDocument} aria-label="Import a text or Markdown file" tabindex="-1" />
 </div>
 {#if importError}<p class="patter_text_small px-4 sm:px-8 pt-2 text-right text-red-200/80" role="status">{importError}</p>{/if}

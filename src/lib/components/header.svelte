@@ -25,9 +25,11 @@
             <img src="/vector2.png" alt="" class="h-5 pointer-events-none select-none opacity-24" draggable="false">
         </div>
 
-        <div class="absolute flex flex-col gap-1 w-full bottom-0 p-6 patter_text_subtle">
-            <p>Feedback: <a href="mailto:itshedwy@icloud.com" class="transition-all border-b-2 border-transparent hover:border-inherit">itshedwy@icloud.com</a></p>
-            <p>Patter is still in development. Save your files often, just in case</p>
+        <div class="absolute flex flex-col-reverse w-fit gap-1 bottom-0 p-6 patter_text_subtle">
+            <p class="opacity-80">Patter is in active development. Back up your files, just in case</p>
+            <div class="flex justify-center gap-2">
+                <p class="opacity-60">feedback <a href="mailto:itshedwy@icloud.com" class="transition-all border-b-2 border-transparent hover:border-inherit">itshedwy@icloud.com</a></p>
+            </div>
         </div>
 
     </div>

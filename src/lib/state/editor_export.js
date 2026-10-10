@@ -11,13 +11,13 @@ export function buildTextExport(body) {
 }
 
 export function downloadTextExport(body, format = 'txt', filenameSource = body) {
-    const extension = format === 'md' ? 'md' : 'txt';
-    const mimeType = extension === 'md' ? 'text/markdown;charset=utf-8' : 'text/plain;charset=utf-8';
-    const file = new Blob([buildTextExport(body)], { type: mimeType });
+	const normalizedFormat = format === 'md' ? 'md' : 'txt';
+	const mimeType = normalizedFormat === 'md' ? 'text/markdown;charset=utf-8' : 'text/plain;charset=utf-8';
+	const file = new Blob([buildTextExport(body)], { type: mimeType });
     const url = URL.createObjectURL(file);
     const link = document.createElement('a');
     link.href = url;
-    link.download = createExportFilename(filenameSource, extension);
+	link.download = createExportFilename(filenameSource, normalizedFormat);
     link.hidden = true;
     document.body.append(link);
     link.click();
@@ -33,11 +33,7 @@ export function editorHasContent() {
 
 export function exportEditorDocument(format = 'txt') {
     const bodyElement = document.querySelector('[data-patter-body]');
-    const body = !bodyElement
-        ? ''
-        : format === 'md'
-            ? getEditorDocument()
-            : getEditorText(bodyElement);
+    const body = bodyElement ? getEditorText(bodyElement) : getEditorDocument();
     if (!body.trim()) return;
-    downloadTextExport(body, format, format === 'md' ? body : getEditorText(bodyElement));
+	downloadTextExport(body, format, body);
 }
