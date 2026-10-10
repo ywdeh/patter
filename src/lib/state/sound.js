@@ -2,7 +2,7 @@ const click_sources = Object.freeze(['/click_1.mp3', '/click_2.mp3', '/click_3.m
 
 export const sound_presets = Object.freeze({
     tap: Object.freeze({ sources: ['/type.mp3'], volume: 0.15, voices: 4 }),
-    typing: Object.freeze({ sources: click_sources, volume: 0.2, voices: 4 }),
+    typing: Object.freeze({ sources: click_sources, volume: 0.5, voices: 4 }),
     paper_turn: Object.freeze({
         sources: ['/paper_turn_1.mp3', '/paper_turn_2.mp3', '/paper_turn_3.mp3', '/paper_turn_4.mp3'],
         volume: 0.2,
