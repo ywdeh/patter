@@ -1,7 +1,7 @@
 <script>
     import { untrack } from "svelte";
     import { fly } from "svelte/transition";
-    import { playTapSound } from '$lib/state/tap_sound.js';
+    import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
 
     let {
@@ -19,7 +19,8 @@
         falseLabel = "Off",
         ontrue = null,
         onfalse = null,
-        onchange = null
+        onchange = null,
+        sound = 'tap'
     } = $props();
     const initialValue = untrack(() => value);
     const resetTo = $derived(clamp(defaultValue ?? initialValue));
@@ -38,7 +39,7 @@
     const inDuration = motionDuration('short', 150);
 
     function playClick() {
-        playTapSound();
+        playSound(sound);
     }
 
     async function setToggle(next, event) {

@@ -1,12 +1,12 @@
 <script>
     import { onDestroy } from 'svelte';
-    import { playTapSound } from '$lib/state/tap_sound.js';
+    import { playSound } from '$lib/state/sound.js';
 
     let {
         text = 'Hold to confirm',
         duration = 1000,
         oncomplete = null,
-        sound = '/type.mp3'
+        sound = 'tap'
     } = $props();
 
     let isHolding = $state(false);
@@ -15,8 +15,8 @@
     let resetTimer;
     let activeKey = null;
 
-    function playSound() {
-        if (sound) playTapSound();
+    function playButtonSound() {
+        if (sound) playSound(sound);
     }
 
     function startHold() {
@@ -27,7 +27,7 @@
         holdTimer = window.setTimeout(() => {
             isHolding = false;
             isComplete = true;
-            playSound();
+            playButtonSound();
             oncomplete?.();
             resetTimer = window.setTimeout(() => (isComplete = false), 350);
         }, duration);

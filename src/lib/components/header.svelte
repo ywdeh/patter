@@ -19,8 +19,8 @@
         <div class="flex gap-2 px-1 self-center items-center">
             <img src="/vector2.png" alt="" class="h-5 scale-x-[-1] pointer-events-none select-none opacity-24" draggable="false">
             <div class="flex gap-4">
-                <Button href="/editor" text="Start writing" sound="/type.mp3"/>
-                <Button href="/editor" text="Desktop app" sound="/type.mp3" disabled />
+                <Button href="/editor" text="Start writing" sound="tap"/>
+                <Button href="/editor" text="Desktop app" sound="tap" disabled />
             </div>
             <img src="/vector2.png" alt="" class="h-5 pointer-events-none select-none opacity-24" draggable="false">
         </div>

@@ -1,16 +1,26 @@
 <script>
 	import { goto } from '$app/navigation';
-	import { playTapSound } from '$lib/state/tap_sound.js';
+	import { playSound } from '$lib/state/sound.js';
 
-	let { text = null, href = null, icon = null, sound = "/type.mp3", onclick = null, disabled = false, ariaLabel = null } = $props();
+	let { text = null, href = null, icon = null, sound = 'tap', onclick = null, disabled = false, ariaLabel = null } = $props();
 
 	function handleClick(event) {
 		if (disabled) return;
-		if (sound) playTapSound();
 		onclick?.(event);
-		if (!href || event.defaultPrevented) return;
-		if (/^(https?:)?\/\//.test(href)) window.location.href = href;
-		else goto(href);
+		if (!href || event.defaultPrevented) {
+			if (sound) playSound(sound);
+			return;
+		}
+
+		if (/^(https?:)?\/\//.test(href)) {
+			if (sound) playSound(sound);
+			window.location.href = href;
+			return;
+		}
+
+		const changesRoute = new URL(href, window.location.href).pathname !== window.location.pathname;
+		if (sound && !changesRoute) playSound(sound);
+		goto(href);
 	}
 </script>
 

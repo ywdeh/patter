@@ -6,12 +6,13 @@
     import { getBackgroundPoster } from '$lib/state/background_posters.js';
     import BackgroundThumbnail from '$lib/components/background_thumbnail.svelte';
     import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background_formats.js';
-    import { playTapSound } from '$lib/state/tap_sound.js';
+    import { playSound } from '$lib/state/sound.js';
 
     let uploadInput;
     let uploadError = $state('');
     let uploads = $state([]);
     let hasUserAction = false;
+    let { sound = 'paper_turn' } = $props();
 
     onMount(() => {
         let cancelled = false;
@@ -51,7 +52,7 @@
     });
 
     function playClick() {
-        playTapSound();
+        playSound(sound);
     }
 
     function select(item) {
@@ -69,6 +70,8 @@
     }
 
     function selectPosition(item, position) {
+        const selectedBackground = item.uploaded ? `upload:${item.id}` : item.src;
+        if (background_values.position === position && background_values.background === selectedBackground) return;
         hasUserAction = true;
         playClick();
         background_values.position = position;

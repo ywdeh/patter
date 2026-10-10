@@ -2,11 +2,11 @@
     import { onMount } from 'svelte';
     import { countEditorText, estimateReadingTime, getEditorText } from '$lib/state/editor_counts.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
-    import { playTapSound } from '$lib/state/tap_sound.js';
+    import { playSound } from '$lib/state/sound.js';
     import { getCaretRect, mountCustomCaret } from '$lib/state/editor_caret.js';
     import EditorToolbar from './editor_toolbar.svelte';
 
-    let { onwriting = () => {} } = $props();
+    let { onwriting = () => {}, sound = 'tap' } = $props();
     const STORAGE_KEY = 'patter-doc';
     let bodyEl;
     let scrollEl;
@@ -165,7 +165,7 @@
     }
 
     function handleEditorKeydown(event) {
-        if (isSoundedEditorKey(event)) playTapSound();
+        if (isSoundedEditorKey(event)) playSound(sound);
     }
 
     function dispatchInput(inputType, data = null) {

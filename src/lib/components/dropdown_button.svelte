@@ -1,6 +1,6 @@
 <script>
 	import { onMount, tick } from 'svelte';
-	import { playTapSound } from '$lib/state/tap_sound.js';
+	import { playSound } from '$lib/state/sound.js';
 
 	let {
 		text = 'Export',
@@ -8,6 +8,7 @@
 		onselect = null,
 		onexport = null,
 		disabled = false,
+		sound = 'tap',
 		ariaLabel = 'Export options'
 	} = $props();
 
@@ -54,7 +55,7 @@
 
 	async function toggleMenu() {
 		if (disabled) return;
-		playTapSound();
+		playSound(sound);
 		if (open) {
 			closeMenu();
 			return;
@@ -70,13 +71,13 @@
 		selectedValue = option.value;
 		closeMenu();
 		menuTrigger?.focus();
-		playTapSound();
+		playSound(sound);
 		onselect?.(option.value, option);
 	}
 
 	function exportSelected() {
 		if (disabled || !selectedOption) return;
-		playTapSound();
+		playSound(sound);
 		onexport?.(selectedValue, selectedOption);
 	}
 

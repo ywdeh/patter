@@ -70,7 +70,7 @@ z-55 patter_unselectable isolate group/tools patter_options_motion transition ea
         <div class="flex min-w-0 max-w-full shrink-0 flex-col items-end gap-6">
             <InputPill text="Fullscreen" mode="toggle" bind:value={isFullscreen} ontrue={enterFullscreen} onfalse={exitFullscreen} />
             <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
-            <BackgroundPicker />
+            <BackgroundPicker sound="paper_turn" />
             <InputPill text="Focus" min={0} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} onchange={(value) => persistBackgroundValues({ focus: value })} />
             <InputPill text="Tint" min={0} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} displayValues={tintLabels} unit="%" onchange={(value) => persistBackgroundValues({ tint: value })} />
             <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grainLabels} onchange={(value) => persistBackgroundValues({ grain: value })} />
