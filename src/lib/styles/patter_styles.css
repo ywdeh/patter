@@ -1,6 +1,7 @@
 @import 'tailwindcss';
+
 :root {
---patter_font_header: 'Amarante', serif;
+	--patter_font_header: 'Amarante', serif;
 	--patter_font_body: 'Bitter', serif;
 	--patter_font_ui: 'Google Sans', sans-serif;
 	--patter_font_mono: 'Departure Mono', monospace;

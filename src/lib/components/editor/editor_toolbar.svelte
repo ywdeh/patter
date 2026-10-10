@@ -38,7 +38,7 @@
 <div class="flex w-full shrink-0 min-w-0 items-center justify-between gap-4 px-8" data-zen-mode-ui="editor-toolbar">
 	<Button text="←" ariaLabel="Back home" href="/" />
 	<div class="flex min-w-0 items-center gap-4">
-		<Button text="Import .txt" onclick={() => importInput?.click()} />
+		<Button text="Import" onclick={() => importInput?.click()} />
 		<DropdownButton text="Export" options={exportOptions} disabled={!hasContent} onexport={(format) => exportEditorDocument(format)} />
 	</div>
 	<input bind:this={importInput} class="sr-only" type="file" accept=".txt,.md,text/plain,text/markdown" onchange={importDocument} aria-label="Import a text file" tabindex="-1" />
