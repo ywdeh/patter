@@ -37,12 +37,23 @@ for (const preset of Object.values(sound_presets)) {
 }
 
 const next_voice = new Map();
+const previous_source = new Map();
+
+function chooseSource(sound, sources) {
+    if (sources.length <= 1) return sources[0];
+
+    const previous = previous_source.get(sound);
+    const choices = previous ? sources.filter((source) => source !== previous) : sources;
+    const source = choices[Math.floor(Math.random() * choices.length)];
+    previous_source.set(sound, source);
+    return source;
+}
 
 export function playSound(sound = 'tap') {
     if (!sound) return;
     const preset = sound_presets[sound];
     const sources = preset?.sources ?? [sound];
-    const source = sources[Math.floor(Math.random() * sources.length)];
+    const source = chooseSource(sound, sources);
     if (typeof source !== 'string' || !source) return;
 
     const pool = getSoundPool(source, preset?.volume ?? 0.15, preset?.voices ?? 4);
