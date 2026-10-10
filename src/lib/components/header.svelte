@@ -2,7 +2,7 @@
     import Button from '$lib/components/button.svelte';
 </script>
 
-<main class="flex flex-col p-24 items-center justify-center gap-12 w-screen h-screen">
+<main class="flex flex-col px-6 py-24 md:p-24 items-center justify-center gap-12 w-screen h-screen">
 
     <div class="flex flex-col gap-24 items-center text-center">
 

@@ -220,7 +220,7 @@
             bodyEl.dataset.placeholder = 'Once, there was a glorious kingdom...';
             bodyEl.setAttribute('aria-placeholder', bodyEl.dataset.placeholder);
             bodyEl.dataset.empty = 'true';
-            bodyEl.classList.add('flex', 'flex-col', 'gap-2', 'p-8', 'pb-[45vh]', 'min-h-full');
+            bodyEl.classList.add('flex', 'flex-col', 'gap-2', 'p-4', 'sm:p-8', 'pb-[45vh]', 'min-h-full');
             bodyEl.style.lineHeight = '1.555556';
             updateEmpty();
             updateCounts();
@@ -262,7 +262,7 @@
         </div>
     <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
     </div>
-    <div class="flex w-full shrink-0 items-center justify-between gap-6 px-8 patter_text_subtle" data-zen-mode-ui="editor-stats">
+    <div class="flex w-full shrink-0 items-center justify-between gap-6 px-4 sm:px-8 patter_text_subtle" data-zen-mode-ui="editor-stats">
         <div class="flex items-center gap-2"><p>{wordCount} {wordCount === 1 ? 'word' : 'words'}</p><p>{characterCount} {characterCount === 1 ? 'character' : 'characters'}</p></div>
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-1"><p>Reading time</p><p>{readingTime}</p></div>

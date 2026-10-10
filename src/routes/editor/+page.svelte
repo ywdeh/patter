@@ -68,7 +68,7 @@
     <title>{pageTitle}</title>
 </svelte:head>
 
-<main aria-label="Editor" class="flex h-dvh w-screen flex-col px-12 py-12">
+<main aria-label="Editor" class="flex h-dvh w-screen flex-col px-3 py-12 sm:px-12">
     <h1 class="sr-only">Patter editor</h1>
     <div class="w-full h-full max-w-3xl self-center min-h-0" data-editor-container>
         <EditorBody onwriting={handleWriting} />

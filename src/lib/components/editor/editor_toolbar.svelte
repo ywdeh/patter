@@ -35,7 +35,7 @@
 	];
 </script>
 
-<div class="flex w-full shrink-0 min-w-0 items-center justify-between gap-4 px-8" data-zen-mode-ui="editor-toolbar">
+<div class="flex w-full shrink-0 min-w-0 items-center justify-between gap-4 px-4 sm:px-8" data-zen-mode-ui="editor-toolbar">
 	<Button text="←" ariaLabel="Back home" href="/" />
 	<div class="flex min-w-0 items-center gap-4">
 		<Button text="Import" onclick={() => importInput?.click()} />
@@ -43,4 +43,4 @@
 	</div>
 	<input bind:this={importInput} class="sr-only" type="file" accept=".txt,.md,text/plain,text/markdown" onchange={importDocument} aria-label="Import a text file" tabindex="-1" />
 </div>
-{#if importError}<p class="patter_text_small px-8 pt-2 text-right text-red-200/80" role="status">{importError}</p>{/if}
+{#if importError}<p class="patter_text_small px-4 sm:px-8 pt-2 text-right text-red-200/80" role="status">{importError}</p>{/if}
