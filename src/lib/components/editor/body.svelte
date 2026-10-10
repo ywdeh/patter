@@ -289,7 +289,6 @@
                 aria-label="Writing area"
                 aria-multiline="true"
                 aria-placeholder="Once, there was a glorious kingdom..."
-                spellcheck="true"
                 class="block min-h-full p-4 outline-none sm:p-8"
                 style="line-height: 1.555556;"
             ></div>
