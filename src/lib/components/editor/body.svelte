@@ -6,7 +6,7 @@
     import { getCaretRect, mountCustomCaret } from '$lib/state/editor_caret.js';
     import EditorToolbar from './editor_toolbar.svelte';
 
-    let { onwriting = () => {}, sound = 'tap' } = $props();
+    let { onwriting = () => {}, sound = 'typing' } = $props();
     const STORAGE_KEY = 'patter-doc';
     let bodyEl;
     let scrollEl;
