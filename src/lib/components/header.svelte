@@ -9,7 +9,7 @@
         <div class="flex flex-col gap-4">
             <h1 class="patter_font_header text-9xl tracking-tight">Patter</h1>
             <div class="patter_text_secondary">
-                <p>Ambient text editor for you to focus on writing.</p>
+                <p>An ambient text editor for you to focus on writing.</p>
                 <p class="mask-[linear-gradient(to_right,rgba(0,0,0,1)_0%,rgba(0,0,0,0.4)_100%)]">
                     Everything else stays out of sight
                 </p>
