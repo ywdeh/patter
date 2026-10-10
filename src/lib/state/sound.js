@@ -1,6 +1,10 @@
 export const sound_presets = Object.freeze({
-    tap: Object.freeze({ src: '/type.mp3', volume: 0.15, voices: 4 }),
-    paper_turn: Object.freeze({ src: '/paper_turn.mp3', volume: 0.2, voices: 2 })
+    tap: Object.freeze({ sources: ['/type.mp3'], volume: 0.15, voices: 4 }),
+    paper_turn: Object.freeze({
+        sources: ['/paper_turn_1.mp3', '/paper_turn_2.mp3', '/paper_turn_3.mp3', '/paper_turn_4.mp3'],
+        volume: 0.2,
+        voices: 2
+    })
 });
 
 const sound_pools = new Map();
@@ -19,33 +23,34 @@ function createSoundPool(source, volume, voiceCount) {
     });
 }
 
-function getSoundPool(sound) {
-    const preset = sound_presets[sound];
-    const source = preset?.src ?? sound;
-    if (typeof source !== 'string' || !source) return null;
-
-    const key = preset ? sound : source;
-    let pool = sound_pools.get(key);
+function getSoundPool(source, volume, voiceCount) {
+    let pool = sound_pools.get(source);
     if (!pool) {
-        pool = createSoundPool(source, preset?.volume ?? 0.15, preset?.voices ?? 4);
-        sound_pools.set(key, pool);
+        pool = createSoundPool(source, volume, voiceCount);
+        sound_pools.set(source, pool);
     }
     return pool;
 }
 
-for (const presetName of Object.keys(sound_presets)) getSoundPool(presetName);
+for (const preset of Object.values(sound_presets)) {
+    for (const source of preset.sources) getSoundPool(source, preset.volume, preset.voices);
+}
 
 const next_voice = new Map();
 
 export function playSound(sound = 'tap') {
     if (!sound) return;
-    const pool = getSoundPool(sound);
+    const preset = sound_presets[sound];
+    const sources = preset?.sources ?? [sound];
+    const source = sources[Math.floor(Math.random() * sources.length)];
+    if (typeof source !== 'string' || !source) return;
+
+    const pool = getSoundPool(source, preset?.volume ?? 0.15, preset?.voices ?? 4);
     if (!pool?.length) return;
 
-    const key = sound_presets[sound] ? sound : sound_presets[sound]?.src ?? sound;
-    const voiceIndex = next_voice.get(key) ?? 0;
+    const voiceIndex = next_voice.get(source) ?? 0;
     const audio = pool[voiceIndex];
-    next_voice.set(key, (voiceIndex + 1) % pool.length);
+    next_voice.set(source, (voiceIndex + 1) % pool.length);
     audio.currentTime = 0;
     audio.play().catch(() => {});
 }
