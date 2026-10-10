@@ -60,7 +60,7 @@
 </script>
 
 <div class="
-z-55 isolate group/tools patter_options_motion transition ease-in-out absolute right-0 top-0 hidden h-dvh max-w-[calc(100vw-3rem)] items-center justify-center p-6 sm:flex
+z-55 select-none isolate group/tools patter_options_motion transition ease-in-out absolute right-0 top-0 hidden h-dvh max-w-[calc(100vw-3rem)] items-center justify-center p-6 sm:flex
     translate-x-[50%] hover:translate-x-0 focus-within:translate-x-0  saturate-0 focus-within:saturate-100 hover:saturate-100"
     data-zen-mode-ui="options">
     <div bind:this={optionsScrollEl} onscroll={updateOptionsScroll} style={`-webkit-mask-image: ${optionsMask}; mask-image: ${optionsMask}`} class="relative z-10 flex min-h-0 max-h-[calc(100dvh-3rem)] max-w-full flex-col gap-12 justify-start overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
