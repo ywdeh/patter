@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Patter — Ambient Writing",
+  "name": "Patter",
   "short_name": "Patter",
-  "description": "A calm space for focused writing, with customizable ambient backgrounds.",
+  "description": "An ambient text editor for you to focus on writing. Change the workplace however you want, and finish that chapter. Once more.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
