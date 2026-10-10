@@ -12,7 +12,7 @@
     let uploadError = $state('');
     let uploads = $state([]);
     let hasUserAction = false;
-    let { sound = 'paper_turn' } = $props();
+    let { sound = 'tap' } = $props();
 
     onMount(() => {
         let cancelled = false;
