@@ -133,7 +133,7 @@
 			id="export-format-options"
 			role="group"
 			aria-label="Export format"
-			class="patter_control_text fixed z-[10000] min-w-max rounded-xl p-1 outline-2 outline-offset-2 outline-mauve-100/16"
+			class="patter_control_text fixed z-500 min-w-max rounded-xl p-1 outline-2 outline-offset-2 outline-mauve-100/16"
 			style={`top:${menuPosition.top}px;left:${menuPosition.left}px;min-width:${menuPosition.minWidth}px`}
 		>
 			<div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
