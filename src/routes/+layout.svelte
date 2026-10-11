@@ -27,7 +27,7 @@
 		const destination = navigation.to;
 		if (!navigation.from || !destination || navigation.from.url.pathname === destination.url.pathname) return;
 		playSound('paper_turn');
-		playSound('tap');
+		playSound('tap', 2 / 3);
 
 		const surface = document.querySelector('.route_surface');
 		const background = document.querySelector<HTMLElement>('.route_background');
