@@ -1,3 +1,5 @@
+import { sound_enabled } from '$lib/state/sound_settings.svelte.js';
+
 const click_sources = Object.freeze(['/click_1.mp3', '/click_2.mp3', '/click_3.mp3']);
 
 export const sound_presets = Object.freeze({
@@ -53,7 +55,7 @@ function chooseSource(sound, sources) {
 }
 
 export function playSound(sound = 'tap') {
-    if (!sound) return;
+    if (!sound || !sound_enabled) return;
     const preset = sound_presets[sound];
     const sources = preset?.sources ?? [sound];
     const source = chooseSource(sound, sources);
