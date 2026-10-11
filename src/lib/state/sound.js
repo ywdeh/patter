@@ -55,7 +55,7 @@ function chooseSource(sound, sources) {
 }
 
 export function playSound(sound = 'tap') {
-    if (!sound || !sound_enabled) return;
+    if (!sound || !sound_enabled.value) return;
     const preset = sound_presets[sound];
     const sources = preset?.sources ?? [sound];
     const source = chooseSource(sound, sources);

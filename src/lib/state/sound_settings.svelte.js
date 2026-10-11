@@ -9,18 +9,18 @@ function loadSoundEnabled() {
     }
 }
 
-export let sound_enabled = $state(loadSoundEnabled());
+export const sound_enabled = $state({ value: loadSoundEnabled() });
 
 export function getSoundEnabled() {
-    return sound_enabled;
+    return sound_enabled.value;
 }
 
 export function setSoundEnabled(enabled) {
-    sound_enabled = Boolean(enabled);
+    sound_enabled.value = Boolean(enabled);
     if (typeof localStorage === 'undefined') return;
 
     try {
-        if (sound_enabled) localStorage.removeItem(STORAGE_KEY);
+        if (sound_enabled.value) localStorage.removeItem(STORAGE_KEY);
         else localStorage.setItem(STORAGE_KEY, 'false');
     } catch {}
 }
