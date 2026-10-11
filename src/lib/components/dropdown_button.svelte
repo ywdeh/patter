@@ -8,7 +8,7 @@
 		onselect = null,
 		onexport = null,
 		disabled = false,
-		sound = 'tap',
+		sound = 'click',
 		ariaLabel = 'Export options'
 	} = $props();
 

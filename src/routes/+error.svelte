@@ -11,5 +11,5 @@
 
 <main class="flex h-screen w-screen flex-col items-center justify-center gap-12 p-8 text-center">
     <h1 aria-label="Page not found — Patter" class="patter_font_header text-9xl tracking-tight">Patter</h1>
-    <Button href="/" text="Back home" sound="tap" />
+    <Button href="/" text="Back home" sound="click" />
 </main>

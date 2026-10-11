@@ -20,7 +20,7 @@
         ontrue = null,
         onfalse = null,
         onchange = null,
-        sound = 'tap'
+        sound = 'click'
     } = $props();
     const initialValue = untrack(() => value);
     const resetTo = $derived(clamp(defaultValue ?? initialValue));

@@ -6,7 +6,7 @@
         text = 'Hold to confirm',
         duration = 1000,
         oncomplete = null,
-        sound = 'tap'
+        sound = 'click'
     } = $props();
 
     let isHolding = $state(false);

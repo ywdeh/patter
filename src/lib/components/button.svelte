@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { playSound } from '$lib/state/sound.js';
 
-	let { text = null, href = null, icon = null, sound = 'tap', onclick = null, disabled = false, ariaLabel = null } = $props();
+	let { text = null, href = null, icon = null, sound = 'click', onclick = null, disabled = false, ariaLabel = null } = $props();
 
 	function handleClick(event) {
 		if (disabled) return;
