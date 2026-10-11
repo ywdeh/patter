@@ -1,12 +1,14 @@
 <script lang="ts">
 	import Background from '$lib/components/background.svelte';
 	import '$lib/styles/patter_styles.css';
-	import { afterNavigate, onNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, onNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { playSound } from '$lib/state/sound.js';
 
 	let { children } = $props();
 	let routeRevealVersion = 0;
+	let routeTransitionPromise: Promise<void> | null = null;
+	let routeTransitionInProgress = false;
 
 	function fadeIn(element: HTMLElement | null | undefined, animationClass = 'route_fade_in') {
 		if (!element) return;
@@ -23,9 +25,16 @@
 		});
 	}
 
+	beforeNavigate((navigation) => {
+		if (routeTransitionInProgress) navigation.cancel();
+	});
+
 	onNavigate((navigation) => {
 		const destination = navigation.to;
 		if (!navigation.from || !destination || navigation.from.url.pathname === destination.url.pathname) return;
+		if (routeTransitionInProgress) return;
+		routeTransitionInProgress = true;
+
 		playSound('paper_turn');
 		playSound('click', 0.5);
 
@@ -38,12 +47,15 @@
 		}
 		if (!surface && !background) return;
 
-		return new Promise((resolve) => {
+		routeTransitionPromise = new Promise((resolve) => {
 			window.setTimeout(resolve, 400);
 		});
+		return routeTransitionPromise;
 	});
 
 	afterNavigate(({ from }) => {
+		routeTransitionInProgress = false;
+		routeTransitionPromise = null;
 		if (!from) return;
 		const background = document.querySelector<HTMLElement>('.route_background');
 		fadeIn(background);

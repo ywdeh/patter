@@ -28,6 +28,7 @@
 
     let holdTimer = null;
     let holdStarted = false;
+    let togglePending = $state(false);
     let direction = $state(1);
     let wheelRemainder = 0;
     let wheelOnCooldown = false;
@@ -43,15 +44,20 @@
     }
 
     async function setToggle(next, event) {
-        if (event?.type !== "click" || !event.isTrusted || next === value) return;
+        if (togglePending || event?.type !== "click" || !event.isTrusted || next === value) return;
 
-        playClick();
-        direction = next ? 1 : -1;
-        const actionResult = (next ? ontrue : onfalse)?.();
-        if (actionResult instanceof Promise && await actionResult === false) return;
+        togglePending = true;
+        try {
+            playClick();
+            direction = next ? 1 : -1;
+            const actionResult = (next ? ontrue : onfalse)?.();
+            if (actionResult instanceof Promise && await actionResult === false) return;
 
-        value = next;
-        onchange?.(next);
+            value = next;
+            onchange?.(next);
+        } finally {
+            togglePending = false;
+        }
     }
 
     function clamp(v) {

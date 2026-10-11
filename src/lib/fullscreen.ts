@@ -1,4 +1,5 @@
 const FULLSCREEN_FADE_FALLBACK_MS = 400;
+let fullscreen_transition_pending = false;
 
 function getFadeTargets() {
     return [
@@ -38,34 +39,55 @@ async function fadeOutBeforeFullscreen() {
     })));
 }
 
+async function waitForFullscreenFadeIn() {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    const animations = getFadeTargets()
+        .flatMap((element) => element.getAnimations())
+        .filter((animation) => 'animationName' in animation && animation.animationName === 'route_fade_in');
+    if (animations.length === 0) return;
+
+    await Promise.race([
+        Promise.allSettled(animations.map((animation) => animation.finished)),
+        new Promise<void>((resolve) => window.setTimeout(resolve, 700)),
+    ]);
+}
+
 export async function enterFullscreen() {
+    if (fullscreen_transition_pending) return false;
+    if (document.fullscreenElement) return true;
+    fullscreen_transition_pending = true;
     try {
-        if (!document.fullscreenElement) {
-            await fadeOutBeforeFullscreen();
-            await document.documentElement.requestFullscreen();
-        }
+        await fadeOutBeforeFullscreen();
+        await document.documentElement.requestFullscreen();
         const entered = !!document.fullscreenElement;
         if (!entered) revealAfterFailedToggle();
+        else await waitForFullscreenFadeIn();
         return entered;
     } catch (err) {
         revealAfterFailedToggle();
         console.error("Fullscreen failed:", err);
         return false;
+    } finally {
+        fullscreen_transition_pending = false;
     }
 }
 
 export async function exitFullscreen() {
+    if (fullscreen_transition_pending) return false;
+    if (!document.fullscreenElement) return true;
+    fullscreen_transition_pending = true;
     try {
-        if (document.fullscreenElement) {
-            await fadeOutBeforeFullscreen();
-            await document.exitFullscreen();
-        }
+        await fadeOutBeforeFullscreen();
+        await document.exitFullscreen();
         const exited = !document.fullscreenElement;
         if (!exited) revealAfterFailedToggle();
+        else await waitForFullscreenFadeIn();
         return exited;
     } catch (err) {
         revealAfterFailedToggle();
         console.error("Exit fullscreen failed:", err);
         return false;
+    } finally {
+        fullscreen_transition_pending = false;
     }
 }
