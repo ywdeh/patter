@@ -28,7 +28,7 @@
         <div class="absolute flex flex-col-reverse w-fit gap-1 bottom-0 p-6 patter_text_subtle">
             <p class="opacity-80">Patter is in active development. Back up your files, just in case</p>
             <div class="flex justify-center gap-2">
-                <p class="opacity-60">feedback <a href="mailto:itshedwy@icloud.com" class="transition-all border-b-2 border-transparent hover:border-inherit">itshedwy@icloud.com</a></p>
+                <p class="opacity-60">feedback <a href="mailto:itshedwy@icloud.com" class="transition-all border-b-2 border-transparent hover:border-inherit">itshedwy@icloud.com</a>, <a href="https://reddit.com/r/patterapp" target="_blank" class="transition-all border-b-2 border-transparent hover:border-inherit">reddit</a></p>
             </div>
         </div>
 
