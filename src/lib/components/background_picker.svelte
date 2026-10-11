@@ -53,7 +53,7 @@
 
     function playClick() {
         playSound(sound);
-        if (sound === 'paper_turn') playSound('click', 2 / 3);
+        if (sound === 'paper_turn') playSound('click', 0.5);
     }
 
     function select(item) {
