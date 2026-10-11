@@ -51,8 +51,8 @@
         };
     });
 
-    function playClick() {
-        playSound(sound);
+    function playClick(paperVolumeScale = 1) {
+        playSound(sound, paperVolumeScale);
         if (sound === 'paper_turn') playSound('click', 0.5);
     }
 
@@ -74,7 +74,7 @@
         const selectedBackground = item.uploaded ? `upload:${item.id}` : item.src;
         if (background_values.position === position && background_values.background === selectedBackground) return;
         hasUserAction = true;
-        playClick();
+        playClick(0.5);
         background_values.position = position;
         if (item.uploaded) {
             selectUploadedBackground(item.id, item.kind, item.url);
