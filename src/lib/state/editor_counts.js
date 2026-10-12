@@ -18,10 +18,17 @@ function textFromNode(node) {
     if (node.nodeType === Node.TEXT_NODE) return node.nodeValue ?? '';
     if (node.nodeType !== Node.ELEMENT_NODE) return '';
 
-    const children = Array.from(node.childNodes);
     if (node.tagName === 'BR') return '\n';
-    if (children.length > 0 && children.every((child) => child.nodeName === 'BR')) {
-        return '\n'.repeat(Math.max(0, children.length - 1));
+    const children = node.childNodes;
+    if (children.length > 0) {
+        let onlyBreaks = true;
+        for (const child of children) {
+            if (child.nodeName !== 'BR') {
+                onlyBreaks = false;
+                break;
+            }
+        }
+        if (onlyBreaks) return '\n'.repeat(Math.max(0, children.length - 1));
     }
 
     let text = '';
@@ -62,8 +69,10 @@ export function getEditorText(element) {
     return textFromNode(element);
 }
 
-export function countEditorText(bodyElement) {
-    const body = getEditorText(bodyElement);
+export function countEditorText(bodyTextOrElement) {
+    const body = typeof bodyTextOrElement === 'string'
+        ? bodyTextOrElement
+        : getEditorText(bodyTextOrElement);
     return {
         words: countWords(body),
         characters: countCharacters(body)

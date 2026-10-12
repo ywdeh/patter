@@ -59,15 +59,14 @@
         } catch {}
     }
 
-    function updateEmpty() {
+    function updateEmpty(text = getEditorText(bodyEl)) {
         if (!bodyEl) return;
-        bodyEl.dataset.empty = String(getEditorText(bodyEl).trim() === '');
+        bodyEl.dataset.empty = String(text.trim() === '');
     }
 
-    function updateCounts() {
+    function updateCounts(bodyText = getEditorText(bodyEl)) {
         if (!bodyEl) return;
-        const counts = countEditorText(bodyEl);
-        const bodyText = getEditorText(bodyEl);
+        const counts = countEditorText(bodyText);
         wordCount = counts.words;
         characterCount = counts.characters;
         readingTime = estimateReadingTime(counts.words);
@@ -210,26 +209,29 @@
 
     function handleInput() {
         onwriting();
-        updateEmpty();
-        updateCounts();
-        save();
+        const bodyText = getEditorText(bodyEl);
+        updateEmpty(bodyText);
+        updateCounts(bodyText);
+        save(bodyText);
         scheduleCaretScroll();
     }
 
     function replaceDocument(text) {
         if (!bodyEl) return;
-        bodyEl.textContent = String(text ?? '').replace(/\r\n?/gu, '\n');
-        save();
-        updateEmpty();
-        updateCounts();
+        const bodyText = String(text ?? '').replace(/\r\n?/gu, '\n');
+        bodyEl.textContent = bodyText;
+        save(bodyText);
+        updateEmpty(bodyText);
+        updateCounts(bodyText);
     }
 
     onMount(() => {
-        bodyEl.textContent = load();
+        const initialText = load();
+        bodyEl.textContent = initialText;
         bodyEl.dataset.empty = 'true';
-        updateEmpty();
-        updateCounts();
-        save();
+        updateEmpty(initialText);
+        updateCounts(initialText);
+        save(initialText);
         unmountCustomCaret = mountCustomCaret(scrollEl, bodyEl);
         updateTypewriterPadding();
         const typewriterResizeObserver = new ResizeObserver(updateTypewriterPadding);
