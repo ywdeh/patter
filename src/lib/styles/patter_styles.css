@@ -24,7 +24,6 @@
 	--patter_motion_slow: 400ms;
 	--patter_motion_gentle: 600ms;
 	--patter_motion_fullscreen_out: 250ms;
-	--patter_motion_fullscreen: 600ms;
 	--patter_delay_short: 50ms;
 	--patter_delay_reveal: 400ms;
 }
@@ -98,6 +97,19 @@
 
 .patter_text_color {
 	color: var(--patter_color_text);
+}
+
+.patter_noscript_notice {
+	position: fixed;
+	z-index: 10000;
+	inset: auto 1rem 1rem;
+	padding: 0.75rem 1rem;
+	border: 2px solid rgb(243 241 243 / 24%);
+	border-radius: 0.75rem;
+	background: var(--patter_color_base);
+	color: var(--patter_color_text);
+	font: 14px/1.5 system-ui, sans-serif;
+	text-align: center;
 }
 
 button,

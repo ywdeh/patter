@@ -8,7 +8,7 @@
 
     let { onwriting = () => {}, sound = 'typing' } = $props();
     const STORAGE_KEY = 'patter-doc';
-    let bodyEl;
+    let bodyEl = $state();
     let scrollEl;
     let unmountCustomCaret = () => {};
     let caretScrollFrame = 0;
@@ -18,6 +18,7 @@
     let characterCount = $state(0);
     let sessionTime = $state('0m');
     let readingTime = $state('0m');
+    let saveUnavailable = $state(false);
     let hasScrolledDown = $state(false);
     const bottomFadeMask = 'linear-gradient(to bottom, #000 0, #000 calc(100% - 5rem), transparent 100%)';
     const topAndBottomFadeMask = 'linear-gradient(to bottom, transparent 0, #000 2rem, #000 calc(100% - 2rem), transparent 100%)';
@@ -56,7 +57,10 @@
         try {
             if (text.trim()) localStorage.setItem(STORAGE_KEY, JSON.stringify({ text }));
             else localStorage.removeItem(STORAGE_KEY);
-        } catch {}
+            if (saveUnavailable) saveUnavailable = false;
+        } catch {
+            saveUnavailable = true;
+        }
     }
 
     function updateEmpty(text = getEditorText(bodyEl)) {
@@ -304,6 +308,13 @@
             <div class="flex items-center gap-1"><p>Session time</p><p>{sessionTime}</p></div>
         </div>
     </div>
+    {#if saveUnavailable}
+        <p class="patter_text_small px-4 text-amber-100/80 sm:px-8" role="status" aria-live="polite">
+            {getEditorText(bodyEl).trim()
+                ? 'Local saving is unavailable. Export your writing before leaving.'
+                : 'Local storage is unavailable. Clearing this draft may not persist.'}
+        </p>
+    {/if}
 </div>
 
 <style>
