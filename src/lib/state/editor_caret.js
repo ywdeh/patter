@@ -1,7 +1,8 @@
 export const CUSTOM_CARET_ENABLED = true;
 
 const CARET_WIDTH = 2;
-const CARET_LEFT_PADDING = 2;
+const CARET_LEFT_PADDING = 1;
+const EMPTY_CARET_LEFT_OFFSET = 4;
 const CARET_COLOR = 'currentColor';
 const BLINK_DURATION = '1s';
 const STYLE_ID = 'patter-custom-caret-style';
@@ -13,20 +14,21 @@ function ensureStyles() {
 	style.id = STYLE_ID;
 	style.textContent = `
 		@keyframes patter-caret-blink {
-			0%, 48% { opacity: 1; }
+			0%, 48% { opacity: var(--patter_custom_caret_visible_opacity, 1); }
 			49%, 100% { opacity: 0; }
 		}
 		.patter-custom-caret {
 			position: absolute;
 			z-index: 5;
 			width: ${CARET_WIDTH}px;
+			border-radius: 9999px;
 			pointer-events: none;
 			user-select: none;
 			visibility: hidden;
 			animation: patter-caret-blink ${BLINK_DURATION} steps(1, end) infinite;
 		}
 		@media (prefers-reduced-motion: reduce) {
-			.patter-custom-caret { animation: none; opacity: 1; }
+			.patter-custom-caret { animation: none; opacity: var(--patter_custom_caret_visible_opacity, 1); }
 		}
 	`;
 	document.head.append(style);
@@ -130,7 +132,9 @@ export function mountCustomCaret(scroller, editor) {
 		}
 
 		const bounds = scroller.getBoundingClientRect();
-		const left = rect.left - bounds.left + scroller.scrollLeft - scroller.clientLeft + CARET_LEFT_PADDING;
+		const isEmpty = editor.dataset.empty === 'true';
+		const left = rect.left - bounds.left + scroller.scrollLeft - scroller.clientLeft
+			+ CARET_LEFT_PADDING - (isEmpty ? EMPTY_CARET_LEFT_OFFSET : 0);
 		const top = rect.top - bounds.top + scroller.scrollTop - scroller.clientTop;
 		const height = rect.height;
 		const moved = !lastPosition
@@ -141,6 +145,11 @@ export function mountCustomCaret(scroller, editor) {
 		caret.style.left = `${left}px`;
 		caret.style.top = `${top}px`;
 		caret.style.height = `${height}px`;
+		caret.style.color = getComputedStyle(editor).color;
+		caret.style.setProperty(
+			'--patter_custom_caret_visible_opacity',
+			isEmpty ? 'var(--patter_opacity_placeholder, 0.3)' : '1'
+		);
 		caret.style.visibility = 'visible';
 		editor.style.caretColor = 'transparent';
 		lastPosition = { left, top, height };
@@ -184,3 +193,5 @@ export function mountCustomCaret(scroller, editor) {
 		caret.remove();
 	};
 }
+
+

@@ -243,6 +243,7 @@
         typewriterResizeObserver.observe(bodyEl);
 
         let sessionTimer;
+        let autofocusFrame = 0;
         const sessionStartedAt = performance.now();
         const updateSessionTime = () => {
             const elapsed = performance.now() - sessionStartedAt;
@@ -262,7 +263,26 @@
         scrollEl.addEventListener('touchstart', onManualScrollIntent, { passive: true });
         window.addEventListener('patter-clear-saved-data', onClearSavedData);
         window.addEventListener('patter-import-document', onImportDocument);
+
+        if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+            autofocusFrame = requestAnimationFrame(() => {
+                autofocusFrame = 0;
+                const canTakeFocus = document.activeElement === document.body
+                    || document.activeElement === document.documentElement;
+                if (!canTakeFocus || !bodyEl?.isConnected) return;
+
+                const range = document.createRange();
+                range.selectNodeContents(bodyEl);
+                range.collapse(false);
+                const selection = window.getSelection();
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+                bodyEl.focus({ preventScroll: true });
+            });
+        }
+
         return () => {
+            if (autofocusFrame) cancelAnimationFrame(autofocusFrame);
             window.clearTimeout(sessionTimer);
             window.clearTimeout(typewriterDimTimer);
             typewriterResizeObserver.disconnect();
@@ -331,5 +351,5 @@
         overflow-wrap: anywhere;
     }
     :global([data-patter-body].typewriter-scrolling) { opacity: 0.8; }
-    :global([data-patter-body][data-empty="true"]::before) { content: attr(data-placeholder); position: absolute; pointer-events: none; opacity: 0.3; }
+    :global([data-patter-body][data-empty="true"]::before) { content: attr(data-placeholder); position: absolute; pointer-events: none; opacity: var(--patter_opacity_placeholder, 0.3); }
 </style>
