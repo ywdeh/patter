@@ -52,10 +52,20 @@ export function getCaretRect(range, editor) {
 	if (!editor.textContent?.length) {
 		return {
 			left: editorRect.left + (Number.parseFloat(editorStyle.paddingLeft) || 0),
-			top: editorRect.top + (Number.parseFloat(editorStyle.paddingTop) || 0),
+			top: range.startContainer.nodeType === Node.ELEMENT_NODE
+				? range.startContainer.getBoundingClientRect().top + (Number.parseFloat(getComputedStyle(range.startContainer).paddingTop) || 0)
+				: editorRect.top + (Number.parseFloat(editorStyle.paddingTop) || 0),
 			width: 0,
 			height: lineHeight
 		};
+	}
+
+	// Prefer the browser's native collapsed-range geometry. Inserting a measuring
+	// marker here mutates the editable DOM and can make the first typed character
+	// move the live selection into a neighboring line.
+	const nativeRect = range.getBoundingClientRect();
+	if (nativeRect.height > 0) {
+		return { left: nativeRect.left, top: nativeRect.top, width: nativeRect.width, height: nativeRect.height };
 	}
 
 	const startContainer = range.startContainer;

@@ -32,11 +32,13 @@ function textFromNode(node) {
     }
 
     let text = '';
+    let hasPrevious = false;
     let previousWasBlock = false;
     for (const child of children) {
         const isBlock = child.nodeType === Node.ELEMENT_NODE && blockTags.has(child.nodeName);
-        if (isBlock && previousWasBlock) text += '\n';
+        if (hasPrevious && (isBlock || previousWasBlock)) text += '\n';
         text += textFromNode(child);
+        hasPrevious = true;
         previousWasBlock = isBlock;
     }
     return text;

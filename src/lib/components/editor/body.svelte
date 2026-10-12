@@ -68,6 +68,22 @@
         bodyEl.dataset.empty = String(text.trim() === '');
     }
 
+    function renderPlainText(text) {
+        if (!bodyEl) return;
+        const plainText = String(text ?? '').replace(/\r\n?/gu, '\n');
+        bodyEl.replaceChildren();
+        if (!plainText) return;
+
+        const fragment = document.createDocumentFragment();
+        for (const line of plainText.split('\n')) {
+            const paragraph = document.createElement('div');
+            if (line) paragraph.textContent = line;
+            else paragraph.append(document.createElement('br'));
+            fragment.append(paragraph);
+        }
+        bodyEl.replaceChildren(fragment);
+    }
+
     function updateCounts(bodyText = getEditorText(bodyEl)) {
         if (!bodyEl) return;
         const counts = countEditorText(bodyText);
@@ -168,7 +184,17 @@
     }
 
     function handleEditorKeydown(event) {
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && ['b', 'i', 'u'].includes(event.key.toLowerCase())) {
+            event.preventDefault();
+            return;
+        }
         if (isSoundedEditorKey(event)) playSound(sound);
+    }
+
+    function handleEditorBeforeInput(event) {
+        if (/^(format|insert(?:OrderedList|UnorderedList|HorizontalRule))/u.test(event.inputType)) {
+            event.preventDefault();
+        }
     }
 
     function dispatchInput(inputType, data = null) {
@@ -223,7 +249,7 @@
     function replaceDocument(text) {
         if (!bodyEl) return;
         const bodyText = String(text ?? '').replace(/\r\n?/gu, '\n');
-        bodyEl.textContent = bodyText;
+        renderPlainText(bodyText);
         save(bodyText);
         updateEmpty(bodyText);
         updateCounts(bodyText);
@@ -231,7 +257,7 @@
 
     onMount(() => {
         const initialText = load();
-        bodyEl.textContent = initialText;
+        renderPlainText(initialText);
         bodyEl.dataset.empty = 'true';
         updateEmpty(initialText);
         updateCounts(initialText);
@@ -257,6 +283,7 @@
         const onImportDocument = (event) => replaceDocument(String(event.detail?.body ?? ''));
         bodyEl.addEventListener('input', handleInput);
         bodyEl.addEventListener('keydown', handleEditorKeydown);
+        bodyEl.addEventListener('beforeinput', handleEditorBeforeInput);
         bodyEl.addEventListener('paste', handleEditorPaste, true);
         bodyEl.addEventListener('drop', handleEditorDrop, true);
         scrollEl.addEventListener('wheel', onManualScrollIntent, { passive: true });
@@ -272,7 +299,7 @@
                 if (!canTakeFocus || !bodyEl?.isConnected) return;
 
                 const range = document.createRange();
-                range.selectNodeContents(bodyEl);
+                range.selectNodeContents(bodyEl.lastElementChild ?? bodyEl);
                 range.collapse(false);
                 const selection = window.getSelection();
                 selection?.removeAllRanges();
@@ -294,6 +321,7 @@
             window.removeEventListener('patter-import-document', onImportDocument);
             bodyEl.removeEventListener('input', handleInput);
             bodyEl.removeEventListener('keydown', handleEditorKeydown);
+            bodyEl.removeEventListener('beforeinput', handleEditorBeforeInput);
             bodyEl.removeEventListener('paste', handleEditorPaste, true);
             bodyEl.removeEventListener('drop', handleEditorDrop, true);
         };
@@ -310,12 +338,12 @@
                 data-patter-body
                 data-empty="true"
                 data-placeholder="Once, there was a glorious kingdom..."
-                contenteditable="plaintext-only"
+                contenteditable="true"
                 role="textbox"
                 aria-label="Writing area"
                 aria-multiline="true"
                 aria-placeholder="Once, there was a glorious kingdom..."
-                class="block min-h-full p-4 outline-none sm:p-8"
+                class="flex min-h-full flex-col gap-4 p-4 outline-none sm:p-8"
                 style="line-height: 1.5;"
             ></div>
         </div>
