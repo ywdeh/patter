@@ -316,7 +316,7 @@
                 aria-multiline="true"
                 aria-placeholder="Once, there was a glorious kingdom..."
                 class="block min-h-full p-4 outline-none sm:p-8"
-                style="line-height: 1.555556;"
+                style="line-height: 1.5;"
             ></div>
         </div>
         <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
