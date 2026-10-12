@@ -224,29 +224,7 @@ button * {
 	opacity: 0;
 }
 
-.route_fade_in {
-	animation: route_fade_in var(--patter_motion_slow) ease both;
+.landing_intro_pending [data-landing-intro-letter],
+.landing_intro_pending [data-landing-intro-reveal] {
+	visibility: hidden;
 }
-
-.route_fullscreen_fade_in {
-	animation: route_fade_in var(--patter_motion_fullscreen) ease-in-out both;
-}
-
-.route_fullscreen_fade_out {
-	animation: route_fade_out var(--patter_motion_fullscreen_out) ease-in-out both;
-}
-
-.route_fade_out {
-	animation: route_fade_out var(--patter_motion_slow) ease both;
-}
-
-@keyframes route_fade_in {
-	from { opacity: 0; }
-	to { opacity: 1; }
-}
-
-@keyframes route_fade_out {
-	from { opacity: 1; }
-	to { opacity: 0; }
-}
-
