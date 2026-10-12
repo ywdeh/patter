@@ -38,6 +38,7 @@
 
     const outDuration = motionDuration('quick', 100);
     const inDuration = motionDuration('short', 150);
+    const wheelCooldownDuration = motionDuration('short', 150);
 
     function playClick() {
         playSound(sound);
@@ -99,7 +100,7 @@
             wheelCooldownTimer = setTimeout(() => {
                 wheelOnCooldown = false;
                 wheelCooldownTimer = null;
-            }, holdInterval / 2);
+            }, wheelCooldownDuration);
         }
     }
 

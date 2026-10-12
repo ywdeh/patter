@@ -1,6 +1,8 @@
 <script>
 	import { onMount, tick } from 'svelte';
+	import { fly } from 'svelte/transition';
 	import { playSound } from '$lib/state/sound.js';
+	import { motionDuration } from '$lib/state/motion.js';
 
 	let {
 		text = 'Export',
@@ -17,6 +19,14 @@
 	let menuTrigger;
 	let open = $state(false);
 	let selectedValue = $state('');
+	let direction = $state(1);
+	let wheelRemainder = 0;
+	let wheelOnCooldown = false;
+	let wheelCooldownTimer = null;
+	const outDuration = motionDuration('quick', 100);
+	const inDuration = motionDuration('short', 150);
+	const wheelCooldownDuration = motionDuration('short', 150);
+	const labelShift = 8;
 	let menuPosition = $state({ top: 0, left: 0, minWidth: 0 });
 	let selectedOption = $derived(options.find((option) => option.value === selectedValue) ?? options[0]);
 	let selectedText = $derived(selectedOption?.label ?? text);
@@ -66,13 +76,57 @@
 		menu?.querySelector('button')?.focus();
 	}
 
-	function selectOption(option) {
+	function applyOption(option, returnFocus = false) {
 		if (!option) return;
+		if (option.value === selectedValue) return;
+		const previousIndex = options.findIndex((item) => item.value === selectedValue);
+		const nextIndex = options.findIndex((item) => item.value === option.value);
+		direction = nextIndex > previousIndex ? 1 : -1;
 		selectedValue = option.value;
 		closeMenu();
-		menuTrigger?.focus();
+		if (returnFocus) menuTrigger?.focus();
 		playSound(sound);
 		onselect?.(option.value, option);
+	}
+
+	function selectOption(option) {
+		if (option?.value === selectedValue) {
+			closeMenu();
+			menuTrigger?.focus();
+			playSound(sound);
+			onselect?.(option.value, option);
+			return;
+		}
+		applyOption(option, true);
+	}
+
+	function handleWheel(event) {
+		if (disabled || wheelOnCooldown || options.length < 2) return;
+		event.preventDefault();
+
+		const delta = event.deltaY * (event.deltaMode === 1 ? 40 : event.deltaMode === 2 ? window.innerHeight : 1);
+		wheelRemainder += delta;
+		if (Math.abs(wheelRemainder) < 5) return;
+
+		const step = Math.sign(wheelRemainder);
+		wheelRemainder = 0;
+		const currentIndex = options.findIndex((option) => option.value === selectedValue);
+		const nextIndex = Math.max(0, Math.min(options.length - 1, currentIndex + step));
+		if (nextIndex !== currentIndex) applyOption(options[nextIndex]);
+
+		wheelOnCooldown = true;
+		wheelCooldownTimer = setTimeout(() => {
+			wheelOnCooldown = false;
+			wheelCooldownTimer = null;
+		}, wheelCooldownDuration);
+	}
+
+	function attachNonPassiveWheel(node) {
+		node.addEventListener('wheel', handleWheel, { passive: false });
+		return () => {
+			node.removeEventListener('wheel', handleWheel);
+			clearTimeout(wheelCooldownTimer);
+		};
 	}
 
 	function exportSelected() {
@@ -106,19 +160,24 @@
 			document.removeEventListener('keydown', handleDocumentKeydown);
 			window.removeEventListener('resize', handleViewportChange);
 			window.removeEventListener('scroll', handleViewportChange, true);
+			clearTimeout(wheelCooldownTimer);
 		};
 	});
 </script>
 
-<div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group" aria-label={text}>
+<div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group" aria-label={text} {@attach attachNonPassiveWheel}>
 	<div class="patter_control group/hitbox relative flex items-center w-fit" class:patter_disabled={disabled}>
 		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
 		<button type="button" disabled={disabled} class="relative min-h-12 cursor-pointer px-4 py-3 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
 			<span class="grid whitespace-nowrap">
-				<span class="col-start-1 row-start-1">{selectedText}</span>
 				{#each options as option (option.value)}
 					<span aria-hidden="true" class="invisible col-start-1 row-start-1">{option.label}</span>
 				{/each}
+				<span class="dropdown_value_mask relative col-start-1 row-start-1 h-6">
+					{#key selectedValue}
+						<span class="absolute inset-0 whitespace-nowrap" in:fly={{ y: direction * labelShift, duration: inDuration, delay: outDuration }} out:fly={{ y: direction * -labelShift, duration: outDuration }}>{selectedText}</span>
+					{/key}
+				</span>
 			</span>
 		</button>
 		<div aria-hidden="true" class="relative h-5 w-0.5 shrink-0 bg-mauve-100/12"></div>
@@ -147,3 +206,10 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	.dropdown_value_mask {
+		-webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 25%, #000 75%, transparent 100%);
+		mask-image: linear-gradient(to bottom, transparent 0%, #000 25%, #000 75%, transparent 100%);
+	}
+</style>
