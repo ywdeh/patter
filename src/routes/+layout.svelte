@@ -55,7 +55,7 @@
 
 	onMount(() => {
 		const handleFullscreenChange = () => {
-			void fade_page_in(get_page_motion_targets(), 'fullscreen');
+			void fade_page_in(get_page_motion_targets());
 		};
 		document.addEventListener('fullscreenchange', handleFullscreenChange);
 

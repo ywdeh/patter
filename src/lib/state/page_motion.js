@@ -48,13 +48,12 @@ function animate_opacity(targets, opacity, token, fallback_ms, ease) {
 	return latest_page_motion;
 }
 
-export function fade_page_in(targets, transition = 'route') {
-	const fullscreen = transition === 'fullscreen';
+export function fade_page_in(targets) {
 	return animate_opacity(
 		targets,
 		1,
-		fullscreen ? 'fullscreen' : 'slow',
-		fullscreen ? 600 : 400,
+		'slow',
+		400,
 		'power1.inOut'
 	);
 }

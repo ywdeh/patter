@@ -23,7 +23,7 @@ async function wait_for_fullscreen_fade_in() {
 }
 
 function reveal_after_failed_toggle() {
-	void fade_page_in(get_fade_targets(), 'fullscreen');
+	void fade_page_in(get_fade_targets());
 }
 
 export async function enterFullscreen() {
