@@ -35,9 +35,9 @@
 
 </script>
 
-<div class="flex w-full shrink-0 min-w-0 items-center justify-between gap-4 px-4 sm:px-8" data-zen-mode-ui="editor-toolbar">
+<div class="flex w-full shrink-0 min-w-0 flex-wrap items-center justify-between gap-3 px-2 sm:flex-nowrap sm:gap-4 sm:px-8" data-zen-mode-ui="editor-toolbar">
 	<Button text="←" ariaLabel="Back home" href="/" />
-	<div class="flex min-w-0 items-center gap-4">
+	<div class="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2 sm:gap-4">
 		<Button text="Import" onclick={() => importInput?.click()} />
 		<DropdownButton text="Export" options={exportOptions} disabled={!hasContent} onexport={(format) => exportEditorDocument(format)} />
 	</div>
