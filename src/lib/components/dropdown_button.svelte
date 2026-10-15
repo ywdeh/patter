@@ -30,7 +30,6 @@
 	const labelShift = 8;
 	let menuPosition = $state({ top: 0, left: 0, minWidth: 0 });
 	let selectedOption = $derived(options.find((option) => option.value === selectedValue) ?? options[0]);
-	let selectedText = $derived(selectedOption?.label ?? text);
 
 	$effect(() => {
 		if (!options.some((option) => option.value === selectedValue)) {
@@ -170,21 +169,21 @@
 <div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group" aria-label={text} {@attach attachNonPassiveWheel}>
 	<div class="patter_control group/hitbox relative flex items-center w-fit" class:patter_disabled={disabled}>
 		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
-		<button type="button" disabled={disabled} class="relative min-h-(--patter_control_height) cursor-pointer px-3 py-2 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
-			<span class="grid whitespace-nowrap">
-				{#each options as option (option.value)}
-					<span aria-hidden="true" class="invisible col-start-1 row-start-1">{option.label}</span>
-				{/each}
-				<span class="dropdown_value_mask relative col-start-1 row-start-1 h-6">
-					{#key selectedValue}
-						<span class="absolute inset-0 whitespace-nowrap" in:fly={{ y: direction * labelShift, duration: inDuration, delay: outDuration }} out:fly={{ y: direction * -labelShift, duration: outDuration }}>{selectedText}</span>
-					{/key}
-				</span>
-			</span>
+		<button type="button" disabled={disabled} aria-label={selectedOption?.label ?? text} class="relative min-h-(--patter_control_height) cursor-pointer px-3 py-2 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
+			{text}
 		</button>
 		<div aria-hidden="true" class="relative h-5 w-0.5 shrink-0 bg-mauve-100/12"></div>
 		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="relative flex min-h-(--patter_control_height) min-w-9 cursor-pointer items-center justify-center px-2 transition-colors hover:text-white disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
-			<svg aria-hidden="true" viewBox="0 0 12 8" class="h-2 w-3 transition-transform" class:rotate-180={open} fill="none"><path d="m1 1 5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+			<span class="patter_text_subtle grid min-w-8 whitespace-nowrap" aria-hidden="true">
+				{#each options as option (option.value)}
+					<span class="invisible col-start-1 row-start-1">{option.value}</span>
+				{/each}
+				<span class="dropdown_value_mask relative col-start-1 row-start-1 h-6">
+					{#key selectedValue}
+						<span class="absolute inset-0 flex items-center justify-center" in:fly={{ y: direction * labelShift, duration: inDuration, delay: outDuration }} out:fly={{ y: direction * -labelShift, duration: outDuration }}>{selectedValue}</span>
+					{/key}
+				</span>
+			</span>
 		</button>
 	</div>
 

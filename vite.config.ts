@@ -62,7 +62,9 @@ function discoverBackgrounds() {
 				.sort((a, b) => a.localeCompare(b))
 				.map(async (file) => {
 					const kind = backgroundKindFromFilename(file);
-					const hasThumbnail = kind === 'image' ? await ensureThumbnail(file) : false;
+					const hasThumbnail = kind === 'image'
+						? await ensureThumbnail(file)
+						: fs.existsSync(path.join(thumbnailDirectory, `${file}.webp`));
 					return {
 						src: '/backgrounds/' + file,
 						kind,
