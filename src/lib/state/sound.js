@@ -3,11 +3,11 @@ import { sound_enabled } from '$lib/state/sound_settings.svelte.js';
 const click_sources = Object.freeze(['/click_1.mp3', '/click_2.mp3', '/click_3.mp3']);
 
 export const sound_presets = Object.freeze({
-    click: Object.freeze({ sources: click_sources, volume: 0.15, voices: 4 }),
+    click: Object.freeze({ sources: click_sources, volume: 0.1, voices: 4 }),
     typing: Object.freeze({ sources: click_sources, volume: 0.5, voices: 4 }),
     paper_turn: Object.freeze({
         sources: ['/paper_turn_1.mp3', '/paper_turn_2.mp3', '/paper_turn_3.mp3', '/paper_turn_4.mp3'],
-        volume: 0.2,
+        volume: 0.12,
         voices: 2
     })
 });
@@ -61,13 +61,13 @@ export function playSound(sound = 'click', volumeScale = 1) {
     const source = chooseSource(sound, sources);
     if (typeof source !== 'string' || !source) return;
 
-    const pool = getSoundPool(source, preset?.volume ?? 0.15, preset?.voices ?? 4);
+    const pool = getSoundPool(source, preset?.volume ?? sound_presets.click.volume, preset?.voices ?? 4);
     if (!pool?.length) return;
 
     const voiceIndex = next_voice.get(source) ?? 0;
     const audio = pool[voiceIndex];
     next_voice.set(source, (voiceIndex + 1) % pool.length);
-    audio.volume = (preset?.volume ?? 0.15) * Math.max(0, Math.min(1, volumeScale));
+    audio.volume = (preset?.volume ?? sound_presets.click.volume) * Math.max(0, Math.min(1, volumeScale));
     audio.playbackRate = preset?.playbackRate ?? 1;
     audio.currentTime = 0;
     audio.play().catch(() => {});

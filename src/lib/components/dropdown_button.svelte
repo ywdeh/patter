@@ -170,7 +170,7 @@
 <div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group" aria-label={text} {@attach attachNonPassiveWheel}>
 	<div class="patter_control group/hitbox relative flex items-center w-fit" class:patter_disabled={disabled}>
 		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
-		<button type="button" disabled={disabled} class="relative min-h-12 cursor-pointer px-4 py-3 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
+		<button type="button" disabled={disabled} class="relative min-h-(--patter_control_height) cursor-pointer px-3 py-2 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
 			<span class="grid whitespace-nowrap">
 				{#each options as option (option.value)}
 					<span aria-hidden="true" class="invisible col-start-1 row-start-1">{option.label}</span>
@@ -183,7 +183,7 @@
 			</span>
 		</button>
 		<div aria-hidden="true" class="relative h-5 w-0.5 shrink-0 bg-mauve-100/12"></div>
-		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="relative flex min-h-12 min-w-10 cursor-pointer items-center justify-center px-2 transition-colors hover:text-white disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
+		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="relative flex min-h-(--patter_control_height) min-w-9 cursor-pointer items-center justify-center px-2 transition-colors hover:text-white disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
 			<svg aria-hidden="true" viewBox="0 0 12 8" class="h-2 w-3 transition-transform" class:rotate-180={open} fill="none"><path d="m1 1 5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
 		</button>
 	</div>
@@ -200,7 +200,7 @@
 		>
 			<div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
 			{#each options as option (option.value)}
-				<button type="button" aria-pressed={selectedValue === option.value} class="relative z-10 block w-full whitespace-nowrap rounded-lg px-4 py-3 text-left transition-colors hover:bg-mauve-100/10 focus-visible:bg-mauve-100/10 focus-visible:outline-2 focus-visible:outline-mauve-100/40" onclick={() => selectOption(option)}>
+				<button type="button" aria-pressed={selectedValue === option.value} class="relative z-10 block w-full whitespace-nowrap rounded-lg px-3 py-2 text-left transition-colors hover:bg-mauve-100/10 focus-visible:bg-mauve-100/10 focus-visible:outline-2 focus-visible:outline-mauve-100/40" onclick={() => selectOption(option)}>
 					{option.menuLabel ?? option.label}
 					{#if selectedValue === option.value}<span class="ml-3 opacity-60" aria-hidden="true">✓</span>{/if}
 				</button>

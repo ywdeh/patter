@@ -7,6 +7,10 @@
 	--patter_font_mono: 'Departure Mono', monospace;
 	--patter_font_size_small: 0.75rem;
 	--patter_line_height_small: 1rem;
+	--patter_font_size_control: 16px;
+	--patter_line_height_control: 24px;
+	--patter_control_height: 40px;
+	--patter_pill_height: 36px;
 	--patter_opacity_subtle: 0.4;
 	--patter_opacity_secondary: 0.6;
 	--patter_opacity_muted: 0.65;
@@ -170,6 +174,12 @@ button * {
 .patter_control_text {
 	@apply text-mauve-100;
 	font-family: var(--patter_font_body);
+}
+
+.patter_control_text,
+.patter_ui_text {
+	font-size: var(--patter_font_size_control);
+	line-height: var(--patter_line_height_control);
 }
 
 .patter_control_round {

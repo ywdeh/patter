@@ -25,7 +25,7 @@
 </script>
 
 {#snippet buttonContent()}
-    <span class="flex min-h-12 items-center gap-2 relative px-4 py-3 pointer-events-none">
+    <span class="flex min-h-(--patter_control_height) items-center gap-2 relative px-3 py-2 pointer-events-none">
         {text}
         {#if icon}
             <img src={icon} alt="" class="size-5 fill-black pointer-events-none opacity-80" draggable="false">

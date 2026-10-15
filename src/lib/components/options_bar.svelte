@@ -70,17 +70,17 @@
 </script>
 
 <div class="
-z-55 patter_unselectable isolate group/tools patter_options_motion transition ease-in-out absolute right-0 top-0 hidden h-dvh max-w-[calc(100vw-3rem)] items-center justify-center p-6 sm:flex
+z-55 patter_ui_text patter_unselectable isolate group/tools patter_options_motion transition ease-in-out absolute right-0 top-0 hidden h-dvh max-w-[calc(100vw-3rem)] items-center justify-center p-6 sm:flex
     translate-x-[50%] hover:translate-x-0 focus-within:translate-x-0  saturate-0 focus-within:saturate-100 hover:saturate-100"
     role="group"
     aria-label="Options bar"
     data-zen-mode-ui="options"
     ondragstart={(event) => event.preventDefault()}>
-    <div bind:this={optionsScrollEl} onscroll={updateOptionsScroll} style={`-webkit-mask-image: ${optionsMask}; mask-image: ${optionsMask}`} class="relative z-10 min-h-0 max-h-[calc(100dvh-3rem)] w-96 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
-        <div bind:this={optionsContentEl} class="flex w-full min-w-0 flex-col gap-6 p-1">
+    <div bind:this={optionsScrollEl} onscroll={updateOptionsScroll} style={`-webkit-mask-image: ${optionsMask}; mask-image: ${optionsMask}`} class="relative z-10 min-h-0 max-h-[calc(100dvh-3rem)] w-90 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
+        <div bind:this={optionsContentEl} class="flex w-full min-w-0 flex-col gap-5 p-1">
         <section class="relative w-full shrink-0" aria-label="Customization">
             <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
-        <div class="relative flex min-w-0 max-w-full flex-col items-end gap-6 p-4">
+        <div class="relative flex min-w-0 max-w-full flex-col items-end gap-5 p-4">
             <InputPill text="Fullscreen" mode="toggle" bind:value={isFullscreen} ontrue={enterFullscreen} onfalse={exitFullscreen} />
             <InputPill text="Sound" mode="toggle" bind:value={isSoundEnabled} sound={null} ontrue={() => { setSoundEnabled(true); playSound('click'); }} onfalse={() => setSoundEnabled(false)} />
             <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>

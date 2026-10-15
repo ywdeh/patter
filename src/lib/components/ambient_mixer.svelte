@@ -50,7 +50,7 @@
 
 <section role="group" class="ambient_mixer relative w-full shrink-0 transition-opacity patter_duration_standard" class:patter_disabled={!sound_enabled.value} inert={!sound_enabled.value} aria-disabled={!sound_enabled.value} aria-label="Ambient sound mixer">
     <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
-    <div class="relative flex flex-col gap-6 p-4">
+    <div class="relative flex flex-col gap-5 p-4">
             <div class="ambient_channels">
                 {#each tracks as track (track.id)}
                     <InputPill text={track.label} value={track.enabled ? track.volume : 0} min={0} max={100} step={5}
@@ -64,5 +64,5 @@
 </section>
 
 <style>
-    .ambient_channels { display: flex; flex-direction: column; gap: 1.5rem; }
+    .ambient_channels { display: flex; flex-direction: column; gap: 1.25rem; }
 </style>

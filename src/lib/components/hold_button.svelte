@@ -73,7 +73,7 @@
     onkeydown={handleKeydown}
     onkeyup={handleKeyup}
     onblur={cancelHold}
-    class="patter_control group/hitbox relative flex w-fit cursor-pointer select-none touch-none items-center patter_font_body"
+    class="patter_control patter_control_text group/hitbox relative flex w-fit cursor-pointer select-none touch-none items-center patter_font_body"
 >
     <span
         aria-hidden="true"
@@ -90,7 +90,7 @@
     <span
         class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"
     ></span>
-    <span class="relative flex min-h-12 items-center px-4 py-3 pointer-events-none select-none">
+    <span class="relative flex min-h-(--patter_control_height) items-center px-3 py-2 pointer-events-none select-none">
         {text}
     </span>
     <span id="hold-button-description" class="sr-only">Press and hold for {duration / 1000} seconds to confirm.</span>
