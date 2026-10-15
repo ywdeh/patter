@@ -96,7 +96,7 @@
                 wheelAnimationTimer = setTimeout(() => {
                     wheelPressedDirection = 0;
                     wheelAnimationTimer = null;
-                }, 100);
+                }, outDuration);
             }
             wheelOnCooldown = true;
             wheelCooldownTimer = setTimeout(() => {
@@ -259,5 +259,3 @@
     </div>
     {/if}
 </div>
-
-

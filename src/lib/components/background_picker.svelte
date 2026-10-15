@@ -7,11 +7,13 @@
     import BackgroundThumbnail from '$lib/components/background_thumbnail.svelte';
     import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background_formats.js';
     import { playSound } from '$lib/state/sound.js';
+    import { motionDuration } from '$lib/state/motion.js';
 
     let uploadInput;
     let uploadError = $state('');
     let uploads = $state([]);
     let hasUserAction = false;
+    let lastWheelBackgroundChange = -Infinity;
     let { sound = 'paper_turn' } = $props();
 
     onMount(() => {
@@ -70,9 +72,15 @@
         selectUploadedBackground(item.id, item.kind, item.url);
     }
 
-    function selectPosition(item, position) {
+    function selectPosition(item, position, { fromWheel = false } = {}) {
         const selectedBackground = item.uploaded ? `upload:${item.id}` : item.src;
-        if (background_values.position === position && background_values.background === selectedBackground) return;
+        if (background_values.position === position && background_values.background === selectedBackground) return false;
+        const changesBackground = background_values.background !== selectedBackground;
+        if (fromWheel && changesBackground) {
+            const now = performance.now();
+            if (now - lastWheelBackgroundChange < motionDuration('standard', 200)) return false;
+            lastWheelBackgroundChange = now;
+        }
         hasUserAction = true;
         playClick(0.5);
         background_values.position = position;
@@ -81,6 +89,7 @@
         } else {
             selectBuiltInBackground(item.src, item.kind);
         }
+        return true;
     }
 
     function backgroundLabel(src) {
@@ -158,7 +167,7 @@
             position={background_values.position}
             label={`Select background ${backgroundLabel(item.src)}`}
             onselect={() => select(item)}
-            onposition={(position) => selectPosition(item, position)} />
+            onposition={(position, interaction) => selectPosition(item, position, interaction)} />
     {/each}
 
     <input
@@ -181,7 +190,7 @@
                     position={background_values.position}
                     label={`Select uploaded background ${uploadItem.name}`}
                     onselect={() => selectUpload(uploadItem)}
-                    onposition={(position) => selectPosition({ ...uploadItem, uploaded: true }, position)} />
+                    onposition={(position, interaction) => selectPosition({ ...uploadItem, uploaded: true }, position, interaction)} />
             {/each}
         {:else}
             <button

@@ -3,6 +3,7 @@
     import { countEditorText, estimateReadingTime, getEditorText } from '$lib/state/editor_counts.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
     import { playSound } from '$lib/state/sound.js';
+    import { motionDuration } from '$lib/state/motion.js';
     import { getCaretRect, mountCustomCaret } from '$lib/state/editor_caret.js';
     import EditorToolbar from './editor_toolbar.svelte';
 
@@ -115,7 +116,7 @@
         typewriterDimTimer = window.setTimeout(() => {
             bodyEl?.classList.remove('typewriter-scrolling');
             typewriterDimTimer = 0;
-        }, 220);
+        }, motionDuration('standard', 200));
     }
 
     function getCaretScrollTarget() {

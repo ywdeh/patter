@@ -1,6 +1,7 @@
 <script>
     import { onDestroy } from 'svelte';
     import { playSound } from '$lib/state/sound.js';
+    import { motionDuration } from '$lib/state/motion.js';
 
     let {
         text = 'Hold to confirm',
@@ -29,7 +30,7 @@
             isComplete = true;
             playButtonSound();
             oncomplete?.();
-            resetTimer = window.setTimeout(() => (isComplete = false), 350);
+            resetTimer = window.setTimeout(() => (isComplete = false), motionDuration('slow', 400));
         }, duration);
     }
 

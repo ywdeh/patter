@@ -1,6 +1,7 @@
 <script>
     import { can_use_wheel_controls } from '$lib/state/user_interaction.js';
     import { onMount } from 'svelte';
+    import { motionDuration } from '$lib/state/motion.js';
     import { createVideoPoster, getBackgroundPoster, saveBackgroundPoster } from '$lib/state/background_posters.js';
 
     let {
@@ -66,7 +67,6 @@
 
     function handleWheel(event) {
         if (!can_use_wheel_controls()) return;
-        if (!selected) return;
         event.preventDefault();
         if (wheelLocked || event.deltaY === 0) return;
 
@@ -74,12 +74,15 @@
         const nextIndex = Math.max(0, Math.min(positions.length - 1, currentIndex + Math.sign(event.deltaY)));
         if (nextIndex === currentIndex) return;
 
-        onposition?.(positions[nextIndex]);
+        if (onposition?.(positions[nextIndex], { fromWheel: true }) === false) return;
+        const focused = document.activeElement;
+        const focusedThumbnail = focused?.closest('[data-background-thumbnail]');
+        if (focusedThumbnail && focusedThumbnail !== event.currentTarget) focused.blur();
         wheelLocked = true;
         wheelLockTimer = setTimeout(() => {
             wheelLocked = false;
             wheelLockTimer = null;
-        }, 120);
+        }, motionDuration('short', 150));
     }
 
     function attachNonPassiveWheel(node) {
@@ -91,7 +94,7 @@
     }
 </script>
 
-<div role="group" aria-label={label} class="group/inputpill relative w-full aspect-video" onpointerenter={startVideoPreview} onpointerleave={stopVideoPreview} {@attach attachNonPassiveWheel}>
+<div data-background-thumbnail role="group" aria-label={label} class="group/inputpill relative w-full aspect-video" onpointerenter={startVideoPreview} onpointerleave={stopVideoPreview} {@attach attachNonPassiveWheel}>
     <button
         type="button"
         draggable="false"
