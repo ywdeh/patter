@@ -1,8 +1,10 @@
 <script lang="ts">
 	import Background from '$lib/components/background.svelte';
+	import OptionsBar from '$lib/components/options_bar.svelte';
 	import '$lib/styles/patter_styles.css';
 	import { afterNavigate, beforeNavigate, onNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { mount_user_interaction } from '$lib/state/user_interaction.js';
 	import { playSound } from '$lib/state/sound.js';
 	import { fade_page_in, fade_page_out } from '$lib/state/page_motion.js';
 
@@ -54,6 +56,7 @@
 	});
 
 	onMount(() => {
+		const cleanupInteraction = mount_user_interaction();
 		const handleFullscreenChange = () => {
 			void fade_page_in(get_page_motion_targets());
 		};
@@ -65,7 +68,10 @@
 		});
 		revealSurfaceWhenFontsReady();
 
-		return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+		return () => {
+			cleanupInteraction();
+			document.removeEventListener('fullscreenchange', handleFullscreenChange);
+		};
 	});
 </script>
 
@@ -74,5 +80,6 @@
 <Background />
 
 <div class="route_surface route_initial_hidden">
+	<OptionsBar />
 	{@render children()}
 </div>

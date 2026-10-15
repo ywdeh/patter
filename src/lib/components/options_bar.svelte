@@ -2,6 +2,7 @@
 
 <script>
     import InputPill from "./input_pill.svelte";
+    import AmbientMixer from './ambient_mixer.svelte';
     import { background_values, persistBackgroundValues, defaults, resetBackgroundValues } from "$lib/state/background_state.svelte.js";
     import { enterFullscreen, exitFullscreen } from "$lib/fullscreen.js";
     import { getSoundEnabled, setSoundEnabled } from "$lib/state/sound_settings.svelte.js";
@@ -24,6 +25,7 @@
     });
 
     let optionsScrollEl;
+    let optionsContentEl;
     let optionsHasOverflow = $state(false);
     let optionsScrolledDown = $state(false);
     const optionsBottomFade = 'linear-gradient(to bottom, #000 0, #000 calc(100% - 5rem), transparent 100%)';
@@ -43,6 +45,7 @@
         updateOptionsScroll();
         const resizeObserver = new ResizeObserver(updateOptionsScroll);
         if (optionsScrollEl) resizeObserver.observe(optionsScrollEl);
+        if (optionsContentEl) resizeObserver.observe(optionsContentEl);
         window.addEventListener('resize', updateOptionsScroll);
         return () => {
             resizeObserver.disconnect();
@@ -73,8 +76,11 @@ z-55 patter_unselectable isolate group/tools patter_options_motion transition ea
     aria-label="Options bar"
     data-zen-mode-ui="options"
     ondragstart={(event) => event.preventDefault()}>
-    <div bind:this={optionsScrollEl} onscroll={updateOptionsScroll} style={`-webkit-mask-image: ${optionsMask}; mask-image: ${optionsMask}`} class="relative z-10 flex min-h-0 max-h-[calc(100dvh-3rem)] max-w-full flex-col gap-12 justify-start overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
-        <div class="flex min-w-0 max-w-full shrink-0 flex-col items-end gap-6">
+    <div bind:this={optionsScrollEl} onscroll={updateOptionsScroll} style={`-webkit-mask-image: ${optionsMask}; mask-image: ${optionsMask}`} class="relative z-10 min-h-0 max-h-[calc(100dvh-3rem)] w-96 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
+        <div bind:this={optionsContentEl} class="flex w-full min-w-0 flex-col gap-6 p-1">
+        <section class="relative w-full shrink-0" aria-label="Customization">
+            <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
+        <div class="relative flex min-w-0 max-w-full flex-col items-end gap-6 p-4">
             <InputPill text="Fullscreen" mode="toggle" bind:value={isFullscreen} ontrue={enterFullscreen} onfalse={exitFullscreen} />
             <InputPill text="Sound" mode="toggle" bind:value={isSoundEnabled} sound={null} ontrue={() => { setSoundEnabled(true); playSound('click'); }} onfalse={() => setSoundEnabled(false)} />
             <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
@@ -89,6 +95,9 @@ z-55 patter_unselectable isolate group/tools patter_options_motion transition ea
                     <HoldButton text="Reset everything" oncomplete={clearSavedData} />
                 </div>
             </div>
+        </div>
+        </section>
+        <AmbientMixer />
         </div>
     </div>
 </div>

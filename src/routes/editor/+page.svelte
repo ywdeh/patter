@@ -1,7 +1,6 @@
 <script>
     import { onMount } from 'svelte';
     import EditorBody from '$lib/components/editor/body.svelte';
-    import OptionsBar from '$lib/components/options_bar.svelte';
     const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-toolbar"]'];
     let zenMode = false;
     let lastPointer = null;
@@ -62,7 +61,6 @@
     });
 </script>
 
-<OptionsBar />
 
 <svelte:head>
     <title>{pageTitle}</title>

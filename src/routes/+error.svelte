@@ -1,9 +1,7 @@
 <script>
     import Button from '$lib/components/button.svelte';
-    import OptionsBar from '$lib/components/options_bar.svelte';
 </script>
 
-<OptionsBar />
 
 <svelte:head>
     <title>Patter</title>

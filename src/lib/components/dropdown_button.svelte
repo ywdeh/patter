@@ -1,4 +1,5 @@
 <script>
+	import { can_use_wheel_controls } from '$lib/state/user_interaction.js';
 	import { onMount, tick } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { playSound } from '$lib/state/sound.js';
@@ -101,6 +102,7 @@
 	}
 
 	function handleWheel(event) {
+		if (!can_use_wheel_controls()) return;
 		if (disabled || wheelOnCooldown || options.length < 2) return;
 		event.preventDefault();
 

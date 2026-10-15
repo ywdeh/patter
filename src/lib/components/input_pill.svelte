@@ -1,4 +1,5 @@
 <script>
+    import { can_use_wheel_controls } from '$lib/state/user_interaction.js';
     import { untrack } from "svelte";
     import { fly } from "svelte/transition";
     import { playSound } from '$lib/state/sound.js';
@@ -76,6 +77,7 @@
     }
 
     function handleWheel(event) {
+        if (!can_use_wheel_controls()) return;
         if (mode === "toggle") return;
         event.preventDefault();
         if (wheelOnCooldown) return;
@@ -164,7 +166,7 @@
             class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/sub.svg" alt={falseLabel} class="size-5">
+                <img src="/sub.svg" alt={falseLabel} class="size-[18px]">
             </span>
         </button>
 
@@ -186,7 +188,7 @@
             class="patter_control patter_control_round group transition h-10 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/add.svg" alt={trueLabel} class="size-5">
+                <img src="/add.svg" alt={trueLabel} class="size-[18px]">
             </span>
         </button>
     </div>
@@ -206,7 +208,7 @@
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/sub.svg" alt="decrease" class="size-5">
+                <img src="/sub.svg" alt="decrease" class="size-[18px]">
             </span>
         </button>
 
@@ -236,7 +238,7 @@
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/add.svg" alt="increase" class="size-5">
+                <img src="/add.svg" alt="increase" class="size-[18px]">
             </span>
         </button>
 
@@ -257,3 +259,5 @@
     </div>
     {/if}
 </div>
+
+

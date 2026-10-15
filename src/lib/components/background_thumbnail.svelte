@@ -1,4 +1,5 @@
 <script>
+    import { can_use_wheel_controls } from '$lib/state/user_interaction.js';
     import { onMount } from 'svelte';
     import { createVideoPoster, getBackgroundPoster, saveBackgroundPoster } from '$lib/state/background_posters.js';
 
@@ -64,6 +65,7 @@
     }
 
     function handleWheel(event) {
+        if (!can_use_wheel_controls()) return;
         if (!selected) return;
         event.preventDefault();
         if (wheelLocked || event.deltaY === 0) return;
