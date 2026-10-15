@@ -52,10 +52,18 @@
             lastPointer = position;
         }
 
+        function handlePointerDown(event) {
+            if (zenMode && (event.pointerType === 'touch' || event.pointerType === 'pen')) {
+                setZenMode(false);
+            }
+        }
+
         window.addEventListener('pointermove', handlePointerMove);
+        window.addEventListener('pointerdown', handlePointerDown, { passive: true });
         return () => {
             window.removeEventListener('patter-editor-content-change', handleContentChange);
             window.removeEventListener('pointermove', handlePointerMove);
+            window.removeEventListener('pointerdown', handlePointerDown);
             setZenMode(false);
         };
     });
