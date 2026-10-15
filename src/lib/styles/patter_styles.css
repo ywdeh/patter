@@ -163,6 +163,8 @@ button * {
 .patter_control {
 	--patter_hover_radius: 1rem;
 	--patter_active_radius: 1.5rem;
+	--patter_focus_radius: 0.75rem;
+	border-radius: var(--patter_focus_radius);
 }
 
 .patter_control_text {
@@ -173,11 +175,13 @@ button * {
 .patter_control_round {
 	--patter_hover_radius: 9999px;
 	--patter_active_radius: 9999px;
+	--patter_focus_radius: 9999px;
 }
 
 .patter_control_compact {
 	--patter_hover_radius: 0.5rem;
 	--patter_active_radius: 0.5rem;
+	--patter_focus_radius: 0.5rem;
 }
 
 .patter_hover,
@@ -207,7 +211,12 @@ button * {
 
 :focus-visible {
 	outline: 2px solid currentColor;
-	outline-offset: 2px;
+	outline-offset: 4px;
+	border-radius: inherit;
+}
+
+.patter_control:focus-visible {
+	border-radius: var(--patter_focus_radius);
 }
 
 @media (prefers-reduced-motion: reduce) {
