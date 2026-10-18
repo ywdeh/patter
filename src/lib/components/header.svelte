@@ -44,7 +44,7 @@
             <div class="flex max-w-full flex-wrap justify-center gap-3 sm:flex-nowrap sm:gap-4">
                 <Button href="/editor" text="Start writing" sound="click"/>
                 {#if !pwa_install.standalone}
-                    <Button text="Desktop app" sound="click" disabled={!pwa_install.available && !pwa_install.installed} onclick={prompt_pwa_install} />
+                    <Button text={pwa_install.installed ? 'Open desktop app' : 'Get desktop app'} sound="click" disabled={!pwa_install.available && !pwa_install.installed} onclick={prompt_pwa_install} />
                 {/if}
             </div>
             <img src="/vector2.png" alt="" class="hidden h-5 pointer-events-none select-none opacity-24 sm:block" draggable="false">
