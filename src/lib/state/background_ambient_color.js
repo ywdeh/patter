@@ -93,6 +93,7 @@ export function setAmbientBackgroundColor(color, key) {
         ? color
         : DEFAULT_AMBIENT_BACKGROUND_COLOR;
     document.documentElement.style.setProperty('--patter_background_base', safeColor);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', safeColor);
     if (!key || !/^#[\da-f]{6}$/i.test(safeColor) || typeof localStorage === 'undefined') return;
     try {
         const colors = readColorCache();

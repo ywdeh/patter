@@ -80,6 +80,7 @@ caret-mauve-100" spellcheck="false">
 					if (Number.isFinite(cachedScrim)) backgroundScrim = Math.min(0.62, Math.max(0, cachedScrim));
 				} catch {}
 				root.style.setProperty('--patter_background_base', ambientColor);
+				document.querySelector('meta[name="theme-color"]')?.setAttribute('content', ambientColor);
 				root.style.setProperty('--patter_background_scrim', `${backgroundScrim}`);
 				root.style.setProperty('--patter_focus', `${defaults.focus}px`);
 				root.style.setProperty('--patter_tint', `${defaults.tint / 100}`);
