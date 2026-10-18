@@ -5,6 +5,7 @@
 	import { afterNavigate, beforeNavigate, onNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { mount_user_interaction } from '$lib/state/user_interaction.js';
+	import { mount_pwa_install } from '$lib/state/pwa_install.svelte.js';
 	import { playSound } from '$lib/state/sound.js';
 	import { fade_page_in, fade_page_out } from '$lib/state/page_motion.js';
 
@@ -56,6 +57,7 @@
 	});
 
 	onMount(() => {
+		const cleanupInstall = mount_pwa_install();
 		const cleanupInteraction = mount_user_interaction();
 		const handleFullscreenChange = () => {
 			void fade_page_in(get_page_motion_targets());
@@ -69,6 +71,7 @@
 		revealSurfaceWhenFontsReady();
 
 		return () => {
+			cleanupInstall();
 			cleanupInteraction();
 			document.removeEventListener('fullscreenchange', handleFullscreenChange);
 		};
