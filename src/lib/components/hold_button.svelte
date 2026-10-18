@@ -63,7 +63,6 @@
     type="button"
     aria-label={text}
     aria-describedby="hold-button-description"
-    title="Hold for {duration / 1000} seconds to confirm"
     onpointerdown={(event) => {
         if (event.button === 0) startHold();
     }}

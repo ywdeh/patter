@@ -212,7 +212,7 @@
             </span>
         </button>
 
-        <div class="min-w-16 h-6 relative overflow-hidden" role="button" tabindex="0" aria-label={`${displayValue}; press Enter or Space, or double-click, to reset to default`} title="Double-click to reset" onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
+        <div class="min-w-16 h-6 relative overflow-hidden" role="button" tabindex="0" aria-label={`${displayValue}; press Enter or Space, or double-click, to reset to default`} onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
             {#key value}
                 <p
                     class="absolute inset-0"
