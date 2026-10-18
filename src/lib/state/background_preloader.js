@@ -1,12 +1,16 @@
 const preloadedImages = new Map();
-export function loadBackgroundImage(src) {
+export function loadBackgroundImage(src, priority = 'high') {
     if (typeof window === 'undefined' || !src) return Promise.resolve(null);
 
     const existing = preloadedImages.get(src);
-    if (existing) return existing.promise;
+    if (existing) {
+        if (priority === 'high') existing.image.fetchPriority = 'high';
+        return existing.promise;
+    }
 
     const image = new Image();
     image.decoding = 'async';
+    image.fetchPriority = priority;
     const promise = new Promise((resolve, reject) => {
         image.onload = async () => {
             try {
@@ -29,9 +33,23 @@ export function loadBackgroundImage(src) {
     return promise;
 }
 
-export function preloadBackgroundImages(backgrounds) {
+export function preloadBackgroundImages(backgrounds, selected_src) {
     if (typeof window === 'undefined') return;
-    for (const background of backgrounds) {
-        if (background.kind === 'image') void loadBackgroundImage(background.src).catch(() => {});
-    }
+    const selected = loadBackgroundImage(selected_src);
+    const remaining = backgrounds.filter((item) => item.kind === 'image' && item.src !== selected_src);
+    const warm_next = () => {
+        const background = remaining.shift();
+        if (!background) return;
+        const warm = () => {
+            void loadBackgroundImage(background.src, 'low').catch(() => {}).finally(warm_next);
+        };
+        if ('requestIdleCallback' in window) window.requestIdleCallback(warm, { timeout: 2000 });
+        else window.setTimeout(warm, 200);
+    };
+    const start = () => {
+        if (navigator.connection?.saveData || /^(slow-)?2g$/.test(navigator.connection?.effectiveType ?? '')) return;
+        void selected.catch(() => {}).then(warm_next);
+    };
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
 }

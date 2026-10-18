@@ -15,6 +15,13 @@
     let caretScrollFrame = 0;
     let caretScrollTarget = 0;
     let typewriterDimTimer = 0;
+    let counts_worker;
+    let counts_worker_failed = false;
+    let counts_timer = 0;
+    let counts_version = 0;
+    let latest_counts_text = '';
+    let save_timer = 0;
+    let pending_save_text = null;
     let wordCount = $state(0);
     let characterCount = $state(0);
     let sessionTime = $state('0m');
@@ -54,6 +61,9 @@
     }
 
     function save(text = getEditorText(bodyEl)) {
+        clearTimeout(save_timer);
+        save_timer = 0;
+        pending_save_text = null;
         setEditorDocument(text);
         try {
             if (text.trim()) localStorage.setItem(STORAGE_KEY, JSON.stringify({ text }));
@@ -62,6 +72,16 @@
         } catch {
             saveUnavailable = true;
         }
+    }
+
+    function flush_pending_save() {
+        if (pending_save_text !== null) save(pending_save_text);
+    }
+
+    function schedule_save(text) {
+        setEditorDocument(text);
+        pending_save_text = text;
+        if (!save_timer) save_timer = window.setTimeout(flush_pending_save, motionDuration('short', 150));
     }
 
     function updateEmpty(text = getEditorText(bodyEl)) {
@@ -85,12 +105,41 @@
         bodyEl.replaceChildren(fragment);
     }
 
-    function updateCounts(bodyText = getEditorText(bodyEl)) {
-        if (!bodyEl) return;
-        const counts = countEditorText(bodyText);
+    function apply_counts(counts) {
         wordCount = counts.words;
         characterCount = counts.characters;
         readingTime = estimateReadingTime(counts.words);
+    }
+
+    function updateCounts(bodyText = getEditorText(bodyEl)) {
+        if (!bodyEl) return;
+        latest_counts_text = bodyText;
+        const version = ++counts_version;
+        clearTimeout(counts_timer);
+        if (bodyText.length < 20000 || counts_worker_failed || typeof Worker === 'undefined') {
+            apply_counts(countEditorText(bodyText));
+        } else {
+            counts_timer = window.setTimeout(() => {
+                try {
+                    if (!counts_worker) {
+                        counts_worker = new Worker(new URL('../../state/editor_counts_worker.js', import.meta.url), { type: 'module' });
+                        counts_worker.onmessage = ({ data }) => {
+                            if (data.version === counts_version) apply_counts(data.counts);
+                        };
+                        counts_worker.onerror = () => {
+                            counts_worker_failed = true;
+                            counts_worker?.terminate();
+                            counts_worker = null;
+                            apply_counts(countEditorText(latest_counts_text));
+                        };
+                    }
+                    counts_worker.postMessage({ version, text: bodyText });
+                } catch {
+                    counts_worker_failed = true;
+                    apply_counts(countEditorText(bodyText));
+                }
+            }, motionDuration('short', 150));
+        }
         window.dispatchEvent(new CustomEvent('patter-editor-content-change', {
             detail: { hasContent: bodyText.trim() !== '', text: bodyText }
         }));
@@ -243,7 +292,7 @@
         const bodyText = getEditorText(bodyEl);
         updateEmpty(bodyText);
         updateCounts(bodyText);
-        save(bodyText);
+        schedule_save(bodyText);
         scheduleCaretScroll();
     }
 
@@ -282,6 +331,11 @@
         const onManualScrollIntent = stopCaretScroll;
         const onClearSavedData = () => replaceDocument('');
         const onImportDocument = (event) => replaceDocument(String(event.detail?.body ?? ''));
+        const flush_when_hidden = () => {
+            if (document.visibilityState === 'hidden') flush_pending_save();
+        };
+        window.addEventListener('pagehide', flush_pending_save);
+        document.addEventListener('visibilitychange', flush_when_hidden);
         bodyEl.addEventListener('input', handleInput);
         bodyEl.addEventListener('keydown', handleEditorKeydown);
         bodyEl.addEventListener('beforeinput', handleEditorBeforeInput);
@@ -310,6 +364,11 @@
         }
 
         return () => {
+            flush_pending_save();
+            clearTimeout(counts_timer);
+            counts_worker?.terminate();
+            window.removeEventListener('pagehide', flush_pending_save);
+            document.removeEventListener('visibilitychange', flush_when_hidden);
             if (autofocusFrame) cancelAnimationFrame(autofocusFrame);
             window.clearTimeout(sessionTimer);
             window.clearTimeout(typewriterDimTimer);

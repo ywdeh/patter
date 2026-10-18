@@ -1,9 +1,11 @@
+import { yield_to_browser } from './browser_tasks.js';
+
 const target_rms_db = -26;
 const peak_ceiling_db = -3;
 const maximum_boost_db = 18;
 const silence_threshold_db = -60;
 
-export function normalize_ambient_buffer(buffer) {
+export async function normalize_ambient_buffer(buffer) {
     const channels = Array.from({ length: buffer.numberOfChannels }, (_, index) => buffer.getChannelData(index));
     if (!channels.length || !buffer.length) return buffer;
 
@@ -13,6 +15,7 @@ export function normalize_ambient_buffer(buffer) {
     let peak = 0;
     let energy_sum = 0;
     let sample_count = 0;
+    let chunk_started = performance.now();
 
     for (let start = 0; start < buffer.length; start += block_size) {
         const end = Math.min(start + block_size, buffer.length);
@@ -29,6 +32,10 @@ export function normalize_ambient_buffer(buffer) {
             blocks.push({ energy, count });
             energy_sum += energy;
             sample_count += count;
+        }
+        if (performance.now() - chunk_started >= 4) {
+            await yield_to_browser();
+            chunk_started = performance.now();
         }
     }
 
@@ -51,7 +58,15 @@ export function normalize_ambient_buffer(buffer) {
         10 ** (maximum_boost_db / 20)
     );
     for (const channel of channels) {
-        for (let index = 0; index < channel.length; index++) channel[index] *= gain;
+        for (let start = 0; start < channel.length; start += 16384) {
+            const end = Math.min(start + 16384, channel.length);
+            for (let index = start; index < end; index++) channel[index] *= gain;
+            if (performance.now() - chunk_started >= 4) {
+                await yield_to_browser();
+                chunk_started = performance.now();
+            }
+        }
     }
     return buffer;
 }
+

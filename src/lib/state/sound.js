@@ -37,8 +37,26 @@ function getSoundPool(source, volume, voiceCount) {
     return pool;
 }
 
-for (const preset of Object.values(sound_presets)) {
-    for (const source of preset.sources) getSoundPool(source, preset.volume, preset.voices);
+if (typeof window !== 'undefined') {
+    const pending_sources = new Map();
+    for (const preset of Object.values(sound_presets)) {
+        for (const source of preset.sources) pending_sources.set(source, preset);
+    }
+    const warm_next = () => {
+        const next = pending_sources.entries().next();
+        if (next.done) return;
+        const [source, preset] = next.value;
+        pending_sources.delete(source);
+        getSoundPool(source, preset.volume, preset.voices);
+        schedule_warmup();
+    };
+    const schedule_warmup = () => {
+        if (!pending_sources.size) return;
+        if ('requestIdleCallback' in window) window.requestIdleCallback(warm_next, { timeout: 2000 });
+        else window.setTimeout(warm_next, 200);
+    };
+    if (document.readyState === 'complete') schedule_warmup();
+    else window.addEventListener('load', schedule_warmup, { once: true });
 }
 
 const next_voice = new Map();

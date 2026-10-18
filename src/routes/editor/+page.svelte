@@ -6,6 +6,9 @@
     let lastPointer = null;
     let pointerOrigin = null;
     let pageTitle = $state('Patter');
+    const title_segmenter = typeof Intl.Segmenter === 'function'
+        ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+        : null;
 
     function updatePageTitle(text = '') {
         const normalized = String(text).replace(/\s+/gu, ' ').trim();
@@ -13,9 +16,12 @@
             pageTitle = 'Patter';
             return;
         }
-        const symbols = typeof Intl.Segmenter === 'function'
-            ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(normalized), (part) => part.segment)
-            : Array.from(normalized);
+        const symbols = [];
+        const segments = title_segmenter ? title_segmenter.segment(normalized) : normalized;
+        for (const part of segments) {
+            symbols.push(typeof part === 'string' ? part : part.segment);
+            if (symbols.length === 17) break;
+        }
         pageTitle = `Patter - ${symbols.slice(0, 16).join('')}${symbols.length > 16 ? '…' : ''}`;
     }
 

@@ -4,7 +4,6 @@ import { preloadBackgroundImages } from '$lib/state/background_preloader.js';
 
 const STORAGE_KEY = "background-values";
 export const backgrounds = backgroundsFromFolder;
-preloadBackgroundImages(backgrounds);
 export const DEFAULT_BACKGROUND_SRC = '/backgrounds/lantern_in_the_forest.webp';
 const defaultBackground = backgrounds.find((item) => item.src === DEFAULT_BACKGROUND_SRC)?.src
     ?? backgrounds[0]?.src
@@ -95,6 +94,8 @@ if (!background_values.background.startsWith('upload:')) {
     active_background.kind = item?.kind ?? 'image';
     active_background.url = background_values.background;
 }
+
+preloadBackgroundImages(backgrounds, active_background.url);
 
 export function selectBuiltInBackground(url, kind = builtInBackground(url)?.kind ?? 'image') {
     const requested = validBackground(url);

@@ -114,7 +114,7 @@ export function create_ambient_player(on_status) {
                 if (destroyed) return;
                 const decoded = await context.decodeAudioData(data);
                 if (destroyed) return;
-                channel.buffer = normalize_ambient_buffer(prepare_loop(decoded));
+                channel.buffer = await normalize_ambient_buffer(prepare_loop(decoded));
             } catch (error) {
                 if (!destroyed && error.name !== 'AbortError') {
                     on_status({ error: `${track.label} could not load. Adjust its volume to retry.` });

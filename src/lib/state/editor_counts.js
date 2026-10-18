@@ -45,6 +45,7 @@ function textFromNode(node) {
 }
 
 function countGraphemes(text) {
+    if (/^[\x00-\x7f]*$/u.test(text)) return text.length;
     if (!graphemeSegmenter) return Array.from(text).length;
     let count = 0;
     for (const _segment of graphemeSegmenter.segment(text)) count++;

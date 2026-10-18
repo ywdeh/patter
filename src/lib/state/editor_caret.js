@@ -118,9 +118,7 @@ export function mountCustomCaret(scroller, editor) {
 	}
 
 	function restartBlink() {
-		caret.style.animation = 'none';
-		void caret.offsetWidth;
-		caret.style.animation = '';
+		for (const animation of caret.getAnimations()) animation.currentTime = 0;
 	}
 
 	function update() {
