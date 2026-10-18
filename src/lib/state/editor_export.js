@@ -1,4 +1,3 @@
-import { getEditorText } from '$lib/state/editor_counts.js';
 import { getEditorDocument } from '$lib/state/editor_document.js';
 import { EXPORT_SIGNATURE } from '$lib/state/editor_signature.js';
 import { createExportFilename } from '$lib/state/editor_filename.js';
@@ -26,14 +25,11 @@ export function downloadTextExport(body, format = 'txt', filenameSource = body) 
 }
 
 export function editorHasContent() {
-    const bodyElement = document.querySelector('[data-patter-body]');
-    const body = bodyElement ? getEditorText(bodyElement).trim() : '';
-    return body !== '';
+    return getEditorDocument().trim() !== '';
 }
 
 export function exportEditorDocument(format = 'txt') {
-    const bodyElement = document.querySelector('[data-patter-body]');
-    const body = bodyElement ? getEditorText(bodyElement) : getEditorDocument();
+    const body = getEditorDocument();
     if (!body.trim()) return;
 	downloadTextExport(body, format, body);
 }

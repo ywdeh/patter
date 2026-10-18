@@ -1,15 +1,17 @@
 <script>
     import { onMount } from 'svelte';
-    import { countEditorText, estimateReadingTime, getEditorText } from '$lib/state/editor_counts.js';
+    import { countEditorText, estimateReadingTime } from '$lib/state/editor_counts.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
     import { getCaretRect, mountCustomCaret } from '$lib/state/editor_caret.js';
     import EditorToolbar from './editor_toolbar.svelte';
+    import MarkdownEditor from './markdown_editor.svelte';
 
     let { onwriting = () => {}, sound = 'typing' } = $props();
     const STORAGE_KEY = 'patter-doc';
-    let bodyEl = $state();
+    let markdownEditor = $state();
+    let bodyEl;
     let scrollEl;
     let unmountCustomCaret = () => {};
     let caretScrollFrame = 0;
@@ -60,7 +62,7 @@
         return '';
     }
 
-    function save(text = getEditorText(bodyEl)) {
+    function save(text = markdownEditor?.getSource() ?? '') {
         clearTimeout(save_timer);
         save_timer = 0;
         pending_save_text = null;
@@ -84,25 +86,9 @@
         if (!save_timer) save_timer = window.setTimeout(flush_pending_save, motionDuration('short', 150));
     }
 
-    function updateEmpty(text = getEditorText(bodyEl)) {
+    function updateEmpty(text = markdownEditor?.getSource() ?? '') {
         if (!bodyEl) return;
         bodyEl.dataset.empty = String(text.trim() === '');
-    }
-
-    function renderPlainText(text) {
-        if (!bodyEl) return;
-        const plainText = String(text ?? '').replace(/\r\n?/gu, '\n');
-        bodyEl.replaceChildren();
-        if (!plainText) return;
-
-        const fragment = document.createDocumentFragment();
-        for (const line of plainText.split('\n')) {
-            const paragraph = document.createElement('div');
-            if (line) paragraph.textContent = line;
-            else paragraph.append(document.createElement('br'));
-            fragment.append(paragraph);
-        }
-        bodyEl.replaceChildren(fragment);
     }
 
     function apply_counts(counts) {
@@ -111,7 +97,7 @@
         readingTime = estimateReadingTime(counts.words);
     }
 
-    function updateCounts(bodyText = getEditorText(bodyEl)) {
+    function updateCounts(bodyText = markdownEditor?.getVisibleText() ?? '') {
         if (!bodyEl) return;
         latest_counts_text = bodyText;
         const version = ++counts_version;
@@ -234,64 +220,13 @@
     }
 
     function handleEditorKeydown(event) {
-        if ((event.ctrlKey || event.metaKey) && !event.altKey && ['b', 'i', 'u'].includes(event.key.toLowerCase())) {
-            event.preventDefault();
-            return;
-        }
         if (isSoundedEditorKey(event)) playSound(sound);
     }
 
-    function handleEditorBeforeInput(event) {
-        if (/^(format|insert(?:OrderedList|UnorderedList|HorizontalRule))/u.test(event.inputType)) {
-            event.preventDefault();
-        }
-    }
-
-    function dispatchInput(inputType, data = null) {
-        bodyEl.dispatchEvent(new InputEvent('input', { bubbles: true, inputType, data }));
-    }
-
-    function insertPlainText(text, range = null) {
-        if (!bodyEl || !text) return;
-        const selection = getSelection();
-        const insertionRange = range ?? (selection?.rangeCount ? selection.getRangeAt(0) : null);
-        if (!insertionRange || !bodyEl.contains(insertionRange.startContainer)) return;
-
-        insertionRange.deleteContents();
-        const textNode = document.createTextNode(text);
-        insertionRange.insertNode(textNode);
-        insertionRange.setStart(textNode, textNode.length);
-        insertionRange.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(insertionRange);
-        bodyEl.focus();
-        dispatchInput('insertFromPaste', text);
-    }
-
-    function handleEditorPaste(event) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const clipboard = event.clipboardData;
-        const text = clipboard?.getData('text/plain') || plainTextFromHtml(clipboard?.getData('text/html') ?? '');
-        insertPlainText(text.replace(/\r\n?/gu, '\n'));
-    }
-
-    function handleEditorDrop(event) {
-        const transfer = event.dataTransfer;
-        if (!transfer) return;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const html = transfer.getData('text/html');
-        const text = transfer.getData('text/plain') || plainTextFromHtml(html);
-        const range = document.caretRangeFromPoint?.(event.clientX, event.clientY) ?? null;
-        insertPlainText(text.replace(/\r\n?/gu, '\n'), range);
-    }
-
-    function handleInput() {
+    function handleInput(bodyText) {
         onwriting();
-        const bodyText = getEditorText(bodyEl);
         updateEmpty(bodyText);
-        updateCounts(bodyText);
+        updateCounts(markdownEditor.getVisibleText());
         schedule_save(bodyText);
         scheduleCaretScroll();
     }
@@ -299,18 +234,19 @@
     function replaceDocument(text) {
         if (!bodyEl) return;
         const bodyText = String(text ?? '').replace(/\r\n?/gu, '\n');
-        renderPlainText(bodyText);
+        markdownEditor.setSource(bodyText);
         save(bodyText);
         updateEmpty(bodyText);
-        updateCounts(bodyText);
+        updateCounts(markdownEditor.getVisibleText());
     }
 
     onMount(() => {
         const initialText = load();
-        renderPlainText(initialText);
+        bodyEl = markdownEditor.getElement();
+        markdownEditor.setSource(initialText);
         bodyEl.dataset.empty = 'true';
         updateEmpty(initialText);
-        updateCounts(initialText);
+        updateCounts(markdownEditor.getVisibleText());
         save(initialText);
         unmountCustomCaret = mountCustomCaret(scrollEl, bodyEl);
         updateTypewriterPadding();
@@ -336,11 +272,6 @@
         };
         window.addEventListener('pagehide', flush_pending_save);
         document.addEventListener('visibilitychange', flush_when_hidden);
-        bodyEl.addEventListener('input', handleInput);
-        bodyEl.addEventListener('keydown', handleEditorKeydown);
-        bodyEl.addEventListener('beforeinput', handleEditorBeforeInput);
-        bodyEl.addEventListener('paste', handleEditorPaste, true);
-        bodyEl.addEventListener('drop', handleEditorDrop, true);
         scrollEl.addEventListener('wheel', onManualScrollIntent, { passive: true });
         scrollEl.addEventListener('touchstart', onManualScrollIntent, { passive: true });
         window.addEventListener('patter-clear-saved-data', onClearSavedData);
@@ -353,12 +284,7 @@
                     || document.activeElement === document.documentElement;
                 if (!canTakeFocus || !bodyEl?.isConnected) return;
 
-                const range = document.createRange();
-                range.selectNodeContents(bodyEl.lastElementChild ?? bodyEl);
-                range.collapse(false);
-                const selection = window.getSelection();
-                selection?.removeAllRanges();
-                selection?.addRange(range);
+                markdownEditor.setSelectionToEnd();
                 bodyEl.focus({ preventScroll: true });
             });
         }
@@ -379,11 +305,6 @@
             unmountCustomCaret();
             window.removeEventListener('patter-clear-saved-data', onClearSavedData);
             window.removeEventListener('patter-import-document', onImportDocument);
-            bodyEl.removeEventListener('input', handleInput);
-            bodyEl.removeEventListener('keydown', handleEditorKeydown);
-            bodyEl.removeEventListener('beforeinput', handleEditorBeforeInput);
-            bodyEl.removeEventListener('paste', handleEditorPaste, true);
-            bodyEl.removeEventListener('drop', handleEditorDrop, true);
         };
     });
 </script>
@@ -393,19 +314,7 @@
     <div class="flex min-h-0 min-w-0 w-full flex-1 gap-2 overflow-hidden">
         <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
         <div bind:this={scrollEl} class="editor_body_scroll h-full w-full min-h-0 flex-1 patter_font_body overflow-y-scroll scrollbar-thumb-mauve-100/12 scrollbar-thin" style={`--editor-mask: ${hasScrolledDown ? topAndBottomFadeMask : bottomFadeMask}`} onscroll={handleEditorScroll}>
-            <div
-                bind:this={bodyEl}
-                data-patter-body
-                data-empty="true"
-                data-placeholder="Once, there was a glorious kingdom..."
-                contenteditable="true"
-                role="textbox"
-                aria-label="Writing area"
-                aria-multiline="true"
-                aria-placeholder="Once, there was a glorious kingdom..."
-                class="flex min-h-full flex-col gap-4 p-4 outline-none sm:p-8"
-                style="line-height: 1.5;"
-            ></div>
+            <MarkdownEditor bind:this={markdownEditor} onchange={handleInput} onkey={handleEditorKeydown} />
         </div>
         <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
     </div>
@@ -418,7 +327,7 @@
     </div>
     {#if saveUnavailable}
         <p class="patter_text_small px-4 text-amber-100/80 sm:px-8" role="status" aria-live="polite">
-            {getEditorText(bodyEl).trim()
+            {markdownEditor?.getSource().trim()
                 ? 'Local saving is unavailable. Export your writing before leaving.'
                 : 'Local storage is unavailable. Clearing this draft may not persist.'}
         </p>
@@ -430,13 +339,6 @@
         position: relative;
         -webkit-mask-image: var(--editor-mask);
         mask-image: var(--editor-mask);
-    }
-    :global(.editor_body_scroll [data-patter-body]) {
-        font-size: var(--patter_body_text_size, 18px);
-        transition: font-size var(--patter_motion_standard) ease, opacity var(--patter_motion_gentle) ease;
-        position: relative;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
     }
     :global([data-patter-body].typewriter-scrolling) { opacity: 0.8; }
     :global([data-patter-body][data-empty="true"]::before) { content: attr(data-placeholder); position: absolute; pointer-events: none; opacity: var(--patter_opacity_placeholder, 0.3); }
