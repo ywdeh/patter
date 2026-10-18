@@ -188,6 +188,41 @@
         return { start: Math.min(anchor, focus), end: Math.max(anchor, focus) };
     }
 
+    function edit_selection_offsets() {
+        let { start, end } = selection_offsets();
+        if (start === end) return { start, end };
+
+        for (const line of editor.children) {
+            const prefix = line.firstElementChild;
+            if (prefix?.classList.contains('markdown_syntax') &&
+                (line.classList.contains('list_line') || line.className.includes('heading_'))) {
+                const prefix_end = point_offset(line, 1);
+                const line_end = point_offset(line, line.childNodes.length);
+                if (start === prefix_end && end >= line_end && line_end > prefix_end) {
+                    start = point_offset(line, 0);
+                }
+            }
+
+            for (const formatted of line.querySelectorAll('strong, em')) {
+                const opening = formatted.previousSibling;
+                const closing = formatted.nextSibling;
+                if (!opening?.classList?.contains('markdown_syntax') ||
+                    !closing?.classList?.contains('markdown_syntax')) continue;
+
+                const parent = formatted.parentNode;
+                const index = Array.prototype.indexOf.call(parent.childNodes, formatted);
+                const content_start = point_offset(parent, index);
+                const content_end = point_offset(parent, index + 1);
+                if (start <= content_start && end >= content_end) {
+                    start = Math.min(start, point_offset(parent, index - 1));
+                    end = Math.max(end, point_offset(parent, index + 2));
+                }
+            }
+        }
+
+        return { start, end };
+    }
+
     function place_point(raw_offset) {
         const lines = source.split('\n');
         let line_index = 0;
@@ -269,7 +304,7 @@
     }
 
     function replace_selection(text, kind = 'insert') {
-        const { start, end } = selection_offsets();
+        const { start, end } = edit_selection_offsets();
         const normalized = String(text).replace(/\r\n?/gu, '\n');
         commit(source.slice(0, start) + normalized + source.slice(end), start + normalized.length, kind);
     }
@@ -317,7 +352,7 @@
         }
         if (inputType === 'insertParagraph' || inputType === 'insertLineBreak') {
             event.preventDefault();
-            const { start, end } = selection_offsets();
+            const { start, end } = edit_selection_offsets();
             const list = inputType === 'insertParagraph' ? list_at(start) : null;
             const next_line = list && start >= list.line_start + list.prefix.length
                 ? `\n${list.next}`
@@ -327,7 +362,7 @@
         }
         if (inputType.startsWith('delete')) {
             event.preventDefault();
-            let { start, end } = selection_offsets();
+            let { start, end } = edit_selection_offsets();
             if (start === end) {
                 if (inputType === 'deleteContentBackward') {
                     const list = list_at(start);
@@ -350,7 +385,10 @@
     function handle_keydown(event) {
         onkey(event);
         if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
-        if (event.key.toLowerCase() === 'z') {
+        if (event.key.toLowerCase() === 'a') {
+            event.preventDefault();
+            set_selection(0, source.length);
+        } else if (event.key.toLowerCase() === 'z') {
             event.preventDefault();
             undo(event.shiftKey ? 1 : -1);
         } else if (event.key.toLowerCase() === 'y') {
