@@ -10,6 +10,12 @@
   "background_color": "#0b120f",
   "theme_color": "#0b120f",
   "categories": ["productivity", "writing"],
+  "related_applications": [
+    { "platform": "webapp", "url": "/manifest.webmanifest", "id": "/" }
+  ],
+  "protocol_handlers": [
+    { "protocol": "web+patter", "url": "/?launch=%s" }
+  ],
   "icons": [
     {
       "src": "/icons/patter_192.png",
