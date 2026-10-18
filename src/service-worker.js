@@ -59,6 +59,21 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(request.url);
     if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
+    if (url.pathname === `${base}/manifest.webmanifest`) {
+        event.respondWith((async () => {
+            try {
+                const response = await fetch(new Request(request, { cache: 'no-cache' }));
+                if (!response.ok) return cached_response(request, url.pathname);
+                const cache = await caches.open(cache_name);
+                await cache.put(url.pathname, response.clone());
+                return response;
+            } catch {
+                return cached_response(request, url.pathname);
+            }
+        })());
+        return;
+    }
+
     if (request.mode === 'navigate') {
         const path = url.pathname === `${base}/editor/` ? `${base}/editor` : url.pathname;
         if (pages.includes(path)) event.respondWith(cached_response(request, path));

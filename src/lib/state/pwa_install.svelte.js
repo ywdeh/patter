@@ -39,6 +39,7 @@ export function mount_pwa_install() {
     update_display_mode();
     void detect_installed();
     window.addEventListener('focus', detect_installed);
+    window.addEventListener('load', detect_installed);
     display_mode.addEventListener('change', update_display_mode);
     window.addEventListener('beforeinstallprompt', capture_prompt);
     window.addEventListener('appinstalled', installed);
@@ -46,6 +47,7 @@ export function mount_pwa_install() {
     return () => {
         mounted = false;
         window.removeEventListener('focus', detect_installed);
+        window.removeEventListener('load', detect_installed);
         display_mode.removeEventListener('change', update_display_mode);
         window.removeEventListener('beforeinstallprompt', capture_prompt);
         window.removeEventListener('appinstalled', installed);
