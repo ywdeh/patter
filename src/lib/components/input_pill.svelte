@@ -166,7 +166,7 @@
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/sub.svg" alt={falseLabel} class="size-[18px]">
+                <img src="/chevron_left.svg" alt={falseLabel} class="size-4">
             </span>
         </button>
 
@@ -188,7 +188,7 @@
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/add.svg" alt={trueLabel} class="size-[18px]">
+                <img src="/chevron_right.svg" alt={trueLabel} class="size-4">
             </span>
         </button>
     </div>
@@ -208,7 +208,7 @@
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/sub.svg" alt="decrease" class="size-[18px]">
+                <img src="/chevron_left.svg" alt="decrease" class="size-4">
             </span>
         </button>
 
@@ -238,7 +238,7 @@
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/add.svg" alt="increase" class="size-[18px]">
+                <img src="/chevron_right.svg" alt="increase" class="size-4">
             </span>
         </button>
 

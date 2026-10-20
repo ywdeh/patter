@@ -40,7 +40,7 @@
 
 @supports (color: oklch(from white l c h)) {
 	:root {
-		--patter_color_text: oklch(from var(--patter_background_base) 99% min(c, 0.015) h);
+		--patter_color_text: oklch(from var(--patter_background_base) 99% min(c, 0.006) h);
 	}
 }
 
