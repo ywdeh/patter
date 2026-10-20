@@ -19,8 +19,23 @@ export function mount_pwa_install() {
         } catch {}
     };
     const display_mode = window.matchMedia('(display-mode: standalone), (display-mode: minimal-ui), (display-mode: window-controls-overlay)');
+    const fullscreen_mode = window.matchMedia('(display-mode: fullscreen)');
+    const app_window_key = 'patter-app-window';
+    let app_window = false;
+    try {
+        app_window = sessionStorage.getItem(app_window_key) === 'true';
+    } catch {}
     const update_display_mode = () => {
-        pwa_install.standalone = display_mode.matches || window.navigator.standalone === true;
+        if (display_mode.matches || window.navigator.standalone === true) {
+            app_window = true;
+        } else if (!fullscreen_mode.matches && !document.fullscreenElement) {
+            app_window = false;
+        }
+        pwa_install.standalone = app_window;
+        try {
+            if (app_window) sessionStorage.setItem(app_window_key, 'true');
+            else sessionStorage.removeItem(app_window_key);
+        } catch {}
     };
     const capture_prompt = (event) => {
         event.preventDefault();
@@ -41,6 +56,8 @@ export function mount_pwa_install() {
     window.addEventListener('focus', detect_installed);
     window.addEventListener('load', detect_installed);
     display_mode.addEventListener('change', update_display_mode);
+    fullscreen_mode.addEventListener('change', update_display_mode);
+    document.addEventListener('fullscreenchange', update_display_mode);
     window.addEventListener('beforeinstallprompt', capture_prompt);
     window.addEventListener('appinstalled', installed);
 
@@ -49,6 +66,8 @@ export function mount_pwa_install() {
         window.removeEventListener('focus', detect_installed);
         window.removeEventListener('load', detect_installed);
         display_mode.removeEventListener('change', update_display_mode);
+        fullscreen_mode.removeEventListener('change', update_display_mode);
+        document.removeEventListener('fullscreenchange', update_display_mode);
         window.removeEventListener('beforeinstallprompt', capture_prompt);
         window.removeEventListener('appinstalled', installed);
         install_prompt = null;
