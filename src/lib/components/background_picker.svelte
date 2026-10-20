@@ -198,7 +198,9 @@
                 onclick={() => uploadInput?.click()}
                 class="patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small">
                 <span class="patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
-                <span class="relative text-xl leading-none" aria-hidden="true">＋</span>
+                <svg class="relative size-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
                 <span class="relative tracking-wide">Upload</span>
             </button>
         {/if}
@@ -209,7 +211,9 @@
             aria-label="Remove uploaded background"
             class="patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small disabled:cursor-default  disabled:pointer-events-none">
             <span class="patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
-            <span class="relative text-xl leading-none" aria-hidden="true">−</span>
+            <svg class="relative size-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M5 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
             <span class="relative tracking-wide">Remove</span>
         </button>
     </div>
