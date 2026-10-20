@@ -44,8 +44,8 @@ caret-mauve-100" spellcheck="false">
 					const tint = Number(saved.tint);
 					const grain = Number(saved.grain);
 					const textSize = Number(saved.textSize);
-					const savedBackground = saved.background === '/backgrounds/rain.mp4'
-						? '/backgrounds/rain.webp'
+					const savedBackground = ['/backgrounds/rain.mp4', '/backgrounds/rain.webp'].includes(saved.background)
+						? '/backgrounds/book.webp'
 						: ['/backgrounds/reading.mp4', '/backgrounds/reading.webp'].includes(saved.background) ? '/backgrounds/castle.webp' : saved.background;
 					if (Number.isFinite(focus)) defaults.focus = Math.min(15, Math.max(0, focus));
 					if (Number.isFinite(tint)) defaults.tint = Math.min(80, Math.max(0, tint));
