@@ -344,5 +344,5 @@
         mask-image: var(--editor-mask);
     }
     :global([data-patter-body].typewriter-scrolling) { opacity: 0.8; }
-    :global([data-patter-body][data-empty="true"]::before) { content: attr(data-placeholder); position: absolute; inset-inline: 0; padding-inline: inherit; text-align: start; pointer-events: none; opacity: var(--patter_opacity_placeholder, 0.3); }
+    :global([data-patter-body][data-empty="true"]::before) { content: var(--patter_placeholder_frame, attr(data-placeholder)); position: absolute; inset-inline: 0; padding-inline: inherit; text-align: start; pointer-events: none; opacity: calc(var(--patter_opacity_placeholder, 0.3) * var(--patter_placeholder_ink_opacity, 1)); filter: blur(var(--patter_placeholder_ink_blur, 0px)); }
 </style>

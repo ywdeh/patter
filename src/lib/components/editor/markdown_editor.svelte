@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { DEFAULT_EDITOR_PLACEHOLDER } from '$lib/state/editor_placeholders.js';
+    import { placeholder_ink } from '$lib/state/placeholder_ink.js';
 
     let { onchange = () => {}, onkey = () => {}, placeholder = DEFAULT_EDITOR_PLACEHOLDER } = $props();
     const inline_markers = ['**', '*'];
@@ -494,6 +495,7 @@
 
 <div
     bind:this={editor}
+    use:placeholder_ink={placeholder}
     data-patter-body
     data-empty="true"
     data-placeholder={placeholder}
