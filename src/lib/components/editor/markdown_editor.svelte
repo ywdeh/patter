@@ -506,7 +506,6 @@
     aria-label="Writing area"
     aria-multiline="true"
     aria-placeholder={placeholder}
-    spellcheck="true"
     onbeforeinput={handle_before_input}
     onkeydown={handle_keydown}
     onpaste={handle_paste}
