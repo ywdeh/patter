@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { background_values, backgrounds, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
     import { clearBackgroundUploads, listBackgroundUploads, replaceBackgroundUpload } from '$lib/state/background_media.js';
-    import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, upgradeImagePoster } from '$lib/state/background_posters.js';
+    import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, ensureImagePoster } from '$lib/state/background_posters.js';
     import { getBackgroundPoster } from '$lib/state/background_posters.js';
     import BackgroundThumbnail from '$lib/components/background_thumbnail.svelte';
     import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background_formats.js';
@@ -38,12 +38,12 @@
             const posterKey = `upload:${record.id}`;
             uploads = [{ ...record, url, poster: getBackgroundPoster(posterKey) }];
             if (record.kind === 'image') {
-                void upgradeImagePoster(posterKey, record.blob).then(() => {
+                void ensureImagePoster(posterKey, record.blob).then(() => {
+                    if (cancelled || hasUserAction) return;
                     const poster = getBackgroundPoster(posterKey);
                     if (poster) uploads = uploads.map((item) => item.id === record.id ? { ...item, poster } : item);
                 }).catch(() => {});
             }
-            if (records.length > 1) void replaceBackgroundUpload(record);
             if (selectedId && selectedId !== record.id) selectUploadedBackground(record.id, record.kind, url);
         }).catch(() => {});
         return () => {

@@ -1,6 +1,5 @@
 const STORAGE_KEY = 'patter-video-posters';
 const MAX_POSTERS = 16;
-const upgradedImagePosters = new Set();
 
 export function getBackgroundPoster(key) {
     if (typeof window === 'undefined') return null;
@@ -53,9 +52,7 @@ export async function createImagePoster(blob) {
     }
 }
 
-export async function upgradeImagePoster(key, blob) {
-    if (upgradedImagePosters.has(key)) return;
-    upgradedImagePosters.add(key);
+export async function ensureImagePoster(key, blob) {
 
     const existing = getBackgroundPoster(key);
     if (existing) {
@@ -63,7 +60,7 @@ export async function upgradeImagePoster(key, blob) {
         image.src = existing;
         try {
             await image.decode();
-            if (image.naturalWidth >= 1280 || image.naturalHeight >= 1280) return;
+            return;
         } catch {
         }
     }

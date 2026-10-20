@@ -34,6 +34,7 @@ caret-mauve-100" spellcheck="false">
 		<script>
 			(() => {
 				const defaults = { focus: 10, tint: 50, grain: 2, textSize: 18, background: '/backgrounds/lantern_in_the_forest.webp' };
+				const backgrounds = /* patter_background_catalog */ [];
 				let saved = {};
 				let fallbackBackground = defaults.background;
 				let selectedBackground = defaults.background;
@@ -50,12 +51,12 @@ caret-mauve-100" spellcheck="false">
 					if (Number.isFinite(grain)) defaults.grain = Math.min(4, Math.max(0, grain));
 					if (Number.isFinite(textSize)) defaults.textSize = Math.min(24, Math.max(14, textSize));
 					backgroundPosition = ['top', 'center', 'bottom'].includes(saved.position) ? saved.position : 'center';
-					if (typeof savedBackground === 'string' && /^\/backgrounds\/.+\.(?:avif|gif|jpe?g|png|webp)$/i.test(savedBackground)) {
+					if (backgrounds.some((item) => item.src === savedBackground && item.kind === 'image')) {
 						defaults.background = savedBackground;
 						selectedBackground = savedBackground;
 						fallbackBackground = savedBackground;
 					}
-					if (typeof savedBackground === 'string' && (/^\/backgrounds\/.+\.(?:mp4|webm|ogv|ogg)$/i.test(savedBackground) || savedBackground.startsWith('upload:'))) {
+					if (typeof savedBackground === 'string' && (backgrounds.some((item) => item.src === savedBackground && item.kind === 'video') || savedBackground.startsWith('upload:'))) {
 						selectedBackground = savedBackground;
 						const posters = JSON.parse(localStorage.getItem('patter-video-posters') || '{}');
 						const poster = posters[savedBackground];

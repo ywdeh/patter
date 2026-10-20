@@ -37,30 +37,10 @@
     const topAndBottomFadeMask = 'linear-gradient(to bottom, transparent 0, #000 2rem, #000 calc(100% - 2rem), transparent 100%)';
     const CARET_SCROLL_EASING = 0.2;
 
-    function plainTextFromHtml(html) {
-        if (!html) return '';
-        const parsed = new DOMParser().parseFromString(html, 'text/html');
-        const blockTags = new Set(['DIV', 'LI', 'P', 'H1', 'H2', 'H3', 'BLOCKQUOTE']);
-
-        function readNode(node) {
-            if (node.nodeType === Node.TEXT_NODE) return node.nodeValue ?? '';
-            if (node.nodeType !== Node.ELEMENT_NODE) return '';
-            if (node.matches('script, style, iframe, object, embed, video, audio')) return '';
-            if (node.nodeName === 'IMG') return node.getAttribute('alt') ?? '';
-            if (node.nodeName === 'BR') return '\n';
-            const text = Array.from(node.childNodes, readNode).join('');
-            return blockTags.has(node.nodeName) ? `${text}\n` : text;
-        }
-
-        return Array.from(parsed.body.childNodes, readNode).join('').replace(/\n{3,}/gu, '\n\n');
-    }
-
     function load() {
         try {
             const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
             if (typeof saved?.text === 'string') return saved.text;
-            if (typeof saved?.markdown === 'string') return saved.markdown;
-            if (typeof saved?.body === 'string' && saved.body) return plainTextFromHtml(saved.body);
         } catch {}
         return '';
     }
