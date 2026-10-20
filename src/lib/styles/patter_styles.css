@@ -131,6 +131,8 @@
 
 [data-patter-body],
 [data-patter-body] *,
+[data-selectable-text],
+[data-selectable-text] *,
 a[href^="mailto:"],
 a[href^="mailto:"] * {
 	-webkit-user-select: text;
