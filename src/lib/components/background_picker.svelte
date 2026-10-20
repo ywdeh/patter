@@ -177,7 +177,7 @@
         accept={backgroundFileAccept}
         onchange={upload}
         tabindex="-1"
-        aria-label="Upload an image or video background" />
+        aria-label="Add an image or video background" />
     <div class="col-span-2 grid grid-cols-2 gap-4">
         {#if uploads.length > 0}
             {#each uploads as uploadItem (uploadItem.id)}
@@ -201,7 +201,7 @@
                 <svg class="relative size-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
-                <span class="relative tracking-wide">Upload</span>
+                <span class="relative tracking-wide">Add image or video</span>
             </button>
         {/if}
         <button

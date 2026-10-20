@@ -167,14 +167,16 @@
 </script>
 
 <div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group" aria-label={text} {@attach attachNonPassiveWheel}>
-	<div class="patter_control group/hitbox relative flex items-center w-fit" class:patter_disabled={disabled}>
-		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
-		<button type="button" disabled={disabled} aria-label={selectedOption?.label ?? text} class="relative min-h-(--patter_control_height) cursor-pointer px-3 py-2 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
-			{text}
+	<div class="relative flex items-center w-fit" class:patter_disabled={disabled}>
+		<div class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
+		<button type="button" disabled={disabled} aria-label={selectedOption?.label ?? text} class="patter_control group/hitbox relative min-h-(--patter_control_height) cursor-pointer px-3 py-2 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
+			<span aria-hidden="true" class="patter_hover patter_active pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 outline-2 outline-transparent"></span>
+			<span class="relative">{text}</span>
 		</button>
 		<div aria-hidden="true" class="relative h-5 w-0.5 shrink-0 bg-mauve-100/12"></div>
-		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="relative flex min-h-(--patter_control_height) min-w-9 cursor-pointer items-center justify-center px-2 transition-colors hover:text-white disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
-			<span class="patter_text_subtle grid min-w-8 whitespace-nowrap" aria-hidden="true">
+		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="patter_control group/hitbox relative flex min-h-(--patter_control_height) min-w-9 cursor-pointer items-center justify-center px-2 transition-colors hover:text-white disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
+			<span aria-hidden="true" class="patter_hover patter_active pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 outline-2 outline-transparent"></span>
+			<span class="patter_text_subtle relative grid min-w-8 whitespace-nowrap" aria-hidden="true">
 				{#each options as option (option.value)}
 					<span class="invisible col-start-1 row-start-1">{option.value}</span>
 				{/each}
