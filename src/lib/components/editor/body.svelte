@@ -2,6 +2,8 @@
     import { onMount } from 'svelte';
     import { countEditorText, estimateReadingTime } from '$lib/state/editor_counts.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
+    import { background_values } from '$lib/state/background_state.svelte.js';
+    import { getEditorPlaceholder } from '$lib/state/editor_placeholders.js';
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
     import { getCaretRect, mountCustomCaret } from '$lib/state/editor_caret.js';
@@ -9,6 +11,7 @@
     import MarkdownEditor from './markdown_editor.svelte';
 
     let { onwriting = () => {}, sound = 'typing' } = $props();
+    const placeholder = $derived(getEditorPlaceholder(background_values.background));
     const STORAGE_KEY = 'patter-doc';
     let markdownEditor = $state();
     let bodyEl;
@@ -314,7 +317,7 @@
     <div class="flex min-h-0 min-w-0 w-full flex-1 gap-2 overflow-hidden">
         <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
         <div bind:this={scrollEl} class="editor_body_scroll h-full w-full min-h-0 flex-1 patter_font_body overflow-y-scroll scrollbar-thumb-mauve-100/12 scrollbar-thin" style={`--editor-mask: ${hasScrolledDown ? topAndBottomFadeMask : bottomFadeMask}`} onscroll={handleEditorScroll}>
-            <MarkdownEditor bind:this={markdownEditor} onchange={handleInput} onkey={handleEditorKeydown} />
+            <MarkdownEditor bind:this={markdownEditor} onchange={handleInput} onkey={handleEditorKeydown} {placeholder} />
         </div>
         <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
     </div>
@@ -341,5 +344,5 @@
         mask-image: var(--editor-mask);
     }
     :global([data-patter-body].typewriter-scrolling) { opacity: 0.8; }
-    :global([data-patter-body][data-empty="true"]::before) { content: attr(data-placeholder); position: absolute; pointer-events: none; opacity: var(--patter_opacity_placeholder, 0.3); }
+    :global([data-patter-body][data-empty="true"]::before) { content: attr(data-placeholder); position: absolute; inset-inline: 0; padding-inline: inherit; text-align: start; pointer-events: none; opacity: var(--patter_opacity_placeholder, 0.3); }
 </style>

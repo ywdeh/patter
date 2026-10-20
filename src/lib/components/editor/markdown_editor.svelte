@@ -1,7 +1,8 @@
 <script>
     import { onMount } from 'svelte';
+    import { DEFAULT_EDITOR_PLACEHOLDER } from '$lib/state/editor_placeholders.js';
 
-    let { onchange = () => {}, onkey = () => {} } = $props();
+    let { onchange = () => {}, onkey = () => {}, placeholder = DEFAULT_EDITOR_PLACEHOLDER } = $props();
     const inline_markers = ['**', '*'];
     const history_limit = 100;
     const grapheme_segmenter = typeof Intl.Segmenter === 'function'
@@ -157,11 +158,12 @@
 
     function selection_offsets() {
         const selection = window.getSelection();
-        if (!selection?.rangeCount || !editor.contains(selection.anchorNode) || !editor.contains(selection.focusNode)) {
+        if (!selection?.rangeCount || !selection.getRangeAt(0).intersectsNode(editor)) {
             return { start: source.length, end: source.length };
         }
-        const anchor = point_offset(selection.anchorNode, selection.anchorOffset);
-        const focus = point_offset(selection.focusNode, selection.focusOffset);
+        const range = selection.getRangeAt(0);
+        const start = editor.contains(range.startContainer) ? point_offset(range.startContainer, range.startOffset) : 0;
+        const end = editor.contains(range.endContainer) ? point_offset(range.endContainer, range.endOffset) : source.length;
         if (selection.isCollapsed) {
             const line = selection.anchorNode?.nodeType === Node.ELEMENT_NODE
                 ? selection.anchorNode.closest?.('[data-line]')
@@ -180,30 +182,24 @@
                 const lines = source.split('\n');
                 const line_end = lines.slice(0, line_number).reduce((total, value) => total + value.length + 1, 0)
                     + lines[line_number].length;
-                if (trailing_markers && anchor === line_end - trailing_markers) {
+                if (trailing_markers && start === line_end - trailing_markers) {
                     return { start: line_end, end: line_end };
                 }
             }
         }
-        return { start: Math.min(anchor, focus), end: Math.max(anchor, focus) };
+        return { start, end };
     }
 
-    function edit_selection_offsets() {
+    function source_selection() {
         let { start, end } = selection_offsets();
-        if (start === end) return { start, end };
+        if (start === end || (start === 0 && end === source.length)) return { start, end };
 
-        for (const line of editor.children) {
-            const prefix = line.firstElementChild;
-            if (prefix?.classList.contains('markdown_syntax') &&
-                (line.classList.contains('list_line') || line.className.includes('heading_'))) {
-                const prefix_end = point_offset(line, 1);
-                const line_end = point_offset(line, line.childNodes.length);
-                if (start === prefix_end && end >= line_end && line_end > prefix_end) {
-                    start = point_offset(line, 0);
-                }
-            }
-
-            for (const formatted of line.querySelectorAll('strong, em')) {
+        const first_line = source.slice(0, start).split('\n').length - 1;
+        const last_line = source.slice(0, end).split('\n').length - 1;
+        for (const index of new Set([first_line, last_line])) {
+            const line = editor.children[index];
+            if (!line) continue;
+            for (const formatted of Array.from(line.querySelectorAll('strong, em')).reverse()) {
                 const opening = formatted.previousSibling;
                 const closing = formatted.nextSibling;
                 if (!opening?.classList?.contains('markdown_syntax') ||
@@ -216,6 +212,16 @@
                 if (start <= content_start && end >= content_end) {
                     start = Math.min(start, point_offset(parent, index - 1));
                     end = Math.max(end, point_offset(parent, index + 2));
+                }
+            }
+
+            const prefix = line.firstElementChild;
+            if (prefix?.classList.contains('markdown_syntax') &&
+                (line.classList.contains('list_line') || line.className.includes('heading_'))) {
+                const prefix_end = point_offset(line, 1);
+                const line_end = point_offset(line, line.childNodes.length);
+                if (start <= prefix_end && end >= line_end) {
+                    start = Math.min(start, point_offset(line, 0));
                 }
             }
         }
@@ -253,19 +259,31 @@
     }
 
     function set_selection(start, end = start) {
-        const first = place_point(start);
-        const last = place_point(end);
         const range = document.createRange();
-        range.setStart(first.node, first.offset);
-        range.setEnd(last.node, last.offset);
+        if (start === 0 && end === source.length && start !== end) {
+            range.selectNodeContents(editor);
+        } else {
+            const first = place_point(start);
+            const last = place_point(end);
+            range.setStart(first.node, first.offset);
+            range.setEnd(last.node, last.offset);
+        }
         const selection = window.getSelection();
         selection?.removeAllRanges();
         selection?.addRange(range);
     }
 
     function commit(text, caret, kind = 'edit') {
-        if (text === source) return;
-        const previous_caret = selection_offsets().end;
+        if (text === source) {
+            last_edit = null;
+            set_selection(caret);
+            editor.dispatchEvent(new Event('input'));
+            return;
+        }
+        const previous_selection = source_selection();
+        const previous_caret = previous_selection.end;
+        history[history_index].start = previous_selection.start;
+        history[history_index].end = previous_selection.end;
         source = text;
         const now = performance.now();
         const merge = last_edit?.kind === kind && now - last_edit.time < 600
@@ -303,8 +321,8 @@
         return offset + (part?.segment.length ?? 1);
     }
 
-    function replace_selection(text, kind = 'insert') {
-        const { start, end } = edit_selection_offsets();
+    function replace_selection(text, kind = 'insert', selection = source_selection()) {
+        const { start, end } = selection;
         const normalized = String(text).replace(/\r\n?/gu, '\n');
         commit(source.slice(0, start) + normalized + source.slice(end), start + normalized.length, kind);
     }
@@ -341,7 +359,13 @@
             undo(inputType === 'historyUndo' ? -1 : 1);
             return;
         }
-        if (inputType === 'insertFromPaste' || inputType === 'insertFromDrop') {
+        if (inputType === 'insertFromPaste') {
+            event.preventDefault();
+            const text = event.dataTransfer?.getData('text/plain') ?? '';
+            if (text) replace_selection(text, 'paste');
+            return;
+        }
+        if (inputType === 'insertFromDrop') {
             event.preventDefault();
             return;
         }
@@ -352,7 +376,7 @@
         }
         if (inputType === 'insertParagraph' || inputType === 'insertLineBreak') {
             event.preventDefault();
-            const { start, end } = edit_selection_offsets();
+            const { start, end } = source_selection();
             const list = inputType === 'insertParagraph' ? list_at(start) : null;
             const next_line = list && start >= list.line_start + list.prefix.length
                 ? `\n${list.next}`
@@ -362,7 +386,7 @@
         }
         if (inputType.startsWith('delete')) {
             event.preventDefault();
-            let { start, end } = edit_selection_offsets();
+            let { start, end } = source_selection();
             if (start === end) {
                 if (inputType === 'deleteContentBackward') {
                     const list = list_at(start);
@@ -418,16 +442,13 @@
         replace_selection(text, 'paste');
     }
 
-    function handle_copy(event) {
-        const { start, end } = selection_offsets();
-        if (start === end) return;
+    function handle_clipboard(event) {
+        const selection = source_selection();
+        const { start, end } = selection;
+        if (start === end || !event.clipboardData) return;
         event.preventDefault();
-        event.clipboardData?.setData('text/plain', source.slice(start, end));
-    }
-
-    function handle_cut(event) {
-        handle_copy(event);
-        replace_selection('', 'delete');
+        event.clipboardData.setData('text/plain', source.slice(start, end));
+        if (event.type === 'cut') replace_selection('', 'cut', selection);
     }
 
     function handle_composition_end() {
@@ -455,11 +476,13 @@
     }
 
     export function setSource(text) {
+        const focused = document.activeElement === editor;
         source = String(text ?? '').replace(/\r\n?/gu, '\n');
         history = [{ text: source, start: 0, end: 0 }];
         history_index = 0;
         last_edit = null;
         render();
+        if (focused) set_selection(source.length);
     }
 
     export function setSelectionToEnd() {
@@ -473,21 +496,21 @@
     bind:this={editor}
     data-patter-body
     data-empty="true"
-    data-placeholder="Once, there was a glorious kingdom..."
+    data-placeholder={placeholder}
     class="markdown_surface flex min-h-full flex-col gap-4 p-4 outline-none sm:p-8"
     contenteditable="true"
     role="textbox"
     tabindex="0"
     aria-label="Writing area"
     aria-multiline="true"
-    aria-placeholder="Once, there was a glorious kingdom..."
+    aria-placeholder={placeholder}
     spellcheck="true"
     onbeforeinput={handle_before_input}
     onkeydown={handle_keydown}
     onpaste={handle_paste}
     ondrop={handle_drop}
-    oncopy={handle_copy}
-    oncut={handle_cut}
+    oncopy={handle_clipboard}
+    oncut={handle_clipboard}
     oncompositionstart={() => composing = true}
     oncompositionend={handle_composition_end}
 ></div>
