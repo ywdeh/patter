@@ -4,6 +4,7 @@
     import { fly } from "svelte/transition";
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
+    import { cursor_tooltip } from '$lib/actions/cursor_tooltip.js';
 
     let {
         text = null,
@@ -212,7 +213,7 @@
             </span>
         </button>
 
-        <div class="min-w-16 h-6 relative overflow-hidden" role="button" tabindex="0" aria-label={`${displayValue}; press Enter or Space, or double-click, to reset to default`} onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
+        <div class="min-w-16 h-6 relative overflow-hidden" role="button" tabindex="0" aria-label={`${displayValue}; press Enter or Space, or double-click, to reset to default`} use:cursor_tooltip={"Double-click to reset"} onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
             {#key value}
                 <p
                     class="absolute inset-0"

@@ -84,6 +84,15 @@
 	text-shadow: 0 0 12px var(--patter_shadow_text_color);
 }
 
+.patter_cursor_tooltip {
+	position: fixed;
+	z-index: 1000;
+	max-width: calc(100vw - 1rem);
+	pointer-events: none;
+	white-space: nowrap;
+	color: var(--patter_color_text);
+}
+
 .patter_text_subtle {
 	font-size: var(--patter_font_size_small);
 	line-height: var(--patter_line_height_small);

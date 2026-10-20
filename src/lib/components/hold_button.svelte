@@ -2,6 +2,7 @@
     import { onDestroy } from 'svelte';
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
+    import { cursor_tooltip } from '$lib/actions/cursor_tooltip.js';
 
     let {
         text = 'Hold to confirm',
@@ -63,6 +64,7 @@
     type="button"
     aria-label={text}
     aria-describedby="hold-button-description"
+    use:cursor_tooltip={`Hold for ${duration / 1000} ${duration === 1000 ? 'second' : 'seconds'} to confirm`}
     onpointerdown={(event) => {
         if (event.button === 0) startHold();
     }}
@@ -92,7 +94,7 @@
     <span class="relative flex min-h-(--patter_control_height) items-center px-3 py-2 pointer-events-none select-none">
         {text}
     </span>
-    <span id="hold-button-description" class="sr-only">Press and hold for {duration / 1000} seconds to confirm.</span>
+    <span id="hold-button-description" class="sr-only">Press and hold for {duration / 1000} {duration === 1000 ? 'second' : 'seconds'} to confirm.</span>
 </button>
 
 <style>
