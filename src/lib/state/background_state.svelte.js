@@ -19,8 +19,6 @@ export const defaults = {
 };
 
 const validBackground = (value) => {
-    if (value === '/backgrounds/rain.mp4' || value === '/backgrounds/rain.webp') value = '/backgrounds/book.webp';
-    if (value === '/backgrounds/reading.mp4' || value === '/backgrounds/reading.webp') value = '/backgrounds/castle.webp';
     return backgrounds.some((item) => item.src === value) || /^upload:[a-z0-9-]+$/i.test(value)
         ? value
         : defaults.background;
