@@ -188,7 +188,7 @@
                 url: next.url,
                 posterKey: next.posterKey,
                 backgroundKey: next.posterKey,
-                position: outgoing.position,
+                position: untrack(() => background_values.position),
                 opacity: 0,
                 videoOpacity: 1,
                 useBackgroundVariable: false
@@ -206,7 +206,6 @@
             }
             if (id !== transitionId) return;
 
-            incomingLayer.position = background_values.position;
             incomingLayer.opacity = 1;
             transitionInProgress = false;
             transitionTimer = window.setTimeout(() => {
