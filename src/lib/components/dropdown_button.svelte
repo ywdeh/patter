@@ -6,13 +6,13 @@
 	import { motionDuration } from '$lib/state/motion.js';
 
 	let {
-		text = 'Export',
+		text = 'Save',
 		options = [],
 		onselect = null,
 		onexport = null,
 		disabled = false,
 		sound = 'click',
-		ariaLabel = 'Export options'
+		ariaLabel = 'Save options'
 	} = $props();
 
 	let root;
@@ -193,7 +193,7 @@
 			use:portalToBody
 			id="export-format-options"
 			role="group"
-			aria-label="Export format"
+			aria-label="Save format"
 			class="patter_control_text fixed z-500 min-w-max rounded-xl p-1 outline-2 outline-offset-2 outline-mauve-100/16"
 			style={`top:${menuPosition.top}px;left:${menuPosition.left}px;min-width:${menuPosition.minWidth}px`}
 		>
