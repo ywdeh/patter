@@ -76,7 +76,7 @@ z-55 patter_ui_text patter_unselectable isolate group/tools patter_options_motio
     aria-label="Options bar"
     data-zen-mode-ui="options"
     ondragstart={(event) => event.preventDefault()}>
-    <div bind:this={optionsScrollEl} onscroll={updateOptionsScroll} style={`-webkit-mask-image: ${optionsMask}; mask-image: ${optionsMask}`} class="relative z-10 min-h-0 max-h-[calc(100dvh-3rem)] w-90 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
+    <div bind:this={optionsScrollEl} data-wheel-controls={optionsHasOverflow ? 'disabled' : undefined} onscroll={updateOptionsScroll} style={`-webkit-mask-image: ${optionsMask}; mask-image: ${optionsMask}`} class="relative z-10 min-h-0 max-h-[calc(100dvh-3rem)] w-90 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
         <div bind:this={optionsContentEl} class="flex w-full min-w-0 flex-col gap-5 p-1">
         <section class="relative w-full shrink-0" aria-label="Customization">
             <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>

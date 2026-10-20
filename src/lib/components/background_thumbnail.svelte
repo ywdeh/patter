@@ -66,7 +66,7 @@
     }
 
     function handleWheel(event) {
-        if (!can_use_wheel_controls()) return;
+        if (!can_use_wheel_controls(event)) return;
         event.preventDefault();
         if (wheelLocked || event.deltaY === 0) return;
 

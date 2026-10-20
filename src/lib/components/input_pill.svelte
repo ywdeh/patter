@@ -77,7 +77,7 @@
     }
 
     function handleWheel(event) {
-        if (!can_use_wheel_controls()) return;
+        if (!can_use_wheel_controls(event)) return;
         if (mode === "toggle") return;
         event.preventDefault();
         if (wheelOnCooldown) return;

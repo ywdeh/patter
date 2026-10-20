@@ -101,7 +101,7 @@
 	}
 
 	function handleWheel(event) {
-		if (!can_use_wheel_controls()) return;
+		if (!can_use_wheel_controls(event)) return;
 		if (disabled || wheelOnCooldown || options.length < 2) return;
 		event.preventDefault();
 
