@@ -19,7 +19,6 @@
     let unmountCustomCaret = () => {};
     let caretScrollFrame = 0;
     let caretScrollTarget = 0;
-    let typewriterDimTimer = 0;
     let counts_worker;
     let counts_worker_failed = false;
     let counts_timer = 0;
@@ -127,16 +126,6 @@
         caretScrollFrame = 0;
     }
 
-    function dimTextWhileScrolling() {
-        if (!bodyEl) return;
-        bodyEl.classList.add('typewriter-scrolling');
-        window.clearTimeout(typewriterDimTimer);
-        typewriterDimTimer = window.setTimeout(() => {
-            bodyEl?.classList.remove('typewriter-scrolling');
-            typewriterDimTimer = 0;
-        }, motionDuration('standard', 200));
-    }
-
     function getCaretScrollTarget() {
         if (!scrollEl || !bodyEl || document.activeElement !== bodyEl) return null;
         const selection = getSelection();
@@ -165,7 +154,6 @@
             return;
         }
 
-        dimTextWhileScrolling();
         scrollEl.scrollTop += distance * CARET_SCROLL_EASING;
         caretScrollFrame = requestAnimationFrame(animateCaretScroll);
     }
@@ -193,7 +181,6 @@
 
     function handleEditorScroll() {
         hasScrolledDown = scrollEl.scrollTop > 0;
-        dimTextWhileScrolling();
     }
 
     function isSoundedEditorKey(event) {
@@ -280,7 +267,6 @@
             document.removeEventListener('visibilitychange', flush_when_hidden);
             if (autofocusFrame) cancelAnimationFrame(autofocusFrame);
             window.clearTimeout(sessionTimer);
-            window.clearTimeout(typewriterDimTimer);
             typewriterResizeObserver.disconnect();
             scrollEl.removeEventListener('wheel', onManualScrollIntent);
             scrollEl.removeEventListener('touchstart', onManualScrollIntent);
@@ -323,6 +309,5 @@
         -webkit-mask-image: var(--editor-mask);
         mask-image: var(--editor-mask);
     }
-    :global([data-patter-body].typewriter-scrolling) { opacity: 0.8; }
     :global([data-patter-body][data-empty="true"]::before) { content: var(--patter_placeholder_frame, attr(data-placeholder)); position: absolute; inset-inline: 0; padding-inline: inherit; text-align: start; pointer-events: none; opacity: calc(var(--patter_opacity_placeholder, 0.3) * var(--patter_placeholder_ink_opacity, 1)); filter: blur(var(--patter_placeholder_ink_blur, 0px)); }
 </style>

@@ -124,10 +124,17 @@
 	text-align: center;
 }
 
-button,
-button * {
+* {
 	-webkit-user-select: none;
 	user-select: none;
+}
+
+[data-patter-body],
+[data-patter-body] *,
+a[href^="mailto:"],
+a[href^="mailto:"] * {
+	-webkit-user-select: text;
+	user-select: text;
 }
 
 .patter_unselectable,
