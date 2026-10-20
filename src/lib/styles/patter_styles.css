@@ -16,7 +16,7 @@
 	--patter_opacity_muted: 0.65;
 	--patter_opacity_disabled: 0.3;
 	--patter_opacity_placeholder: 0.3;
-	--patter_color_text: oklch(96% 0.003 325.6);
+	--patter_color_text: oklch(99% 0.003 325.6);
 	--patter_color_base: #0b120f;
 	--patter_background_base: var(--patter_color_base);
 	--patter_background_scrim: 0;
@@ -38,7 +38,14 @@
 	transition: background-color var(--patter_motion_slow) ease;
 }
 
+@supports (color: oklch(from white l c h)) {
+	:root {
+		--patter_color_text: oklch(from var(--patter_background_base) 99% min(c, 0.015) h);
+	}
+}
+
 @theme {
+	--color-mauve-100: var(--patter_color_text);
 	--default-transition-duration: var(--patter_motion_short);
 	--font-departure-mono: var(--patter_font_mono);
 }
