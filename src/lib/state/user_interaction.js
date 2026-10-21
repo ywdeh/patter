@@ -2,6 +2,7 @@ let has_interacted = false;
 
 export function can_use_wheel_controls(event) {
     if (typeof navigator === 'undefined') return false;
+    if (event?.ctrlKey || event?.metaKey || event?.altKey || event?.shiftKey || event?.deltaY === 0) return false;
     if (event?.currentTarget?.closest('[data-wheel-controls="disabled"]')) return false;
     return navigator.userActivation?.hasBeenActive ?? has_interacted;
 }

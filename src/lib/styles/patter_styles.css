@@ -153,13 +153,12 @@ a[href^="mailto:"] * {
 .patter_duration_gentle { transition-duration: var(--patter_motion_gentle); }
 
 .patter_options_motion {
-	transition-duration: var(--patter_motion_standard);
-	transition-delay: var(--patter_delay_reveal);
+	transition-duration: var(--patter_motion_slow);
+	transition-delay: 0ms;
 	opacity: var(--patter_opacity_disabled);
 }
 .patter_options_motion:hover,
 .patter_options_motion:focus-within {
-	transition-delay: var(--patter_delay_short);
 	opacity: 1;
 }
 

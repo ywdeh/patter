@@ -41,22 +41,19 @@ caret-mauve-100" spellcheck="false">
 				let backgroundPosition = 'center';
 				try {
 					saved = JSON.parse(localStorage.getItem('background-values') || '{}');
-					const focus = Number(saved.focus);
-					const tint = Number(saved.tint);
-					const grain = Number(saved.grain);
-					const textSize = Number(saved.textSize);
+					if (!saved || typeof saved !== 'object' || Array.isArray(saved)) saved = {};
+					for (const [key, min, max] of [['focus', 0, 15], ['tint', 0, 80], ['grain', 0, 4], ['textSize', 14, 24]]) {
+						const value = saved[key];
+						if (typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max) defaults[key] = value;
+					}
 					const savedBackground = saved.background;
-					if (Number.isFinite(focus)) defaults.focus = Math.min(15, Math.max(0, focus));
-					if (Number.isFinite(tint)) defaults.tint = Math.min(80, Math.max(0, tint));
-					if (Number.isFinite(grain)) defaults.grain = Math.min(4, Math.max(0, grain));
-					if (Number.isFinite(textSize)) defaults.textSize = Math.min(24, Math.max(14, textSize));
 					backgroundPosition = ['top', 'center', 'bottom'].includes(saved.position) ? saved.position : 'center';
 					if (backgrounds.some((item) => item.src === savedBackground && item.kind === 'image')) {
 						defaults.background = savedBackground;
 						selectedBackground = savedBackground;
 						fallbackBackground = savedBackground;
 					}
-					if (typeof savedBackground === 'string' && (backgrounds.some((item) => item.src === savedBackground && item.kind === 'video') || savedBackground.startsWith('upload:'))) {
+					if (typeof savedBackground === 'string' && (backgrounds.some((item) => item.src === savedBackground && item.kind === 'video') || /^upload:[a-z0-9-]+$/i.test(savedBackground))) {
 						selectedBackground = savedBackground;
 						const posters = JSON.parse(localStorage.getItem('patter-video-posters') || '{}');
 						const poster = posters[savedBackground];

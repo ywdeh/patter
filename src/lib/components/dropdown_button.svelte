@@ -32,6 +32,10 @@
 	let selectedOption = $derived(options.find((option) => option.value === selectedValue) ?? options[0]);
 
 	$effect(() => {
+		if (disabled) closeMenu();
+	});
+
+	$effect(() => {
 		if (!options.some((option) => option.value === selectedValue)) {
 			selectedValue = options.find((option) => option.primary)?.value ?? options[0]?.value ?? '';
 		}
@@ -72,12 +76,13 @@
 		}
 		open = true;
 		await tick();
+		if (disabled || !open) return;
 		updateMenuPosition();
 		menu?.querySelector('button')?.focus();
 	}
 
 	function applyOption(option, returnFocus = false) {
-		if (!option) return;
+		if (disabled || !option) return;
 		if (option.value === selectedValue) return;
 		const previousIndex = options.findIndex((item) => item.value === selectedValue);
 		const nextIndex = options.findIndex((item) => item.value === option.value);
@@ -90,6 +95,7 @@
 	}
 
 	function selectOption(option) {
+		if (disabled || !option) return;
 		if (option?.value === selectedValue) {
 			closeMenu();
 			menuTrigger?.focus();
@@ -102,8 +108,9 @@
 
 	function handleWheel(event) {
 		if (!can_use_wheel_controls(event)) return;
-		if (disabled || wheelOnCooldown || options.length < 2) return;
+		if (disabled || options.length < 2) return;
 		event.preventDefault();
+		if (wheelOnCooldown) return;
 
 		const delta = event.deltaY * (event.deltaMode === 1 ? 40 : event.deltaMode === 2 ? window.innerHeight : 1);
 		wheelRemainder += delta;
@@ -166,7 +173,7 @@
 	});
 </script>
 
-<div bind:this={root} class="patter_control_text relative inline-flex w-fit" role="group" aria-label={text} {@attach attachNonPassiveWheel}>
+<div bind:this={root} class="patter_control_text relative inline-flex w-fit" class:pointer-events-none={disabled} role="group" aria-label={text} {@attach attachNonPassiveWheel}>
 	<div class="patter_control group/hitbox relative flex items-center w-fit" class:patter_disabled={disabled}>
 		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
 		<button type="button" disabled={disabled} aria-label={selectedOption?.label ?? text} class="relative min-h-(--patter_control_height) cursor-pointer px-3 py-2 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>

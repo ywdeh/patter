@@ -1,6 +1,6 @@
 <script>
     import { can_use_wheel_controls } from '$lib/state/user_interaction.js';
-    import { untrack } from "svelte";
+    import { onDestroy, untrack } from "svelte";
     import { fly } from "svelte/transition";
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
@@ -29,6 +29,7 @@
 
     let holdTimer = null;
     let holdStarted = false;
+    let holdResetTimer = null;
     let togglePending = $state(false);
     let direction = $state(1);
     let wheelRemainder = 0;
@@ -53,7 +54,7 @@
             playClick();
             direction = next ? 1 : -1;
             const actionResult = (next ? ontrue : onfalse)?.();
-            if (actionResult instanceof Promise && await actionResult === false) return;
+            if (await actionResult === false) return;
 
             value = next;
             onchange?.(next);
@@ -135,18 +136,25 @@
     }
 
     function startHold(delta) {
+        clearInterval(holdTimer);
+        clearTimeout(holdResetTimer);
         holdStarted = false;
 
         holdTimer = setInterval(() => {
             holdStarted = true;
             step_(delta);
+            if (value <= min || value >= max) {
+                clearInterval(holdTimer);
+                holdTimer = null;
+            }
         }, holdInterval);
     }
 
     function endHold() {
         clearInterval(holdTimer);
         holdTimer = null;
-        setTimeout(() => (holdStarted = false), 0);
+        clearTimeout(holdResetTimer);
+        holdResetTimer = setTimeout(() => (holdStarted = false), 0);
     }
 
     function handleClick(delta) {
@@ -154,7 +162,16 @@
         step_(delta);
     }
 
+    onDestroy(() => {
+        clearInterval(holdTimer);
+        clearTimeout(holdResetTimer);
+        clearTimeout(wheelCooldownTimer);
+        clearTimeout(wheelAnimationTimer);
+    });
+
 </script>
+
+<svelte:window onblur={endHold} />
 
 <div role="group" aria-label={text ?? 'Setting controls'} class="flex gap-3 items-center w-full">
     <p class="flex-1">{text}</p>
@@ -196,9 +213,11 @@
     <div class="flex flex-[1.5] gap-3 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
         <button
             onclick={() => handleClick(-step)}
-            onpointerdown={() => startHold(-step)}
+            onpointerdown={(event) => { if (event.button === 0) startHold(-step); }}
             onpointerup={endHold}
             onpointerleave={endHold}
+            onpointercancel={endHold}
+            onblur={endHold}
             disabled={value <= min}
             class:wheel_pressed={wheelPressedDirection === -1}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
@@ -226,9 +245,11 @@
 
         <button
             onclick={() => handleClick(step)}
-            onpointerdown={() => startHold(step)}
+            onpointerdown={(event) => { if (event.button === 0) startHold(step); }}
             onpointerup={endHold}
             onpointerleave={endHold}
+            onpointercancel={endHold}
+            onblur={endHold}
             disabled={value >= max}
             class:wheel_pressed={wheelPressedDirection === 1}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">

@@ -19,7 +19,7 @@ export const defaults = {
 };
 
 const validBackground = (value) => {
-    return backgrounds.some((item) => item.src === value) || /^upload:[a-z0-9-]+$/i.test(value)
+    return typeof value === 'string' && (backgrounds.some((item) => item.src === value) || /^upload:[a-z0-9-]+$/i.test(value))
         ? value
         : defaults.background;
 };
@@ -51,13 +51,14 @@ function load() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (!saved) return { ...defaults };
-        const values = { ...defaults, ...JSON.parse(saved) };
-        const focus = Number(values.focus);
-        values.focus = Math.min(15, Math.max(0, Number.isFinite(focus) ? focus : defaults.focus));
-        const tint = Number(values.tint);
-        values.tint = Math.min(80, Math.max(0, Number.isFinite(tint) ? tint : defaults.tint));
-        values.grain = Math.min(4, Math.max(0, Number(values.grain) || 0));
-        values.textSize = Math.min(24, Math.max(14, Number(values.textSize) || defaults.textSize));
+        const parsed = JSON.parse(saved);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { ...defaults };
+        const values = Object.fromEntries(Object.entries(defaults).map(([key, fallback]) => [key, parsed[key] ?? fallback]));
+        for (const [key, min, max] of [['focus', 0, 15], ['tint', 0, 80], ['grain', 0, 4], ['textSize', 14, 24]]) {
+            const value = values[key];
+            values[key] = typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
+                ? value : defaults[key];
+        }
         values.position = ['top', 'center', 'bottom'].includes(values.position) ? values.position : defaults.position;
         values.background = validBackground(values.background);
         return values;
