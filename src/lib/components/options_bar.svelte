@@ -5,7 +5,7 @@
     import AmbientMixer from './ambient_mixer.svelte';
     import { background_values, persistBackgroundValues, defaults, resetBackgroundValues } from "$lib/state/background_state.svelte.js";
     import { enterFullscreen, exitFullscreen } from "$lib/fullscreen.js";
-    import { getSoundEnabled, setSoundEnabled } from "$lib/state/sound_settings.svelte.js";
+    import { sound_enabled, setSoundEnabled } from "$lib/state/sound_settings.svelte.js";
     import { playSound } from "$lib/state/sound.js";
     import BackgroundPicker from "./background_picker.svelte";
     import { clearBackgroundUploads } from '$lib/state/background_media.js';
@@ -16,7 +16,6 @@
     const grainLabels = { 0: 'None', 1: 'Subtle', 2: 'Gentle', 3: 'Noticeable', 4: 'Strong' };
 
     let isFullscreen = $state(false);
-    let isSoundEnabled = $state(true);
     $effect(() => {
         const sync = () => (isFullscreen = !!document.fullscreenElement);
         sync();
@@ -41,7 +40,6 @@
     }
 
     onMount(() => {
-        isSoundEnabled = getSoundEnabled();
         updateOptionsScroll();
         const resizeObserver = new ResizeObserver(updateOptionsScroll);
         if (optionsScrollEl) resizeObserver.observe(optionsScrollEl);
@@ -54,17 +52,23 @@
     });
 
     async function clearSavedData() {
-        isSoundEnabled = true;
-        setSoundEnabled(true);
-        resetBackgroundValues();
-        window.dispatchEvent(new Event('patter-clear-saved-data'));
         try {
             await clearBackgroundUploads();
         } catch (error) {
             console.error('Could not clear uploaded backgrounds', error);
+            return;
         }
+        setSoundEnabled(true);
+        resetBackgroundValues();
+        window.dispatchEvent(new Event('patter-clear-saved-data'));
         await tick();
-        localStorage.clear();
+        try {
+            for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) {
+                localStorage.removeItem(key);
+            }
+        } catch (error) {
+            console.error('Could not clear saved settings', error);
+        }
     }
 
 </script>
@@ -82,7 +86,7 @@ z-55 patter_ui_text patter_unselectable isolate group/tools patter_options_motio
             <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
         <div class="relative flex min-w-0 max-w-full flex-col items-end gap-5 p-4">
             <InputPill text="Fullscreen" mode="toggle" bind:value={isFullscreen} ontrue={enterFullscreen} onfalse={exitFullscreen} />
-            <InputPill text="Sound" mode="toggle" bind:value={isSoundEnabled} sound={null} ontrue={() => { setSoundEnabled(true); playSound('click'); }} onfalse={() => setSoundEnabled(false)} />
+            <InputPill text="Sound" mode="toggle" bind:value={sound_enabled.value} sound={null} ontrue={() => { setSoundEnabled(true); playSound('click'); }} onfalse={() => setSoundEnabled(false)} />
             <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
             <BackgroundPicker sound="paper_turn" />
             <InputPill text="Focus" min={0} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} onchange={(value) => persistBackgroundValues({ focus: value })} />

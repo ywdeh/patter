@@ -1,17 +1,10 @@
-import { fade_page_in, fade_page_out, wait_for_page_motion } from '$lib/state/page_motion.js';
+import { fade_page_in, fade_page_out, get_page_motion_targets, wait_for_page_motion } from '$lib/state/page_motion.js';
 
 const FULLSCREEN_FADE_FALLBACK_MS = 400;
 let fullscreen_transition_pending = false;
 
-function get_fade_targets() {
-	return [
-		document.querySelector<HTMLElement>('.route_surface'),
-		document.querySelector<HTMLElement>('.route_background')
-	].filter((element): element is HTMLElement => !!element);
-}
-
 async function fade_out_before_fullscreen() {
-	await fade_page_out(get_fade_targets(), 'fullscreen');
+	await fade_page_out(get_page_motion_targets(), 'fullscreen');
 }
 
 async function wait_for_fullscreen_fade_in() {
@@ -23,7 +16,7 @@ async function wait_for_fullscreen_fade_in() {
 }
 
 function reveal_after_failed_toggle() {
-	void fade_page_in(get_fade_targets());
+	void fade_page_in(get_page_motion_targets());
 }
 
 export async function enterFullscreen() {

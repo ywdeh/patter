@@ -4,7 +4,6 @@
 	--patter_font_header: 'Amarante', serif;
 	--patter_font_body: 'Bitter', serif;
 	--patter_font_ui: 'Google Sans', sans-serif;
-	--patter_font_mono: 'Departure Mono', monospace;
 	--patter_font_size_small: 0.75rem;
 	--patter_line_height_small: 1rem;
 	--patter_font_size_control: 16px;
@@ -13,7 +12,6 @@
 	--patter_pill_height: 36px;
 	--patter_opacity_subtle: 0.4;
 	--patter_opacity_secondary: 0.6;
-	--patter_opacity_muted: 0.65;
 	--patter_opacity_disabled: 0.3;
 	--patter_opacity_placeholder: 0.3;
 	--patter_color_text: oklch(99% 0.003 325.6);
@@ -30,7 +28,6 @@
 	--patter_motion_gentle: 600ms;
 	--patter_motion_fullscreen_out: 250ms;
 	--patter_delay_short: 50ms;
-	--patter_delay_reveal: 400ms;
 }
 
 .patter_ambient_background {
@@ -47,7 +44,6 @@
 @theme {
 	--color-mauve-100: var(--patter_color_text);
 	--default-transition-duration: var(--patter_motion_short);
-	--font-departure-mono: var(--patter_font_mono);
 }
 
 @font-face {
@@ -59,14 +55,6 @@
 @font-face {
 	font-family: 'Bitter';
 	src: url('/fonts/bitter_regular.woff2') format('woff2');
-	font-display: swap;
-}
-
-@font-face {
-	font-family: 'Departure Mono';
-	src: url('/fonts/departure_mono_regular.woff2') format('woff2');
-	font-style: normal;
-	font-weight: 400;
 	font-display: swap;
 }
 
@@ -105,7 +93,6 @@
 .patter_font_header { font-family: var(--patter_font_header); }
 .patter_font_body { font-family: var(--patter_font_body); }
 .patter_font_ui { font-family: var(--patter_font_ui); }
-.patter_font_mono { font-family: var(--patter_font_mono); }
 
 .patter_text_color {
 	color: var(--patter_color_text);
@@ -146,11 +133,8 @@ a[href^="mailto:"] * {
 	-webkit-user-drag: none;
 }
 
-.patter_duration_quick { transition-duration: var(--patter_motion_quick); }
 .patter_duration_short { transition-duration: var(--patter_motion_short); }
 .patter_duration_standard { transition-duration: var(--patter_motion_standard); }
-.patter_duration_slow { transition-duration: var(--patter_motion_slow); }
-.patter_duration_gentle { transition-duration: var(--patter_motion_gentle); }
 
 .patter_options_motion {
 	transition-duration: var(--patter_motion_slow);

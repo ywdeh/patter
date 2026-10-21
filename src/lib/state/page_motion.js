@@ -3,6 +3,12 @@ import { motionDuration } from '$lib/state/motion.js';
 
 let latest_page_motion = Promise.resolve();
 
+export function get_page_motion_targets() {
+	return ['.route_surface', '.route_background']
+		.map((selector) => document.querySelector(selector))
+		.filter((element) => element instanceof HTMLElement);
+}
+
 function normalize_targets(targets) {
 	return [...targets].filter((element) => element instanceof HTMLElement);
 }

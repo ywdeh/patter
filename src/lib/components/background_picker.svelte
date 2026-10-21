@@ -19,6 +19,7 @@
     onMount(() => {
         let cancelled = false;
         const onClearSavedData = () => {
+            hasUserAction = true;
             for (const record of uploads) URL.revokeObjectURL(record.url);
             uploads = [];
             uploadError = '';
@@ -29,7 +30,7 @@
             const selectedId = background_values.background.startsWith('upload:')
                 ? background_values.background.slice('upload:'.length)
                 : null;
-            const record = records.find((item) => item.id === selectedId) ?? records[0];
+            const record = selectedId ? records.find((item) => item.id === selectedId) : records[0];
             if (!record) {
                 if (selectedId) selectBuiltInBackground(defaults.background);
                 return;
@@ -44,7 +45,6 @@
                     if (poster) uploads = uploads.map((item) => item.id === record.id ? { ...item, poster } : item);
                 }).catch(() => {});
             }
-            if (selectedId && selectedId !== record.id) selectUploadedBackground(record.id, record.kind, url);
         }).catch(() => {});
         return () => {
             cancelled = true;
@@ -147,8 +147,9 @@
                 URL.revokeObjectURL(uploadItem.url);
                 removeBackgroundPoster(`upload:${uploadItem.id}`);
             }
+            const removedActiveBackground = uploads.some((item) => background_values.background === `upload:${item.id}`);
             uploads = [];
-            selectBuiltInBackground(defaults.background);
+            if (removedActiveBackground) selectBuiltInBackground(defaults.background);
             uploadError = '';
         } catch {
             uploadError = 'This background could not be removed from browser storage.';

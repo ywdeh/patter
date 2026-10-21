@@ -11,10 +11,6 @@ function loadSoundEnabled() {
 
 export const sound_enabled = $state({ value: loadSoundEnabled() });
 
-export function getSoundEnabled() {
-    return sound_enabled.value;
-}
-
 export function setSoundEnabled(enabled) {
     sound_enabled.value = Boolean(enabled);
     if (typeof localStorage === 'undefined') return;

@@ -9,7 +9,7 @@ Patter is an ambient writing editor built with SvelteKit, Svelte 5, and Tailwind
 - `src/lib/state` contains focused editor, background, and interaction logic.
 - `src/lib/styles/patter_styles.css` contains shared design tokens and component styles.
 - `static` contains files served publicly, including fonts, sounds, icons, and built-in backgrounds.
-- `unused` is a flat archive of retired assets and one-off scripts. It is outside `static` and is not deployed as public content.
+- `unused` is a flat archive of retired assets. It is outside `static` and is not deployed as public content.
 
 ## Development
 

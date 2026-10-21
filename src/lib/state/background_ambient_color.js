@@ -107,13 +107,6 @@ export function setAmbientBackgroundColor(color, key) {
     }
 }
 
-export function applyCachedAmbientBackgroundColor(key) {
-    const color = BACKGROUND_AMBIENT_COLOR_ENABLED
-        ? getCachedAmbientBackgroundColor(key)
-        : null;
-    setAmbientBackgroundColor(color ?? DEFAULT_AMBIENT_BACKGROUND_COLOR);
-}
-
 export async function sampleAmbientBackgroundColor(source, kind = 'image') {
     if (!BACKGROUND_AMBIENT_COLOR_ENABLED || typeof document === 'undefined' || !source) return null;
     try {

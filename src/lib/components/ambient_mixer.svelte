@@ -17,7 +17,7 @@
     async function sync_playback() {
         error = '';
         player?.set_mix(tracks);
-        if (!tracks.some((track) => track.enabled && track.volume > 0)) player?.pause();
+        if (!tracks.some((track) => track.volume > 0)) player?.pause();
         else {
             try { await player?.play(); }
             catch (cause) { error = cause.message; }
@@ -27,9 +27,6 @@
     $effect(() => { player?.set_muted(!sound_enabled.value); });
 
     onMount(() => {
-        try {
-            localStorage.removeItem('patter-ambient-mix');
-        } catch {}
         player = create_ambient_player((status) => {
             if (status.error) error = status.error;
         });
@@ -53,10 +50,10 @@
     <div class="relative flex flex-col gap-5 p-4">
             <div class="ambient_channels">
                 {#each tracks as track (track.id)}
-                    <InputPill text={track.label} value={track.enabled ? track.volume : 0} min={0} max={100} step={5}
-                        defaultValue={ambient_tracks.find((item) => item.id === track.id).enabled ? ambient_tracks.find((item) => item.id === track.id).volume : 0}
+                    <InputPill text={track.label} value={track.volume} min={0} max={100} step={5}
+                        defaultValue={ambient_tracks.find((item) => item.id === track.id).volume}
                         unit="%" displayValues={{ 0: 'Off' }}
-                        onchange={(volume) => update_track(track.id, { enabled: volume > 0, volume })} />
+                        onchange={(volume) => update_track(track.id, { volume })} />
                 {/each}
             </div>
             {#if error}<p class="patter_text_small" role="alert">{error}</p>{/if}

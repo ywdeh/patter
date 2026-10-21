@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { untrack } from 'svelte';
     import { tick } from 'svelte';
     import { active_background, background_values, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
@@ -38,6 +38,26 @@
     let transitionId = 0;
     let transitionInProgress = $state(false);
     let prefersReducedMotion = false;
+    let destroyed = false;
+    const restored_upload_urls = new Set();
+    const video_frame_waiters = new Set();
+
+    $effect(() => {
+        const used_urls = new Set([active_background.url, ...visible_backgrounds.map((background) => background.url)]);
+        for (const url of restored_upload_urls) {
+            if (!used_urls.has(url)) {
+                URL.revokeObjectURL(url);
+                restored_upload_urls.delete(url);
+            }
+        }
+    });
+
+    onDestroy(() => {
+        destroyed = true;
+        for (const cancel of video_frame_waiters) cancel();
+        for (const url of restored_upload_urls) URL.revokeObjectURL(url);
+        restored_upload_urls.clear();
+    });
 
     $effect(() => {
         const position = background_values.position;
@@ -49,9 +69,11 @@
     });
 
     async function updateAmbientColor(source, key, kind = 'image') {
+        if (destroyed || background_values.background !== key) return;
         if (BACKGROUND_AMBIENT_COLOR_ENABLED) {
             const cachedColor = getCachedAmbientBackgroundColor(key);
             const color = cachedColor ?? await sampleAmbientBackgroundColor(source, kind);
+            if (destroyed || background_values.background !== key) return;
             if (color) setAmbientBackgroundColor(color, key);
         } else {
             setAmbientBackgroundColor(DEFAULT_AMBIENT_BACKGROUND_COLOR);
@@ -59,6 +81,7 @@
 
         const cachedScrim = getCachedBackgroundScrim(key);
         const scrim = cachedScrim ?? await sampleBackgroundScrim(source, kind);
+        if (destroyed || background_values.background !== key) return;
         if (scrim !== null) {
             document.documentElement.style.setProperty('--patter_background_scrim', `${scrim}`);
             if (cachedScrim === null) cacheBackgroundScrim(key, scrim);
@@ -110,10 +133,26 @@
         const video = document.querySelector(`[data-background-id="${id}"] video`);
         if (!video) return false;
         if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-            await new Promise((resolve) => video.addEventListener('loadeddata', resolve, { once: true }));
+            const loaded = await new Promise((resolve) => {
+                const finish = (ready) => {
+                    video.removeEventListener('loadeddata', on_loaded);
+                    video.removeEventListener('error', cancel);
+                    video.removeEventListener('abort', cancel);
+                    video_frame_waiters.delete(cancel);
+                    resolve(ready);
+                };
+                const on_loaded = () => finish(true);
+                const cancel = () => finish(false);
+                video_frame_waiters.add(cancel);
+                video.addEventListener('loadeddata', on_loaded, { once: true });
+                video.addEventListener('error', cancel, { once: true });
+                video.addEventListener('abort', cancel, { once: true });
+                if (video.error || destroyed) cancel();
+            });
+            if (!loaded) return false;
         }
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        return video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+        return !destroyed && video.isConnected && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
     }
 
     function handleVideoEnded(background) {
@@ -218,6 +257,7 @@
         return () => {
             transitionId++;
             window.clearTimeout(transitionTimer);
+            for (const cancel of video_frame_waiters) cancel();
         };
     });
 
@@ -248,6 +288,7 @@
         }
         try {
             const record = await getBackgroundUpload(selection.slice('upload:'.length));
+            if (destroyed) return;
             if (record && background_values.background === selection) {
                 const poster = getBackgroundPoster(selection);
                 if (initialLayer) {
@@ -255,6 +296,7 @@
                     initialLayer.useBackgroundVariable = false;
                 }
                 const uploadUrl = URL.createObjectURL(record.blob);
+                restored_upload_urls.add(uploadUrl);
                 selectUploadedBackground(record.id, record.kind, uploadUrl);
                 if (record.kind === 'image') void updateAmbientColor(uploadUrl, selection);
             } else {

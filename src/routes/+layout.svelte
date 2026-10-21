@@ -7,19 +7,12 @@
 	import { mount_user_interaction } from '$lib/state/user_interaction.js';
 	import { mount_pwa_install } from '$lib/state/pwa_install.svelte.js';
 	import { playSound } from '$lib/state/sound.js';
-	import { fade_page_in, fade_page_out } from '$lib/state/page_motion.js';
+	import { fade_page_in, fade_page_out, get_page_motion_targets } from '$lib/state/page_motion.js';
 
 	let { children } = $props();
 	let routeRevealVersion = 0;
 	let routeTransitionPromise: Promise<void> | null = null;
 	let routeTransitionInProgress = false;
-
-	function get_page_motion_targets() {
-		return [
-			document.querySelector<HTMLElement>('.route_surface'),
-			document.querySelector<HTMLElement>('.route_background')
-		].filter((element): element is HTMLElement => !!element);
-	}
 
 	function revealSurfaceWhenFontsReady() {
 		const version = ++routeRevealVersion;

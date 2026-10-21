@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { countEditorText, estimateReadingTime } from '$lib/state/editor_counts.js';
+    import { countEditorText, estimateReadingTime, formatMinutes } from '$lib/state/editor_counts.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
     import { background_values } from '$lib/state/background_state.svelte.js';
     import { getEditorPlaceholder } from '$lib/state/editor_placeholders.js';
@@ -113,13 +113,6 @@
         }));
     }
 
-    function formatSessionTime(totalMinutes) {
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        if (!hours) return `${minutes}m`;
-        return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
-    }
-
     function stopCaretScroll() {
         if (!caretScrollFrame) return;
         cancelAnimationFrame(caretScrollFrame);
@@ -229,7 +222,7 @@
         const sessionStartedAt = performance.now();
         const updateSessionTime = () => {
             const elapsed = performance.now() - sessionStartedAt;
-            sessionTime = formatSessionTime(Math.floor(elapsed / 60000));
+            sessionTime = formatMinutes(Math.floor(elapsed / 60000));
             sessionTimer = window.setTimeout(updateSessionTime, 60000 - (elapsed % 60000));
         };
         updateSessionTime();

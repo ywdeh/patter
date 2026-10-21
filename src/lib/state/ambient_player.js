@@ -1,10 +1,12 @@
 import { motionDuration } from './motion.js';
 import { normalize_ambient_buffer } from './ambient_normalization.js';
 
+const master_volume = 0.7;
+
 export const ambient_tracks = Object.freeze([
-    { id: 'rain', label: 'Rain', src: '/ambience/rain.mp3', enabled: false, volume: 0 },
-    { id: 'flute', label: 'Flute', src: '/ambience/flute.mp3', enabled: false, volume: 0 },
-    { id: 'campfire', label: 'Campfire', src: '/ambience/campfire.mp3', enabled: false, volume: 0 }
+    { id: 'rain', label: 'Rain', src: '/ambience/rain.mp3', volume: 0 },
+    { id: 'flute', label: 'Flute', src: '/ambience/flute.mp3', volume: 0 },
+    { id: 'campfire', label: 'Campfire', src: '/ambience/campfire.mp3', volume: 0 }
 ]);
 
 export function create_ambient_player(on_status) {
@@ -59,17 +61,13 @@ export function create_ambient_player(on_status) {
         return loop;
     }
 
-    function publish() {
-        if (!destroyed) on_status({ playing, loading: [...channels.values()].some((channel) => channel.pending) });
-    }
-
     function initialize() {
         if (context) return;
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) throw new Error('Ambient audio is not supported in this browser.');
         context = new AudioContext();
         master = context.createGain();
-        master.gain.value = muted ? 0 : 0.7;
+        master.gain.value = muted ? 0 : master_volume;
         master.connect(context.destination);
         for (const track of ambient_tracks) {
             const gain = context.createGain();
@@ -91,7 +89,7 @@ export function create_ambient_player(on_status) {
 
     async function update_channel(track) {
         const channel = channels.get(track.id);
-        const wanted = playing && track.enabled && track.volume > 0;
+        const wanted = playing && track.volume > 0;
         if (!wanted) {
             fade_out_channel(channel);
             return;
@@ -106,7 +104,6 @@ export function create_ambient_player(on_status) {
         if (!channel.buffer) {
             channel.pending = true;
             channel.abort = new AbortController();
-            publish();
             try {
                 const response = await fetch(track.src, { signal: channel.abort.signal });
                 if (!response.ok) throw new Error(`Could not load ${track.label.toLowerCase()}. Try again.`);
@@ -123,11 +120,10 @@ export function create_ambient_player(on_status) {
             } finally {
                 channel.pending = false;
                 channel.abort = null;
-                publish();
             }
         }
         const current = mix.find((item) => item.id === track.id);
-        if (destroyed || !playing || !current?.enabled || current.volume <= 0) return;
+        if (destroyed || !playing || !current || current.volume <= 0) return;
         channel.source = context.createBufferSource();
         channel.source.buffer = channel.buffer;
         channel.source.loop = true;
@@ -143,33 +139,30 @@ export function create_ambient_player(on_status) {
         set_mix(next) {
             mix = next.map((track) => ({ ...track }));
             if (!context || destroyed) return;
-            if (!mix.some((track) => track.enabled && track.volume > 0)) playing = false;
+            if (!mix.some((track) => track.volume > 0)) playing = false;
             for (const track of mix) void update_channel(track);
-            publish();
         },
         async play() {
-            if (destroyed || !mix.some((track) => track.enabled && track.volume > 0)) return;
+            if (destroyed || !mix.some((track) => track.volume > 0)) return;
+            if (playing && context?.state === 'running') return;
             initialize();
             playing = true;
-            publish();
             try {
                 await context.resume();
                 if (destroyed || !playing) return;
                 for (const track of mix) void update_channel(track);
             } catch {
                 playing = false;
-                publish();
-                throw new Error('Playback could not start. Try pressing play again.');
+                throw new Error('Playback could not start. Adjust a sound volume to retry.');
             }
         },
         pause() {
             playing = false;
             for (const channel of channels.values()) fade_out_channel(channel);
-            publish();
         },
         set_muted(value) {
             muted = value;
-            if (master) ramp_volume(master.gain, muted ? 0 : 0.7);
+            if (master) ramp_volume(master.gain, muted ? 0 : master_volume);
         },
         destroy() {
             destroyed = true;
