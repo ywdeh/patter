@@ -33,6 +33,9 @@
                 element.inert = active;
             });
         }
+        document.querySelectorAll('[data-zen-mode-ui="editor-stats"]').forEach((element) => {
+            element.classList.toggle('zen-mode-dimmed', active);
+        });
         if (!active) pointerOrigin = null;
     }
 
@@ -51,7 +54,7 @@
             const position = { x: event.clientX, y: event.clientY };
             if (zenMode) {
                 if (!pointerOrigin) pointerOrigin = position;
-                else if (Math.hypot(position.x - pointerOrigin.x, position.y - pointerOrigin.y) >= 20) {
+                else if (Math.hypot(position.x - pointerOrigin.x, position.y - pointerOrigin.y) >= 60) {
                     setZenMode(false);
                 }
             }
@@ -96,6 +99,15 @@
     :global(.zen-mode-hidden) {
         opacity: 0 !important;
         pointer-events: none !important;
+    }
+
+    :global([data-zen-mode-ui="editor-stats"]) {
+        transition-property: opacity;
+        transition-timing-function: ease;
+    }
+
+    :global([data-zen-mode-ui="editor-stats"].zen-mode-dimmed) {
+        opacity: calc(var(--patter_opacity_subtle) * 0.5);
     }
 
 </style>
