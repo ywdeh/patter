@@ -196,6 +196,7 @@
         width: 100%;
         flex-shrink: 0;
         min-height: 0;
+        max-height: calc(100dvh - 3rem);
         padding: 1rem;
         border-radius: 0.75rem;
     }

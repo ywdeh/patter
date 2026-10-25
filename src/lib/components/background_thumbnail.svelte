@@ -172,10 +172,10 @@
                 onclick={(event) => onposition?.(choice, { event })}
                 aria-label={`${label}, align ${choice}`}
                 aria-pressed={position === choice}
-                class="pointer-events-auto relative aspect-square h-full cursor-pointer rounded-sm bg-mauve-100/32 transition-colors patter_duration_short hover:bg-mauve-100/48 focus-visible:bg-mauve-100/64 {position === choice ? 'bg-mauve-100/45' : ''}"
+                class="pointer-events-auto patter_control patter_control_compact relative aspect-square h-full cursor-pointer rounded-lg bg-mauve-100/12 transition-colors patter_duration_standard hover:bg-mauve-100/24 focus-visible:bg-mauve-100/24 {position === choice ? 'bg-mauve-100/40' : ''}"
             >
                 {#if position === choice}
-                    <span aria-hidden="true" class="pointer-events-none absolute inset-0 outline-2 outline-offset-2 rounded-sm outline-inset outline-mauve-100/55"></span>
+                    <span aria-hidden="true" class="pointer-events-none absolute inset-0 outline-2 outline-offset-2 rounded-lg outline-inset outline-mauve-100/40"></span>
                 {/if}
             </button>
         {/each}

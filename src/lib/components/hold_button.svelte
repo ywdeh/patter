@@ -144,13 +144,13 @@
         opacity: 0;
         transform: rotate(-90deg);
         transform-origin: center;
-        transition: stroke-dashoffset var(--patter_motion_standard) ease-out;
+        transition: stroke-dashoffset var(--patter_motion_standard) ease-out, opacity var(--patter_motion_standard) ease-out;
     }
     .hold_ring circle.ring_progress {
         opacity: var(--patter_opacity_subtle);
         stroke-dashoffset: 0;
-        transition-duration: var(--hold-duration);
-        transition-timing-function: linear;
+        transition-duration: var(--hold-duration), var(--patter_motion_standard);
+        transition-timing-function: linear, ease-out;
     }
 
     .reset_icon {

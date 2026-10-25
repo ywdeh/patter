@@ -217,7 +217,7 @@
             <button
                 type="button"
                 onclick={(event) => { uploadOrigin = capture_spread_origin(event); onpickerchange(true); uploadInput?.click(); }}
-                class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small">
+                class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small">
                 <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
                 <svg class="patter_icon relative size-5 text-mauve-100" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />
@@ -233,7 +233,7 @@
             onclick={removeUpload}
             disabled={uploads.length === 0}
             aria-label="Remove uploaded background"
-            class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small disabled:cursor-default  disabled:pointer-events-none">
+            class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small disabled:cursor-default  disabled:pointer-events-none">
             <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
             <svg class="patter_icon relative size-5 text-mauve-100" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M5 10h10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />
@@ -248,10 +248,9 @@
     .upload_slot { display: grid; min-width: 0; aspect-ratio: 16 / 9; }
     .upload_frame { grid-area: 1 / 1; min-width: 0; }
     .upload_frame > button { height: 100%; }
-    .compact { gap: 1rem; padding: 0.5rem; }
+    .compact { gap: 1rem; padding: 0; }
     .compact .upload_controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
     .compact .upload_controls > :global([data-background-thumbnail]) { width: 100%; }
     .compact .upload_action { aspect-ratio: 16 / 9; min-height: var(--patter_pill_height); flex-direction: row; width: auto; flex: 1; gap: 0.5rem; }
-    .compact .upload_action .upload_surface { outline: none; box-shadow: none; background: none; }
     .compact .upload_action svg { width: 1.25rem; height: 1.25rem; }
 </style>
