@@ -27,6 +27,7 @@
     let active_tab = $state('Scene');
     let is_fullscreen = $state(false);
     let fullscreen_pending = $state(false);
+    let browser_fullscreen = $state(false);
     let tab_list;
     let scroll_area;
     let content;
@@ -51,7 +52,10 @@
         window.addEventListener('pointerdown', dismiss_pin);
 
         const display_mode = window.matchMedia('(display-mode: fullscreen)');
-        const sync_fullscreen = () => (is_fullscreen = isFullscreenActive());
+        const sync_fullscreen = () => {
+            is_fullscreen = isFullscreenActive();
+            browser_fullscreen = is_fullscreen && !document.fullscreenElement;
+        };
         sync_fullscreen();
         const observer = new ResizeObserver(update_scroll);
         observer.observe(scroll_area);
@@ -88,12 +92,13 @@
     }
 
     async function toggle_fullscreen() {
-        if (fullscreen_pending) return;
+        if (fullscreen_pending || browser_fullscreen) return;
         fullscreen_pending = true;
         try {
             playSound('click');
             await (is_fullscreen ? exitFullscreen() : enterFullscreen());
             is_fullscreen = isFullscreenActive();
+            browser_fullscreen = is_fullscreen && !document.fullscreenElement;
         } finally {
             fullscreen_pending = false;
         }
@@ -130,7 +135,7 @@
                     <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active patter_surface_gradient"></span>
                     <svg class="patter_icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" />{#if sound_enabled.value}<path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />{:else}<path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />{/if}</svg>
                 </button>
-                <button type="button" class="icon_button patter_control patter_control_round group/hitbox" aria-label={is_fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} aria-pressed={is_fullscreen} disabled={fullscreen_pending} onclick={toggle_fullscreen}>
+                <button type="button" class="icon_button patter_control patter_control_round group/hitbox" aria-label={is_fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} aria-pressed={is_fullscreen} disabled={fullscreen_pending || browser_fullscreen} onclick={toggle_fullscreen}>
                     <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active patter_surface_gradient"></span>
                     <svg class="patter_icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={is_fullscreen ? 'M4 9h5V4m11 5h-5V4M4 15h5v5m11-5h-5v5' : 'M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5'} stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" /></svg>
                 </button>
