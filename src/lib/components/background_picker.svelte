@@ -1,5 +1,6 @@
 <script>
     import { onMount } from 'svelte';
+    import { optimize_background_upload } from '$lib/state/background_upload.js';
     import { fade } from 'svelte/transition';
     import { background_values, backgrounds, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
     import { clearBackgroundUploads, listBackgroundUploads, replaceBackgroundUpload } from '$lib/state/background_media.js';
@@ -12,11 +13,12 @@
 
     let uploadInput;
     let uploadOrigin;
+    let processing_upload = $state(false);
     let uploadError = $state('');
     let uploads = $state([]);
     let hasUserAction = false;
     let lastWheelBackgroundChange = -Infinity;
-    let { sound = 'paper_turn', compact = false } = $props();
+    let { sound = 'paper_turn', compact = false, onpickerchange = () => {} } = $props();
 
     onMount(() => {
         let cancelled = false;
@@ -104,31 +106,34 @@
     async function upload(event) {
         const file = event.currentTarget.files?.[0];
         event.currentTarget.value = '';
-        if (!file) return;
+        if (!file || processing_upload) return;
 
         const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
         if (!backgroundFileAccept.split(',').some((entry) => entry === `.${extension}`)) {
+            onpickerchange(false);
             uploadError = 'Choose an image or video in a supported format.';
             return;
         }
 
         hasUserAction = true;
         playClick();
+        processing_upload = true;
         try {
+            const optimized = await optimize_background_upload(file);
             const id = crypto.randomUUID();
             const kind = backgroundKindFromFilename(file.name);
-            await replaceBackgroundUpload({ id, kind, name: file.name, blob: file });
-            const url = URL.createObjectURL(file);
+            await replaceBackgroundUpload({ id, kind, name: optimized.name, blob: optimized });
+            const url = URL.createObjectURL(optimized);
             for (const oldUpload of uploads) {
                 URL.revokeObjectURL(oldUpload.url);
                 removeBackgroundPoster(`upload:${oldUpload.id}`);
             }
-            uploads = [{ id, kind, name: file.name, blob: file, url, poster: null }];
+            uploads = [{ id, kind, name: optimized.name, blob: optimized, url, poster: null }];
             set_spread_origin(`upload:${id}`, uploadOrigin);
             selectUploadedBackground(id, kind, url);
             uploadError = '';
             if (kind === 'image') {
-                createImagePoster(file).then((poster) => {
+                createImagePoster(optimized).then((poster) => {
                     if (poster) {
                         saveBackgroundPoster(`upload:${id}`, poster);
                         uploads = uploads.map((item) => item.id === id ? { ...item, poster } : item);
@@ -136,7 +141,10 @@
                 }).catch(() => {});
             }
         } catch {
-            uploadError = 'This file could not be saved in browser storage.';
+            onpickerchange(false);
+            uploadError = 'This file could not be processed or saved in browser storage.';
+        } finally {
+            processing_upload = false;
         }
     }
 
@@ -184,15 +192,17 @@
         type="file"
         accept={backgroundFileAccept}
         onchange={upload}
+        oncancel={() => onpickerchange(false)}
         tabindex="-1"
         aria-label="Add an image or video background" />
     <div class="upload_controls col-span-2 grid grid-cols-2 gap-4">
-        <div class="upload_slot">
+        <div class="upload_slot" aria-busy={processing_upload}>
         {#key uploads[0]?.id ?? 'empty'}
         <div class="upload_frame" transition:fade={{ duration: typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : motionDuration('standard', 200) }}>
         {#if uploads.length > 0}
             {#each uploads as uploadItem (uploadItem.id)}
                 <BackgroundThumbnail
+                    onready={() => onpickerchange(false)}
                     src={uploadItem.url}
                     kind={uploadItem.kind}
                     posterKey={`upload:${uploadItem.id}`}
@@ -206,11 +216,11 @@
         {:else}
             <button
                 type="button"
-                onclick={(event) => { uploadOrigin = capture_spread_origin(event); uploadInput?.click(); }}
+                onclick={(event) => { uploadOrigin = capture_spread_origin(event); onpickerchange(true); uploadInput?.click(); }}
                 class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small">
                 <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
-                <svg class="relative size-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <svg class="patter_icon relative size-5 text-mauve-100" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />
                 </svg>
                 <span class="relative tracking-wide">Add image or video</span>
             </button>
@@ -225,8 +235,8 @@
             aria-label="Remove uploaded background"
             class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small disabled:cursor-default  disabled:pointer-events-none">
             <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
-            <svg class="relative size-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M5 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <svg class="patter_icon relative size-5 text-mauve-100" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M5 10h10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />
             </svg>
             <span class="relative tracking-wide">Remove</span>
         </button>

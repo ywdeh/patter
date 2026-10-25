@@ -214,6 +214,23 @@ a[href^="mailto:"] * {
 	@apply inset-2;
 }
 
+.patter_icon {
+    opacity: 0.65;
+    transition: opacity var(--patter_motion_standard) ease-out, scale var(--patter_motion_standard) ease-out;
+}
+.patter_control:not(:disabled):hover .patter_icon,
+.patter_control:not(:disabled):focus-visible .patter_icon {
+    opacity: 1;
+}
+.patter_control:not(:disabled):active .patter_icon,
+.patter_control.wheel_pressed .patter_icon {
+    scale: 0.9;
+}
+.patter_control:disabled {
+    pointer-events: none;
+    cursor: default;
+}
+
 .patter_control:disabled,
 .patter_disabled {
 	opacity: var(--patter_opacity_disabled);

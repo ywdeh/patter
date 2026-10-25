@@ -13,9 +13,15 @@
         selected = false,
         position = 'center',
         label = 'Select background',
+        onready = () => {},
         onselect,
         onposition
     } = $props();
+
+    let loaded_source = $state(null);
+    let failed_source = $state(null);
+    const image_source = $derived(preview_poster ?? thumbnailSrc);
+    const thumbnail_loading = $derived(loaded_source !== image_source && failed_source !== image_source);
 
     const positions = ['top', 'center', 'bottom'];
     let video_preview_active = $state(false);
@@ -94,7 +100,7 @@
     }
 </script>
 
-<div data-background-thumbnail role="group" aria-label={label} class="group/inputpill relative w-full aspect-video" onpointerenter={startVideoPreview} onpointerleave={stopVideoPreview} {@attach attachNonPassiveWheel}>
+<div data-background-thumbnail aria-busy={thumbnail_loading} role="group" aria-label={label} class="group/inputpill relative w-full aspect-video" onpointerenter={startVideoPreview} onpointerleave={stopVideoPreview} {@attach attachNonPassiveWheel}>
     <button
         type="button"
         draggable="false"
@@ -104,6 +110,11 @@
         class="patter_control patter_control_compact absolute inset-0 w-full cursor-pointer">
         <span
             class="media_viewport absolute inset-0 block rounded-lg bg-center patter_shadow overflow-hidden {selected ? 'is-selected' : ''}">
+            {#if thumbnail_loading}
+                <span class="thumbnail_loading absolute inset-0 flex items-center justify-center bg-mauve-100/6" role="status" aria-label="Loading background preview">
+                    <span class="loading_ring" aria-hidden="true"></span>
+                </span>
+            {/if}
             {#if kind === 'video'}
                 {#if preview_poster || thumbnailSrc !== src}
                     <img
@@ -113,6 +124,8 @@
                         alt=""
                         loading={selected ? 'eager' : 'lazy'}
                         decoding="async"
+                        onload={(event) => { loaded_source = event.currentTarget.getAttribute('src'); onready(); }}
+                        onerror={(event) => { failed_source = event.currentTarget.getAttribute('src'); onready(); }}
                         aria-hidden="true">
                 {:else}
                     <span class="absolute inset-0 bg-mauve-100/5" aria-hidden="true"></span>
@@ -137,6 +150,8 @@
                     alt=""
                     loading={selected ? 'eager' : 'lazy'}
                     decoding="async"
+                    onload={(event) => { loaded_source = event.currentTarget.getAttribute('src'); onready(); }}
+                    onerror={(event) => { failed_source = event.currentTarget.getAttribute('src'); onready(); }}
                     aria-hidden="true">
             {/if}
         </span>
@@ -168,6 +183,17 @@
 </div>
 
 <style>
+    .loading_ring {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid color-mix(in srgb, var(--patter_color_text) 12%, transparent);
+        border-top-color: color-mix(in srgb, var(--patter_color_text) 40%, transparent);
+        border-radius: 50%;
+        animation: preview_loading calc(var(--patter_motion_slow) * 2) linear infinite;
+    }
+    @keyframes preview_loading { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .loading_ring { animation: none; } }
+
     .media_viewport {
         clip-path: inset(0 round 0.5rem);
         transition: clip-path var(--patter_motion_standard) ease-out;

@@ -22,7 +22,7 @@
 
     const backgroundLayerCleanupDelay = motionDuration('slow', 400) + 20;
 
-    let tint_color = 'oklch(12.9% 0.042 264.695)'
+
     let layerId = 0;
     let visible_backgrounds = $state([{
         id: layerId,
@@ -367,7 +367,7 @@
 
     <div
         class="transition absolute inset-0 h-full w-full"
-        style="background-color: {tint_color}; opacity: var(--patter_tint, 0.5)"></div>
+        style="background-color: var(--patter_tint_color, oklch(12.9% 0.042 264.695)); opacity: var(--patter_tint, 0.5)"></div>
 
     <div 
         class="absolute h-full w-full bg-repeat z-50"
