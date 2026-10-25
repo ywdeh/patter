@@ -166,7 +166,7 @@
     </button>
 
     <div
-        class="position_picker pointer-events-none absolute right-2 top-2 bottom-2 z-10 grid grid-rows-3 gap-2 opacity-0 transition-opacity patter_duration_standard group-hover/inputpill:opacity-100 group-focus-within/inputpill:opacity-100"
+        class="position_picker pointer-events-none absolute right-2 top-2 bottom-2 z-10 flex flex-col justify-between gap-1 opacity-0 transition-opacity patter_duration_standard group-hover/inputpill:opacity-100 group-focus-within/inputpill:opacity-100"
         role="group"
         aria-label="Choose image position">
         {#each positions as choice}
@@ -185,7 +185,10 @@
 
 <style>
     .position_choice {
-        width: 20px;
+        width: 16px;
+        height: 16px;
+        aspect-ratio: 1;
+        flex-shrink: 0;
         min-height: 0;
         cursor: pointer;
         border-radius: 0.25rem;

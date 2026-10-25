@@ -37,7 +37,7 @@ function applyToDocument(values) {
     if (typeof document === "undefined") return;
     document.documentElement.style.setProperty("--patter_focus", `${values.focus}px`);
     document.documentElement.style.setProperty("--patter_tint", `${values.tint / 100}`);
-    document.documentElement.style.setProperty('--patter_tint_color', values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
+    document.documentElement.style.setProperty('--patter_tint_color', values.tintShade === 2 ? 'oklch(15.3% 0.006 107.1)' : values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
     document.documentElement.style.setProperty("--patter_grain", `${values.grain / 100}`);
     document.documentElement.style.setProperty('--patter_editor_font', editor_fonts[values.editorFont]);
     document.documentElement.style.setProperty('--patter_body_text_size', `${values.textSize}px`);
@@ -59,7 +59,7 @@ function load() {
         const parsed = JSON.parse(saved);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { ...defaults };
         const values = Object.fromEntries(Object.entries(defaults).map(([key, fallback]) => [key, parsed[key] ?? fallback]));
-        for (const [key, min, max] of [['editorFont', 0, 3], ['tintShade', 0, 1], ['focus', 0, 15], ['tint', 0, 80], ['grain', 0, 4], ['textSize', 14, 24]]) {
+        for (const [key, min, max] of [['editorFont', 0, 3], ['tintShade', 0, 2], ['focus', 0, 15], ['tint', 0, 80], ['grain', 0, 4], ['textSize', 14, 24]]) {
             const value = values[key];
             values[key] = typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
                 ? value : defaults[key];

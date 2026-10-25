@@ -271,14 +271,14 @@
             onclick={() => reset()}
             disabled={value === resetTo}
             aria-label="Reset to default"
-            class="patter_control patter_control_round group transition h-6 aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
+            class="patter_control patter_control_round group transition size-6 shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span
                 aria-hidden="true"
                 class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
             </span>
 
-            <span class="flex items-center gap-2 px-1 relative pointer-events-none">
-                <span aria-hidden="true" class="patter_mask_icon size-5" style="mask-image: url(/undo.svg); -webkit-mask-image: url(/undo.svg)"></span>
+            <span class="relative flex size-4 shrink-0 items-center justify-center pointer-events-none">
+                <svg class="size-4 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10a8 8 0 1 0-1.5 7M20 4v6h-6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" /></svg>
             </span>
         </button>
     </div>
