@@ -103,6 +103,11 @@
             .replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
     }
 
+    function upload_motion(name, fallback) {
+        return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 0 : motionDuration(name, fallback);
+    }
+
     async function upload(event) {
         const file = event.currentTarget.files?.[0];
         event.currentTarget.value = '';
@@ -196,12 +201,14 @@
         tabindex="-1"
         aria-label="Add an image or video background" />
     <div class="upload_controls col-span-2 grid grid-cols-2 gap-4">
-        <div class="upload_slot" aria-busy={processing_upload}>
+        <div class="upload_slot patter_control patter_control_compact relative" aria-busy={processing_upload}>
+        <span aria-hidden="true" class="pointer-events-none absolute rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0 {uploads.length ? (background_values.background === `upload:${uploads[0].id}` ? 'patter_surface patter_surface_selected inset-1' : 'patter_surface patter_hover patter_active inset-0') : 'patter_surface_dashed patter_hover patter_active inset-0'}"></span>
         {#key uploads[0]?.id ?? 'empty'}
-        <div class="upload_frame" transition:fade={{ duration: typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : motionDuration('standard', 200) }}>
+        <div class="upload_frame" transition:fade={{ duration: upload_motion('standard', 200) }}>
         {#if uploads.length > 0}
             {#each uploads as uploadItem (uploadItem.id)}
                 <BackgroundThumbnail
+                    showSurface={false}
                     onready={() => onpickerchange(false)}
                     src={uploadItem.url}
                     kind={uploadItem.kind}
@@ -218,7 +225,7 @@
                 type="button"
                 onclick={(event) => { uploadOrigin = capture_spread_origin(event); onpickerchange(true); uploadInput?.click(); }}
                 class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small">
-                <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+
                 <svg class="patter_icon relative size-5 text-mauve-100" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />
                 </svg>

@@ -11,6 +11,7 @@
         posterKey = src,
         poster = null,
         selected = false,
+        showSurface = true,
         position = 'center',
         label = 'Select background',
         onready = () => {},
@@ -155,11 +156,13 @@
                     aria-hidden="true">
             {/if}
         </span>
+        {#if showSurface}
         <span
         class="patter_surface absolute rounded-lg pointer-events-none
             {selected
                 ? 'patter_surface_selected inset-1'
                 : 'patter_hover patter_active inset-0'}"></span>
+        {/if}
     </button>
 
     <div
