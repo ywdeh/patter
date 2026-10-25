@@ -96,7 +96,7 @@
     ></span>
     <span class="relative flex min-h-(--patter_control_height) items-center px-3 py-2 pointer-events-none select-none">
         {#if iconOnly}
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.5 7M4 4v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <svg class="reset_icon" class:reset_progress={isHolding || isComplete} style:--hold-duration={`${duration}ms`} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.5 7M4 4v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
         {:else}
             {text}
         {/if}
@@ -112,6 +112,21 @@
     }
     .icon_only > .patter_surface,
     .icon_only > .overflow-hidden { border-radius: 50%; }
+
+    .reset_icon {
+        transform: rotate(0deg);
+        transform-origin: center;
+        transform-box: view-box;
+        transition: transform var(--patter_motion_standard) ease-out;
+    }
+    .reset_icon.reset_progress {
+        transform: rotate(-360deg);
+        transition-duration: var(--hold-duration);
+        transition-timing-function: ease-in-out;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .reset_icon, .reset_icon.reset_progress { transform: none; transition: none; }
+    }
 
     .hold_progress {
         width: 100%;
