@@ -13,6 +13,8 @@
     import HoldButton from './hold_button.svelte';
     import { capture_spread_origin, set_spread_origin } from '$lib/state/background_spread.js';
 
+    let { intro = false, onintroend = () => {} } = $props();
+
     const tintLabels = { 0: 'None' };
     const grainLabels = { 0: 'None', 1: 'Subtle', 2: 'Gentle', 3: 'Noticeable', 4: 'Strong' };
 
@@ -77,8 +79,11 @@
 </script>
 
 <div class="
-z-55 patter_ui_text patter_unselectable isolate group/tools patter_options_motion transition ease-in-out absolute right-0 top-0 hidden h-dvh max-w-[calc(100vw-3rem)] items-center justify-center p-6 sm:flex
-    translate-x-[50%] hover:translate-x-0 focus-within:translate-x-0  saturate-0 focus-within:saturate-100 hover:saturate-100"
+options_shell z-55 patter_ui_text patter_unselectable isolate group/tools patter_options_motion transition ease-in-out absolute right-0 top-0 hidden h-dvh max-w-[calc(100vw-3rem)] items-center justify-center p-6 sm:flex
+      saturate-0 focus-within:saturate-100 hover:saturate-100"
+    class:options_intro={intro}
+    onpointerenter={onintroend}
+    onfocusin={onintroend}
     role="group"
     aria-label="Options bar"
     data-zen-mode-ui="options"
@@ -108,3 +113,12 @@ z-55 patter_ui_text patter_unselectable isolate group/tools patter_options_motio
         </div>
     </div>
 </div>
+
+<style>
+    .options_shell { opacity: var(--patter_opacity_disabled); transform: translateX(calc(100% - 3 * var(--patter_control_height) - 2rem)); }
+    .options_shell.options_intro {
+        opacity: var(--patter_opacity_secondary);
+        transform: translateX(calc(100% - 5 * var(--patter_control_height) - 2rem));
+    }
+    .options_shell:hover, .options_shell:focus-within { opacity: 1; transform: translateX(0); }
+</style>

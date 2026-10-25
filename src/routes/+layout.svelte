@@ -6,24 +6,40 @@
 	import { onMount } from 'svelte';
 	import { mount_user_interaction } from '$lib/state/user_interaction.js';
 	import { mount_pwa_install } from '$lib/state/pwa_install.svelte.js';
+	import { motionDuration } from '$lib/state/motion.js';
 	import { playSound } from '$lib/state/sound.js';
 	import { fade_page_in, fade_page_out, get_page_motion_targets } from '$lib/state/page_motion.js';
 
 	let { children } = $props();
+    let optionsIntro = $state(false);
+    let optionsIntroAllowed = true;
+    let optionsIntroTimer: ReturnType<typeof setTimeout>;
+    function stopOptionsIntro() {
+        optionsIntroAllowed = false;
+        optionsIntro = false;
+        clearTimeout(optionsIntroTimer);
+    }
 	let routeRevealVersion = 0;
 	let routeTransitionPromise: Promise<void> | null = null;
 	let routeTransitionInProgress = false;
 
-	function revealSurfaceWhenFontsReady() {
+	function revealSurfaceWhenFontsReady(initial = false) {
 		const version = ++routeRevealVersion;
-		void document.fonts.ready.then(() => {
+		void document.fonts.ready.then(async () => {
 			if (version !== routeRevealVersion) return;
 			const surface = document.querySelector<HTMLElement>('.route_surface');
-			if (surface) void fade_page_in([surface]);
+			if (surface) await fade_page_in([surface]);
+            if (initial && optionsIntroAllowed && version === routeRevealVersion
+                && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                optionsIntro = true;
+                optionsIntroTimer = setTimeout(stopOptionsIntro,
+                    motionDuration('slow', 400) * 2 + motionDuration('gentle', 600));
+            }
 		});
 	}
 
 	beforeNavigate((navigation) => {
+        if (navigation.from) stopOptionsIntro();
 		if (routeTransitionInProgress) navigation.cancel();
 	});
 
@@ -56,14 +72,20 @@
 			void fade_page_in(get_page_motion_targets());
 		};
 		document.addEventListener('fullscreenchange', handleFullscreenChange);
+        const stopOnWriting = (event: Event) => {
+            if ((event.target as Element)?.closest('[data-patter-body]')) stopOptionsIntro();
+        };
+        document.addEventListener('beforeinput', stopOnWriting);
 
 		requestAnimationFrame(() => {
 			const background = document.querySelector<HTMLElement>('.route_background');
 			if (background) void fade_page_in([background]);
 		});
-		revealSurfaceWhenFontsReady();
+		revealSurfaceWhenFontsReady(true);
 
 		return () => {
+            stopOptionsIntro();
+            document.removeEventListener('beforeinput', stopOnWriting);
 			cleanupInstall();
 			cleanupInteraction();
 			document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -76,6 +98,6 @@
 <Background />
 
 <div class="route_surface route_initial_hidden">
-	<OptionsBar />
+	<OptionsBar intro={optionsIntro} onintroend={stopOptionsIntro} />
 	{@render children()}
 </div>
