@@ -472,6 +472,22 @@
         return Array.from(editor.children, (line) => line._visible_text ?? '').join('\n');
     }
 
+    export function getSelectedVisibleText() {
+        const selection = document.getSelection();
+        if (!selection?.rangeCount || selection.isCollapsed) return null;
+        const range = selection.getRangeAt(0);
+        if (!editor.contains(range.startContainer) || !editor.contains(range.endContainer)) return null;
+        const fragment = range.cloneContents();
+        for (const syntax of fragment.querySelectorAll('.markdown_syntax')) syntax.remove();
+        // Preserve paragraph boundaries, but do not insert spaces between inline marks.
+        let text = '';
+        for (const child of fragment.childNodes) {
+            if (child.nodeType === Node.ELEMENT_NODE && child.classList.contains('markdown_line') && text) text += '\n';
+            text += child.textContent ?? '';
+        }
+        return text;
+    }
+
     export function getElement() {
         return editor;
     }

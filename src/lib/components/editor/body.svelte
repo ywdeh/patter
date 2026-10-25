@@ -1,4 +1,5 @@
 <script>
+    import StatValue from './stat_value.svelte';
     import { onMount } from 'svelte';
     import { countEditorText, estimateReadingTime, formatMinutes } from '$lib/state/editor_counts.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
@@ -21,7 +22,6 @@
     let caretScrollTarget = 0;
     let counts_worker;
     let counts_worker_failed = false;
-    let counts_timer = 0;
     let counts_version = 0;
     let latest_counts_text = '';
     let save_timer = 0;
@@ -30,6 +30,43 @@
     let characterCount = $state(0);
     let sessionTime = $state('0m');
     let readingTime = $state('0m');
+    let selectionCounts = $state(null);
+    let selectionFrame = 0;
+    let selectionWorker;
+    let selectionVersion = 0;
+    const shownWords = $derived(selectionCounts?.words ?? wordCount);
+    const shownCharacters = $derived(selectionCounts?.characters ?? characterCount);
+    const shownReadingTime = $derived(selectionCounts ? estimateReadingTime(selectionCounts.words) : readingTime);
+
+    function updateSelectionCounts() {
+        selectionFrame = 0;
+        const text = markdownEditor?.getSelectedVisibleText();
+        const version = ++selectionVersion;
+        if (text === null || text === undefined) { selectionCounts = null; return; }
+        if (text.length >= 20000 && typeof Worker !== 'undefined') {
+            try {
+                if (!selectionWorker) {
+                    selectionWorker = new Worker(new URL('../../state/editor_counts_worker.js', import.meta.url), { type: 'module' });
+                    selectionWorker.onmessage = ({ data }) => {
+                        if (data.version === selectionVersion) selectionCounts = data.counts;
+                    };
+                    selectionWorker.onerror = () => {
+                        selectionWorker?.terminate();
+                        selectionWorker = null;
+                        const current = markdownEditor?.getSelectedVisibleText();
+                        selectionCounts = current == null ? null : countEditorText(current);
+                    };
+                }
+                selectionWorker.postMessage({ version, text });
+                return;
+            } catch { /* Counting still works when workers are unavailable. */ }
+        }
+        selectionCounts = countEditorText(text);
+    }
+
+    function scheduleSelectionCounts() {
+        if (!selectionFrame) selectionFrame = requestAnimationFrame(updateSelectionCounts);
+    }
     let saveUnavailable = $state(false);
     let hasScrolledDown = $state(false);
     const bottomFadeMask = 'linear-gradient(to bottom, #000 0, #000 calc(100% - 5rem), transparent 100%)';
@@ -83,30 +120,27 @@
         if (!bodyEl) return;
         latest_counts_text = bodyText;
         const version = ++counts_version;
-        clearTimeout(counts_timer);
         if (bodyText.length < 20000 || counts_worker_failed || typeof Worker === 'undefined') {
             apply_counts(countEditorText(bodyText));
         } else {
-            counts_timer = window.setTimeout(() => {
-                try {
-                    if (!counts_worker) {
-                        counts_worker = new Worker(new URL('../../state/editor_counts_worker.js', import.meta.url), { type: 'module' });
-                        counts_worker.onmessage = ({ data }) => {
-                            if (data.version === counts_version) apply_counts(data.counts);
-                        };
-                        counts_worker.onerror = () => {
-                            counts_worker_failed = true;
-                            counts_worker?.terminate();
-                            counts_worker = null;
-                            apply_counts(countEditorText(latest_counts_text));
-                        };
-                    }
-                    counts_worker.postMessage({ version, text: bodyText });
-                } catch {
-                    counts_worker_failed = true;
-                    apply_counts(countEditorText(bodyText));
+            try {
+                if (!counts_worker) {
+                    counts_worker = new Worker(new URL('../../state/editor_counts_worker.js', import.meta.url), { type: 'module' });
+                    counts_worker.onmessage = ({ data }) => {
+                        if (data.version === counts_version) apply_counts(data.counts);
+                    };
+                    counts_worker.onerror = () => {
+                        counts_worker_failed = true;
+                        counts_worker?.terminate();
+                        counts_worker = null;
+                        apply_counts(countEditorText(latest_counts_text));
+                    };
                 }
-            }, motionDuration('short', 150));
+                counts_worker.postMessage({ version, text: bodyText });
+            } catch {
+                counts_worker_failed = true;
+                apply_counts(countEditorText(bodyText));
+            }
         }
         window.dispatchEvent(new CustomEvent('patter-editor-content-change', {
             detail: { hasContent: bodyText.trim() !== '', text: bodyText }
@@ -233,6 +267,8 @@
         const flush_when_hidden = () => {
             if (document.visibilityState === 'hidden') flush_pending_save();
         };
+        document.addEventListener('selectionchange', scheduleSelectionCounts);
+        bodyEl.addEventListener('input', scheduleSelectionCounts);
         window.addEventListener('pagehide', flush_pending_save);
         document.addEventListener('visibilitychange', flush_when_hidden);
         scrollEl.addEventListener('wheel', onManualScrollIntent, { passive: true });
@@ -254,8 +290,11 @@
 
         return () => {
             flush_pending_save();
-            clearTimeout(counts_timer);
             counts_worker?.terminate();
+            selectionWorker?.terminate();
+            if (selectionFrame) cancelAnimationFrame(selectionFrame);
+            document.removeEventListener('selectionchange', scheduleSelectionCounts);
+            bodyEl.removeEventListener('input', scheduleSelectionCounts);
             window.removeEventListener('pagehide', flush_pending_save);
             document.removeEventListener('visibilitychange', flush_when_hidden);
             if (autofocusFrame) cancelAnimationFrame(autofocusFrame);
@@ -281,10 +320,10 @@
         <div class="hidden h-full w-0.5 shrink-0 bg-linear-to-b from-mauve-100/0 via-mauve-100/4 to-mauve-100/0"></div>
     </div>
     <div class="flex w-full shrink-0 flex-col items-start gap-2 px-4 patter_text_subtle sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8" data-zen-mode-ui="editor-stats">
-        <div class="flex items-center gap-2"><p>{wordCount} {wordCount === 1 ? 'word' : 'words'}</p><p>{characterCount} {characterCount === 1 ? 'character' : 'characters'}</p></div>
+        <div class="flex items-center gap-2"><p><StatValue value={shownWords} /> {shownWords === 1 ? 'word' : 'words'}</p><p><StatValue value={shownCharacters} /> {shownCharacters === 1 ? 'character' : 'characters'}</p></div>
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <div class="flex items-center gap-1"><p>Reading time</p><p>{readingTime}</p></div>
-            <div class="flex items-center gap-1"><p>Session time</p><p>{sessionTime}</p></div>
+            <div class="flex items-center gap-1"><p>Reading time</p><p><StatValue value={shownReadingTime} /></p></div>
+            <div class="flex items-center gap-1"><p>Session time</p><p><StatValue value={sessionTime} /></p></div>
         </div>
     </div>
     {#if saveUnavailable}
