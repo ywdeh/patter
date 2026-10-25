@@ -8,8 +8,10 @@
     import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background_formats.js';
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
+    import { capture_spread_origin, set_spread_origin } from '$lib/state/background_spread.js';
 
     let uploadInput;
+    let uploadOrigin;
     let uploadError = $state('');
     let uploads = $state([]);
     let hasUserAction = false;
@@ -58,21 +60,23 @@
         if (sound === 'paper_turn') playSound('click', 0.5);
     }
 
-    function select(item) {
+    function select(item, event) {
         if (background_values.background === item.src) return;
+        set_spread_origin(item.src, event);
         hasUserAction = true;
         playClick();
         selectBuiltInBackground(item.src, item.kind);
     }
 
-    function selectUpload(item) {
+    function selectUpload(item, event) {
         if (background_values.background === `upload:${item.id}`) return;
+        set_spread_origin(`upload:${item.id}`, event);
         hasUserAction = true;
         playClick();
         selectUploadedBackground(item.id, item.kind, item.url);
     }
 
-    function selectPosition(item, position, { fromWheel = false } = {}) {
+    function selectPosition(item, position, { fromWheel = false, event } = {}) {
         const selectedBackground = item.uploaded ? `upload:${item.id}` : item.src;
         if (background_values.position === position && background_values.background === selectedBackground) return false;
         const changesBackground = background_values.background !== selectedBackground;
@@ -82,13 +86,11 @@
             lastWheelBackgroundChange = now;
         }
         hasUserAction = true;
+        if (changesBackground) set_spread_origin(selectedBackground, event);
         playClick(0.5);
         background_values.position = position;
-        if (item.uploaded) {
-            selectUploadedBackground(item.id, item.kind, item.url);
-        } else {
-            selectBuiltInBackground(item.src, item.kind);
-        }
+        if (item.uploaded) selectUploadedBackground(item.id, item.kind, item.url);
+        else selectBuiltInBackground(item.src, item.kind);
         return true;
     }
 
@@ -122,6 +124,7 @@
                 removeBackgroundPoster(`upload:${oldUpload.id}`);
             }
             uploads = [{ id, kind, name: file.name, blob: file, url, poster: null }];
+            set_spread_origin(`upload:${id}`, uploadOrigin);
             selectUploadedBackground(id, kind, url);
             uploadError = '';
             if (kind === 'image') {
@@ -137,7 +140,8 @@
         }
     }
 
-    async function removeUpload() {
+    async function removeUpload(event) {
+        const origin = capture_spread_origin(event);
         if (uploads.length === 0) return;
         hasUserAction = true;
         playClick();
@@ -149,7 +153,10 @@
             }
             const removedActiveBackground = uploads.some((item) => background_values.background === `upload:${item.id}`);
             uploads = [];
-            if (removedActiveBackground) selectBuiltInBackground(defaults.background);
+            if (removedActiveBackground) {
+                set_spread_origin(defaults.background, origin);
+                selectBuiltInBackground(defaults.background);
+            }
             uploadError = '';
         } catch {
             uploadError = 'This background could not be removed from browser storage.';
@@ -167,7 +174,7 @@
             {selected}
             position={background_values.position}
             label={`Select background ${backgroundLabel(item.src)}`}
-            onselect={() => select(item)}
+            onselect={(event) => select(item, event)}
             onposition={(position, interaction) => selectPosition(item, position, interaction)} />
     {/each}
 
@@ -190,13 +197,13 @@
                     selected={background_values.background === `upload:${uploadItem.id}`}
                     position={background_values.position}
                     label={`Select uploaded background ${uploadItem.name}`}
-                    onselect={() => selectUpload(uploadItem)}
+                    onselect={(event) => selectUpload(uploadItem, event)}
                     onposition={(position, interaction) => selectPosition({ ...uploadItem, uploaded: true }, position, interaction)} />
             {/each}
         {:else}
             <button
                 type="button"
-                onclick={() => uploadInput?.click()}
+                onclick={(event) => { uploadOrigin = capture_spread_origin(event); uploadInput?.click(); }}
                 class="patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 patter_text_small">
                 <span class="patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
                 <svg class="relative size-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">

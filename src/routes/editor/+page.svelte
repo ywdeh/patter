@@ -36,6 +36,9 @@
         document.querySelectorAll('[data-zen-mode-ui="editor-stats"]').forEach((element) => {
             element.classList.toggle('zen-mode-dimmed', active);
         });
+        document.querySelectorAll('.editor_body_scroll').forEach((element) => {
+            element.classList.toggle('zen-mode-placeholder-dimmed', active);
+        });
         if (!active) pointerOrigin = null;
     }
 
@@ -104,6 +107,10 @@
     :global([data-zen-mode-ui="editor-stats"]) {
         transition-property: opacity;
         transition-timing-function: ease;
+    }
+
+    :global(.zen-mode-placeholder-dimmed) {
+        --patter_opacity_placeholder: calc(var(--patter_opacity_subtle) * 0.5);
     }
 
     :global([data-zen-mode-ui="editor-stats"].zen-mode-dimmed) {

@@ -4,7 +4,7 @@ import { preloadBackgroundImages } from '$lib/state/background_preloader.js';
 
 const STORAGE_KEY = "background-values";
 export const backgrounds = backgroundsFromFolder;
-export const DEFAULT_BACKGROUND_SRC = '/backgrounds/lantern_in_the_forest.webp';
+export const DEFAULT_BACKGROUND_SRC = '/backgrounds/book.webp';
 const defaultBackground = backgrounds.find((item) => item.src === DEFAULT_BACKGROUND_SRC)?.src
     ?? backgrounds[0]?.src
     ?? DEFAULT_BACKGROUND_SRC;

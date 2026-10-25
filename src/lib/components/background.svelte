@@ -17,6 +17,7 @@
         setAmbientBackgroundColor
     } from '$lib/state/background_ambient_color.js';
     import { motionDuration } from '$lib/state/motion.js';
+    import { begin_wallpaper_spread, complete_wallpaper_spread, spread_wallpaper, take_spread_origin } from '$lib/state/background_spread.js';
     import grain_image from '$lib/media/grain.gif'
 
     const backgroundLayerCleanupDelay = motionDuration('slow', 400) + 20;
@@ -41,6 +42,7 @@
     let destroyed = false;
     const restored_upload_urls = new Set();
     const video_frame_waiters = new Set();
+    const spread_controllers = new Set();
 
     $effect(() => {
         const used_urls = new Set([active_background.url, ...visible_backgrounds.map((background) => background.url)]);
@@ -54,6 +56,8 @@
 
     onDestroy(() => {
         destroyed = true;
+        for (const controller of spread_controllers) controller.abort();
+        spread_controllers.clear();
         for (const cancel of video_frame_waiters) cancel();
         for (const url of restored_upload_urls) URL.revokeObjectURL(url);
         restored_upload_urls.clear();
@@ -195,9 +199,16 @@
     $effect(() => {
         const next = { kind: active_background.kind, url: active_background.url, posterKey: background_values.background };
         const current = untrack(() => visible_backgrounds.at(-1));
-        if (!next.url || (next.kind === current.kind && next.url === current.url)) return;
+        if (!next.url) return;
+        const spread_sequence = begin_wallpaper_spread();
+        if (next.kind === current.kind && next.url === current.url) {
+            complete_wallpaper_spread(next.posterKey, spread_sequence);
+            return;
+        }
+        const spread_origin = take_spread_origin(next.posterKey);
 
         const id = ++transitionId;
+        const spread_controller = new AbortController();
         window.clearTimeout(transitionTimer);
 
         const prepareAndTransition = async () => {
@@ -233,7 +244,7 @@
                 useBackgroundVariable: false
             };
             transitionInProgress = true;
-            visible_backgrounds = [outgoing, incoming];
+            visible_backgrounds = [...untrack(() => visible_backgrounds), incoming];
             await tick();
             const incomingLayer = untrack(() => visible_backgrounds.at(-1));
             if (!incomingLayer) return;
@@ -245,7 +256,28 @@
             }
             if (id !== transitionId) return;
 
+            const spread_node = document.querySelector(`[data-background-id="${incoming.id}"]`);
+            if (spread_node) {
+                spread_node.style.transition = 'none';
+                spread_node.style.clipPath = 'inset(0 100% 0 0)';
+            }
             incomingLayer.opacity = 1;
+            await tick();
+            if (id !== transitionId || destroyed) return;
+            spread_controllers.add(spread_controller);
+            await spread_wallpaper(spread_node, {
+                duration: motionDuration('ink', 800),
+                key: next.posterKey,
+                sequence: spread_sequence,
+                origin: spread_origin,
+                signal: spread_controller.signal
+            });
+            spread_controllers.delete(spread_controller);
+            if (destroyed) return;
+            // A completed reveal covers every older layer, even while newer reveals run.
+            const completed_index = untrack(() => visible_backgrounds.findIndex((layer) => layer.id === incoming.id));
+            if (completed_index > 0) visible_backgrounds = untrack(() => visible_backgrounds.slice(completed_index));
+            if (id !== transitionId) return;
             transitionInProgress = false;
             transitionTimer = window.setTimeout(() => {
                 if (id === transitionId) visible_backgrounds = [incomingLayer];
@@ -317,12 +349,12 @@
             class="background-layer absolute inset-0 bg-cover bg-center bg-no-repeat"
             data-background-id={background.id}
             style={`opacity: ${background.opacity}; background-position: center ${background.id === 0 && background.useBackgroundVariable ? 'var(--patter_background_position, center)' : background.position}; transition: opacity var(--patter_motion_slow) ease-in-out`}
-            style:background-image={background.kind === 'video' ? "var(--patter_background), url('/backgrounds/lantern_in_the_forest.webp')" : 'none'}
+            style:background-image={background.kind === 'video' ? "var(--patter_background), url('/backgrounds/book.webp')" : 'none'}
         >
             {#if background.kind === 'video'}
                 <video class="absolute h-full w-full object-cover" style={`object-position: center ${background.id === 0 && background.useBackgroundVariable ? 'var(--patter_background_position, center)' : background.position}; opacity: ${background.videoOpacity}; transition: object-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--patter_motion_slow) ease-in-out`} src={background.url} muted preload="auto" playsinline disablepictureinpicture aria-hidden="true" onloadeddata={(event) => handleVideoReady(background, event.currentTarget)} onerror={() => handleVideoError(background)} onended={() => handleVideoEnded(background)}></video>
             {:else}
-                <div class="absolute inset-0 bg-cover" style={`background-position: center ${background.id === 0 && background.useBackgroundVariable ? 'var(--patter_background_position, center)' : background.position}; transition: background-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1); ${background.useBackgroundVariable ? "background-image: var(--patter_background), url('/backgrounds/lantern_in_the_forest.webp')" : `background-image: url("${background.url}")`}`}></div>
+                <div class="absolute inset-0 bg-cover" style={`background-position: center ${background.id === 0 && background.useBackgroundVariable ? 'var(--patter_background_position, center)' : background.position}; transition: background-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1); ${background.useBackgroundVariable ? "background-image: var(--patter_background), url('/backgrounds/book.webp')" : `background-image: url("${background.url}")`}`}></div>
             {/if}
         </div>
     {/each}

@@ -46,7 +46,7 @@
 </script>
 
 <section role="group" class="ambient_mixer relative w-full shrink-0 transition-opacity patter_duration_standard" class:patter_disabled={!sound_enabled.value} inert={!sound_enabled.value} aria-disabled={!sound_enabled.value} aria-label="Ambient sound mixer">
-    <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
+    <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>
     <div class="relative flex flex-col gap-5 p-4">
             <div class="ambient_channels">
                 {#each tracks as track (track.id)}

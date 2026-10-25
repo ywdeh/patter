@@ -3,11 +3,11 @@
     import { countEditorText, estimateReadingTime, formatMinutes } from '$lib/state/editor_counts.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
     import { background_values } from '$lib/state/background_state.svelte.js';
+    import EditorToolbar from './editor_toolbar.svelte';
     import { getEditorPlaceholder } from '$lib/state/editor_placeholders.js';
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
     import { getCaretRect, mountCustomCaret } from '$lib/state/editor_caret.js';
-    import EditorToolbar from './editor_toolbar.svelte';
     import MarkdownEditor from './markdown_editor.svelte';
 
     let { onwriting = () => {}, sound = 'typing' } = $props();
@@ -302,5 +302,5 @@
         -webkit-mask-image: var(--editor-mask);
         mask-image: var(--editor-mask);
     }
-    :global([data-patter-body][data-empty="true"]::before) { content: var(--patter_placeholder_frame, attr(data-placeholder)); position: absolute; inset-inline: 0; padding-inline: inherit; text-align: start; pointer-events: none; opacity: calc(var(--patter_opacity_placeholder, 0.3) * var(--patter_placeholder_ink_opacity, 1)); filter: blur(var(--patter_placeholder_ink_blur, 0px)); }
+    :global([data-patter-body][data-empty="true"]::before) { content: var(--patter_placeholder_frame, attr(data-placeholder)); position: absolute; top: 0; inset-inline: 0; padding-inline: inherit; padding-top: inherit; text-align: start; pointer-events: none; opacity: var(--patter_opacity_placeholder, 0.4); transition: opacity var(--patter_motion_slow) ease; }
 </style>

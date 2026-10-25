@@ -74,7 +74,7 @@
         const nextIndex = Math.max(0, Math.min(positions.length - 1, currentIndex + Math.sign(event.deltaY)));
         if (nextIndex === currentIndex) return;
 
-        if (onposition?.(positions[nextIndex], { fromWheel: true }) === false) return;
+        if (onposition?.(positions[nextIndex], { fromWheel: true, event }) === false) return;
         const focused = document.activeElement;
         const focusedThumbnail = focused?.closest('[data-background-thumbnail]');
         if (focusedThumbnail && focusedThumbnail !== event.currentTarget) focused.blur();
@@ -154,7 +154,7 @@
         {#each positions as choice}
             <button
                 type="button"
-                onclick={() => onposition?.(choice)}
+                onclick={(event) => onposition?.(choice, { event })}
                 aria-label={`${label}, align ${choice}`}
                 aria-pressed={position === choice}
                 class="pointer-events-auto relative aspect-square h-full cursor-pointer rounded-sm bg-mauve-100/32 transition-colors patter_duration_short hover:bg-mauve-100/48 focus-visible:bg-mauve-100/64 {position === choice ? 'bg-mauve-100/45' : ''}"

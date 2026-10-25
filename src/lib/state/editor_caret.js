@@ -14,7 +14,7 @@ function ensureStyles() {
 	style.id = STYLE_ID;
 	style.textContent = `
 		@keyframes patter-caret-blink {
-			0%, 48% { opacity: var(--patter_custom_caret_visible_opacity, 1); }
+			0%, 48% { opacity: 1; }
 			49%, 100% { opacity: 0; }
 		}
 		.patter-custom-caret {
@@ -27,8 +27,18 @@ function ensureStyles() {
 			visibility: hidden;
 			animation: patter-caret-blink ${BLINK_DURATION} steps(1, end) infinite;
 		}
+		.patter-custom-caret::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			border-radius: inherit;
+			background-color: ${CARET_COLOR};
+			opacity: var(--patter_custom_caret_ink_opacity, 1);
+			transition: opacity var(--patter_motion_slow) ease;
+		}
 		@media (prefers-reduced-motion: reduce) {
-			.patter-custom-caret { animation: none; opacity: var(--patter_custom_caret_visible_opacity, 1); }
+			.patter-custom-caret { animation: none; opacity: 1; }
+			.patter-custom-caret::before { transition: none; }
 		}
 	`;
 	document.head.append(style);
@@ -104,7 +114,6 @@ export function mountCustomCaret(scroller, editor) {
 	const caret = document.createElement('span');
 	caret.className = 'patter-custom-caret';
 	caret.setAttribute('aria-hidden', 'true');
-	caret.style.backgroundColor = CARET_COLOR;
 	scroller.append(caret);
 
 	const originalCaretColor = editor.style.caretColor;
@@ -155,8 +164,8 @@ export function mountCustomCaret(scroller, editor) {
 		caret.style.height = `${height}px`;
 		caret.style.color = getComputedStyle(editor).color;
 		caret.style.setProperty(
-			'--patter_custom_caret_visible_opacity',
-			isEmpty ? 'var(--patter_opacity_placeholder, 0.3)' : '1'
+			'--patter_custom_caret_ink_opacity',
+			isEmpty ? 'var(--patter_opacity_placeholder, 0.4)' : '1'
 		);
 		caret.style.visibility = 'visible';
 		editor.style.caretColor = 'transparent';

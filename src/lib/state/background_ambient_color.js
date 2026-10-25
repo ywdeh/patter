@@ -1,3 +1,5 @@
+import { loadBackgroundImage } from './background_preloader.js';
+
 export const BACKGROUND_AMBIENT_COLOR_ENABLED = true;
 
 export const DEFAULT_AMBIENT_BACKGROUND_COLOR = '#0b120f';
@@ -48,19 +50,8 @@ function saveCachedBackgroundScrim(key, opacity) {
 export async function sampleBackgroundScrim(source, kind = 'image') {
     if (typeof document === 'undefined' || !source) return null;
     try {
-        const media = kind === 'video' ? source : await decodeImage(source);
-        const width = kind === 'video' ? media.videoWidth : media.naturalWidth;
-        const height = kind === 'video' ? media.videoHeight : media.naturalHeight;
-        if (!width || !height) return null;
-
-        const scale = Math.min(1, 48 / width, 48 / height);
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.round(width * scale));
-        canvas.height = Math.max(1, Math.round(height * scale));
-        const context = canvas.getContext('2d', { willReadFrequently: true });
-        if (!context) return null;
-        context.drawImage(media, 0, 0, canvas.width, canvas.height);
-        const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+        const data = await readBackgroundPixels(source, kind);
+        if (!data) return null;
 
         let luminanceTotal = 0;
         let sampleCount = 0;
@@ -110,19 +101,8 @@ export function setAmbientBackgroundColor(color, key) {
 export async function sampleAmbientBackgroundColor(source, kind = 'image') {
     if (!BACKGROUND_AMBIENT_COLOR_ENABLED || typeof document === 'undefined' || !source) return null;
     try {
-        const media = kind === 'video' ? source : await decodeImage(source);
-        const width = kind === 'video' ? media.videoWidth : media.naturalWidth;
-        const height = kind === 'video' ? media.videoHeight : media.naturalHeight;
-        if (!width || !height) return null;
-
-        const scale = Math.min(1, 48 / width, 48 / height);
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.round(width * scale));
-        canvas.height = Math.max(1, Math.round(height * scale));
-        const context = canvas.getContext('2d', { willReadFrequently: true });
-        if (!context) return null;
-        context.drawImage(media, 0, 0, canvas.width, canvas.height);
-        const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+        const data = await readBackgroundPixels(source, kind);
+        if (!data) return null;
 
         let red = 0;
         let green = 0;
@@ -152,12 +132,70 @@ export async function sampleAmbientBackgroundColor(source, kind = 'image') {
     }
 }
 
-function decodeImage(source) {
+let pixel_worker;
+let pixel_request = 0;
+const pending_pixels = new Map();
+
+async function readPixelsInWorker(media, width, height) {
+    if (!pixel_worker) {
+        pixel_worker = new Worker(new URL('./background_pixel_worker.js', import.meta.url), { type: 'module' });
+        pixel_worker.onmessage = ({ data }) => {
+            const request = pending_pixels.get(data.id);
+            pending_pixels.delete(data.id);
+            if (data.error) request?.reject(new Error('Pixel sampling failed'));
+            else request?.resolve(data.pixels);
+        };
+        pixel_worker.onerror = () => {
+            for (const request of pending_pixels.values()) request.reject(new Error('Pixel worker failed'));
+            pending_pixels.clear();
+            pixel_worker.terminate();
+            pixel_worker = null;
+        };
+    }
+    const bitmap = await createImageBitmap(media);
+    const worker = pixel_worker;
+    if (!worker) { bitmap.close(); throw new Error('Pixel worker unavailable'); }
+    const id = ++pixel_request;
     return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.onerror = reject;
-        image.src = source;
-        if (image.complete && image.naturalWidth) resolve(image);
+        pending_pixels.set(id, { resolve, reject });
+        try { worker.postMessage({ id, bitmap, width, height }, [bitmap]); }
+        catch (error) { bitmap.close(); pending_pixels.delete(id); reject(error); }
     });
+}
+
+const image_pixels = new Map();
+const video_pixels = new WeakMap();
+
+function readBackgroundPixels(source, kind) {
+    const cache = kind === 'video' ? video_pixels : image_pixels;
+    const existing = cache.get(source);
+    if (existing) return existing;
+    const sample = (async () => {
+        const media = kind === 'video' ? source : await loadBackgroundImage(source);
+        const width = kind === 'video' ? media.videoWidth : media.naturalWidth;
+        const height = kind === 'video' ? media.videoHeight : media.naturalHeight;
+        if (!width || !height) return null;
+        const scale = Math.min(1, 48 / width, 48 / height);
+        const sample_width = Math.max(1, Math.round(width * scale));
+        const sample_height = Math.max(1, Math.round(height * scale));
+        if (typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined' && typeof createImageBitmap === 'function') {
+            try { return await readPixelsInWorker(media, sample_width, sample_height); }
+            catch { /* Keep background colors available if worker startup is blocked. */ }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = sample_width;
+        canvas.height = sample_height;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        if (!context) return null;
+        context.drawImage(media, 0, 0, canvas.width, canvas.height);
+        const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+        canvas.width = canvas.height = 0;
+        return data;
+    })();
+    cache.set(source, sample);
+    if (kind !== 'video' && image_pixels.size > MAX_CACHED_COLORS) {
+        image_pixels.delete(image_pixels.keys().next().value);
+    }
+    void sample.then((data) => { if (!data) cache.delete(source); }, () => cache.delete(source));
+    return sample;
 }

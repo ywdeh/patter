@@ -12,6 +12,7 @@
 
     let isHolding = $state(false);
     let isComplete = $state(false);
+    let button;
     let holdTimer;
     let resetTimer;
     let activeKey = null;
@@ -29,7 +30,7 @@
             isHolding = false;
             isComplete = true;
             playButtonSound();
-            oncomplete?.();
+            oncomplete?.({ type: 'click', detail: 0, currentTarget: button });
             resetTimer = window.setTimeout(() => (isComplete = false), motionDuration('slow', 400));
         }, duration);
     }
@@ -60,6 +61,7 @@
 </script>
 
 <button
+    bind:this={button}
     type="button"
     aria-label={text}
     aria-describedby="hold-button-description"

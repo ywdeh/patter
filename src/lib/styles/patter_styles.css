@@ -13,7 +13,7 @@
 	--patter_opacity_subtle: 0.4;
 	--patter_opacity_secondary: 0.6;
 	--patter_opacity_disabled: 0.3;
-	--patter_opacity_placeholder: 0.3;
+	--patter_opacity_placeholder: var(--patter_opacity_subtle);
 	--patter_color_text: oklch(99% 0.003 325.6);
 	--patter_color_base: #0b120f;
 	--patter_background_base: var(--patter_color_base);
@@ -26,6 +26,7 @@
 	--patter_motion_standard: 200ms;
 	--patter_motion_slow: 400ms;
 	--patter_motion_gentle: 600ms;
+	--patter_motion_ink: 800ms;
 	--patter_motion_fullscreen_out: 250ms;
 	--patter_delay_short: 50ms;
 }
