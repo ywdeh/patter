@@ -1,9 +1,21 @@
+import { schedule_idle_task } from './browser_tasks.js';
+
 const preloadedImages = new Map();
+const image_cache_limit = 8;
+
+function trim_image_cache() {
+    for (const [src, entry] of preloadedImages) {
+        if (preloadedImages.size <= image_cache_limit) break;
+        if (entry.settled) preloadedImages.delete(src);
+    }
+}
 export function loadBackgroundImage(src, priority = 'high') {
     if (typeof window === 'undefined' || !src) return Promise.resolve(null);
 
     const existing = preloadedImages.get(src);
     if (existing) {
+        preloadedImages.delete(src);
+        preloadedImages.set(src, existing);
         if (priority === 'high') existing.image.fetchPriority = 'high';
         return existing.promise;
     }
@@ -28,8 +40,14 @@ export function loadBackgroundImage(src, priority = 'high') {
         }
     });
 
-    preloadedImages.set(src, { image, promise });
-    void promise.catch(() => preloadedImages.delete(src));
+    const entry = { image, promise, settled: false };
+    preloadedImages.set(src, entry);
+    void promise.then(() => {
+        entry.settled = true;
+        trim_image_cache();
+    }, () => {
+        if (preloadedImages.get(src) === entry) preloadedImages.delete(src);
+    });
     return promise;
 }
 
@@ -43,8 +61,7 @@ export function preloadBackgroundImages(backgrounds, selected_src) {
         const warm = () => {
             void loadBackgroundImage(background.src, 'low').catch(() => {}).finally(warm_next);
         };
-        if ('requestIdleCallback' in window) window.requestIdleCallback(warm, { timeout: 2000 });
-        else window.setTimeout(warm, 200);
+        schedule_idle_task(warm);
     };
     const start = () => {
         if (navigator.connection?.saveData || /^(slow-)?2g$/.test(navigator.connection?.effectiveType ?? '')) return;

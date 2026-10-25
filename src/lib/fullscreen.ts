@@ -1,5 +1,9 @@
 import { fade_page_in, fade_page_out, get_page_motion_targets, wait_for_page_motion } from '$lib/state/page_motion.js';
 
+export function isFullscreenActive() {
+    return !!document.fullscreenElement || window.matchMedia('(display-mode: fullscreen)').matches;
+}
+
 const FULLSCREEN_FADE_FALLBACK_MS = 400;
 let fullscreen_transition_pending = false;
 
@@ -21,7 +25,7 @@ function reveal_after_failed_toggle() {
 
 export async function enterFullscreen() {
 	if (fullscreen_transition_pending) return false;
-	if (document.fullscreenElement) return true;
+	if (isFullscreenActive()) return true;
 	fullscreen_transition_pending = true;
 	try {
 		await fade_out_before_fullscreen();
@@ -41,12 +45,13 @@ export async function enterFullscreen() {
 
 export async function exitFullscreen() {
 	if (fullscreen_transition_pending) return false;
-	if (!document.fullscreenElement) return true;
+	// Browser-managed F11 fullscreen must be exited through the browser.
+	if (!document.fullscreenElement) return !isFullscreenActive();
 	fullscreen_transition_pending = true;
 	try {
 		await fade_out_before_fullscreen();
 		await document.exitFullscreen();
-		const exited = !document.fullscreenElement;
+		const exited = !isFullscreenActive();
 		if (!exited) reveal_after_failed_toggle();
 		else await wait_for_fullscreen_fade_in();
 		return exited;

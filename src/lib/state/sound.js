@@ -1,3 +1,4 @@
+import { schedule_idle_task } from './browser_tasks.js';
 import { sound_enabled } from '$lib/state/sound_settings.svelte.js';
 
 const click_sources = Object.freeze(['/click_1.mp3', '/click_2.mp3', '/click_3.mp3']);
@@ -52,8 +53,7 @@ if (typeof window !== 'undefined') {
     };
     const schedule_warmup = () => {
         if (!pending_sources.size) return;
-        if ('requestIdleCallback' in window) window.requestIdleCallback(warm_next, { timeout: 2000 });
-        else window.setTimeout(warm_next, 200);
+        schedule_idle_task(warm_next);
     };
     if (document.readyState === 'complete') schedule_warmup();
     else window.addEventListener('load', schedule_warmup, { once: true });

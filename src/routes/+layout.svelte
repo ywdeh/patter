@@ -20,7 +20,6 @@
         clearTimeout(optionsIntroTimer);
     }
 	let routeRevealVersion = 0;
-	let routeTransitionPromise: Promise<void> | null = null;
 	let routeTransitionInProgress = false;
 
 	function revealSurfaceWhenFontsReady(initial = false) {
@@ -52,13 +51,11 @@
 		playSound('paper_turn');
 		playSound('click', 0.5);
 
-		routeTransitionPromise = fade_page_out(get_page_motion_targets());
-		return routeTransitionPromise;
+		return fade_page_out(get_page_motion_targets());
 	});
 
 	afterNavigate(({ from }) => {
 		routeTransitionInProgress = false;
-		routeTransitionPromise = null;
 		if (!from) return;
 		const background = document.querySelector<HTMLElement>('.route_background');
 		if (background) void fade_page_in([background]);

@@ -4,7 +4,7 @@
     import InputPill from "./input_pill.svelte";
     import AmbientMixer from './ambient_mixer.svelte';
     import { background_values, persistBackgroundValues, defaults, resetBackgroundValues } from "$lib/state/background_state.svelte.js";
-    import { enterFullscreen, exitFullscreen } from "$lib/fullscreen.js";
+    import { enterFullscreen, exitFullscreen, isFullscreenActive } from "$lib/fullscreen.js";
     import { sound_enabled, setSoundEnabled } from "$lib/state/sound_settings.svelte.js";
     import { playSound } from "$lib/state/sound.js";
     import BackgroundPicker from "./background_picker.svelte";
@@ -20,10 +20,15 @@
 
     let isFullscreen = $state(false);
     $effect(() => {
-        const sync = () => (isFullscreen = !!document.fullscreenElement);
+        const displayMode = window.matchMedia('(display-mode: fullscreen)');
+        const sync = () => (isFullscreen = isFullscreenActive());
         sync();
-        document.addEventListener("fullscreenchange", sync);
-        return () => document.removeEventListener("fullscreenchange", sync);
+        document.addEventListener('fullscreenchange', sync);
+        displayMode.addEventListener('change', sync);
+        return () => {
+            document.removeEventListener('fullscreenchange', sync);
+            displayMode.removeEventListener('change', sync);
+        };
     });
 
     let optionsScrollEl;

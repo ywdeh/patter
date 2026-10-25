@@ -2,8 +2,7 @@
     import { onMount } from 'svelte';
     import { background_values, backgrounds, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
     import { clearBackgroundUploads, listBackgroundUploads, replaceBackgroundUpload } from '$lib/state/background_media.js';
-    import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, ensureImagePoster } from '$lib/state/background_posters.js';
-    import { getBackgroundPoster } from '$lib/state/background_posters.js';
+    import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, ensureImagePoster, getBackgroundPoster } from '$lib/state/background_posters.js';
     import BackgroundThumbnail from '$lib/components/background_thumbnail.svelte';
     import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background_formats.js';
     import { playSound } from '$lib/state/sound.js';
