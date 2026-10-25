@@ -7,7 +7,7 @@
     import { placeholder_ink } from '$lib/state/placeholder_ink.js';
 
     let { onchange = () => {}, onkey = () => {}, placeholder = DEFAULT_EDITOR_PLACEHOLDER } = $props();
-    const inline_markers = ['**', '*'];
+    const inline_markers = ['***', '**', '*'];
     const history_limit = 100;
     const grapheme_segmenter = typeof Intl.Segmenter === 'function'
         ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
@@ -30,7 +30,7 @@
     function closing_marker(text, marker, from) {
         let index = text.indexOf(marker, from);
         while (index !== -1) {
-            if (index > from && text[index - 1] !== '\\') return index;
+            if (index > from && text[index - 1] !== '\\' && (marker !== '*' || (text[index - 1] !== '*' && text[index + 1] !== '*'))) return index;
             index = text.indexOf(marker, index + marker.length);
         }
         return -1;
@@ -71,8 +71,12 @@
 
             flush();
             syntax(parent, marker);
-            const formatted = document.createElement(marker === '**' ? 'strong' : 'em');
-            append_inline(formatted, text.slice(index + marker.length, end), depth + 1);
+            const formatted = document.createElement(marker === '*' ? 'em' : 'strong');
+            if (marker === '***') {
+                const italic = document.createElement('em');
+                append_inline(italic, text.slice(index + marker.length, end), depth + 1);
+                formatted.append(italic);
+            } else append_inline(formatted, text.slice(index + marker.length, end), depth + 1);
             parent.append(formatted);
             syntax(parent, marker);
             index = end + marker.length;
