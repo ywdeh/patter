@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { playSound } from '$lib/state/sound.js';
 
-	let { text = null, href = null, icon = null, sound = 'click', onclick = null, disabled = false, ariaLabel = null } = $props();
+	let { text = null, href = null, icon = null, sound = 'click', onclick = null, disabled = false, ariaLabel = null, round = false } = $props();
 
 	function handleClick(event) {
 		if (disabled) return;
@@ -36,6 +36,8 @@
 <button
     type="button"
     disabled={disabled}
+    class:patter_control_round={round}
+    class:round_button={round}
     aria-label={ariaLabel}
     onclick={handleClick}
     class="patter_control patter_control_text group/hitbox relative flex w-fit cursor-pointer items-center disabled:cursor-default disabled:pointer-events-none"
@@ -43,3 +45,8 @@
     <span class="patter_surface patter_hover {disabled ? '' : 'patter_active'} absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0" aria-hidden="true"></span>
     {@render buttonContent()}
 </button>
+
+<style>
+    .round_button { width: var(--patter_control_height); height: var(--patter_control_height); justify-content: center; }
+    .round_button > .patter_surface { border-radius: 50%; }
+</style>

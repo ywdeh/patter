@@ -4,6 +4,15 @@
     import { ambient_tracks, create_ambient_player } from '$lib/state/ambient_player.js';
     import { sound_enabled } from '$lib/state/sound_settings.svelte.js';
 
+    let { embedded = false } = $props();
+
+    export function reset_mix() {
+        tracks = ambient_tracks.map((track) => ({ ...track }));
+        player?.set_mix(tracks);
+        player?.pause();
+        error = '';
+    }
+
     let tracks = $state(ambient_tracks.map((track) => ({ ...track })));
     let player = $state.raw(null);
     let error = $state('');
@@ -31,12 +40,7 @@
             if (status.error) error = status.error;
         });
         player.set_mix(tracks);
-        const clear = () => {
-            player.pause();
-            tracks = ambient_tracks.map((track) => ({ ...track }));
-            player.set_mix(tracks);
-            error = '';
-        };
+        const clear = reset_mix;
         window.addEventListener('patter-clear-saved-data', clear);
         return () => {
             window.removeEventListener('patter-clear-saved-data', clear);
@@ -45,9 +49,9 @@
     });
 </script>
 
-<section role="group" class="ambient_mixer relative w-full shrink-0 transition-opacity patter_duration_standard" class:patter_disabled={!sound_enabled.value} inert={!sound_enabled.value} aria-disabled={!sound_enabled.value} aria-label="Ambient sound mixer">
-    <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>
-    <div class="relative flex flex-col gap-5 p-4">
+<section role="group" class="ambient_mixer relative w-full shrink-0 transition-opacity patter_duration_standard" class:embedded class:patter_disabled={!sound_enabled.value} inert={!sound_enabled.value} aria-disabled={!sound_enabled.value} aria-label="Ambient sound mixer">
+    {#if !embedded}<div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>{/if}
+    <div class="mixer_content relative flex flex-col gap-5 p-4">
             <div class="ambient_channels">
                 {#each tracks as track (track.id)}
                     <InputPill text={track.label} value={track.volume} min={0} max={100} step={5}
@@ -61,5 +65,6 @@
 </section>
 
 <style>
+    .embedded .mixer_content { padding: 0; }
     .ambient_channels { display: flex; flex-direction: column; gap: 1.25rem; }
 </style>

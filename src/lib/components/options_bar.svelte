@@ -1,129 +1,244 @@
-
-
 <script>
-    import InputPill from "./input_pill.svelte";
-    import AmbientMixer from './ambient_mixer.svelte';
-    import { background_values, persistBackgroundValues, defaults, resetBackgroundValues } from "$lib/state/background_state.svelte.js";
-    import { enterFullscreen, exitFullscreen, isFullscreenActive } from "$lib/fullscreen.js";
-    import { sound_enabled, setSoundEnabled } from "$lib/state/sound_settings.svelte.js";
-    import { playSound } from "$lib/state/sound.js";
-    import BackgroundPicker from "./background_picker.svelte";
-    import { clearBackgroundUploads } from '$lib/state/background_media.js';
-    import { onMount, tick } from 'svelte';
     import HoldButton from './hold_button.svelte';
-    import { capture_spread_origin, set_spread_origin } from '$lib/state/background_spread.js';
+    import { set_spread_origin } from '$lib/state/background_spread.js';
+    import InputPill from './input_pill.svelte';
+    import AmbientMixer from './ambient_mixer.svelte';
+    import BackgroundPicker from './background_picker.svelte';
+    import { background_values, persistBackgroundValues, defaults, selectBuiltInBackground } from '$lib/state/background_state.svelte.js';
+    import { enterFullscreen, exitFullscreen, isFullscreenActive } from '$lib/fullscreen.js';
+    import { sound_enabled, setSoundEnabled } from '$lib/state/sound_settings.svelte.js';
+    import { playSound } from '$lib/state/sound.js';
+    import { onMount, tick } from 'svelte';
 
     let { intro = false, onintroend = () => {} } = $props();
+    const tabs = ['Scene', 'Writing', 'Audio'];
+    const tint_labels = { 0: 'None' };
+    const grain_labels = { 0: 'None', 1: 'Subtle', 2: 'Gentle', 3: 'Noticeable', 4: 'Strong' };
+    let active_tab = $state('Scene');
+    let is_fullscreen = $state(false);
+    let fullscreen_pending = $state(false);
+    let tab_list;
+    let scroll_area;
+    let content;
+    let mixer;
+    let has_overflow = $state(false);
 
-    const tintLabels = { 0: 'None' };
-    const grainLabels = { 0: 'None', 1: 'Subtle', 2: 'Gentle', 3: 'Noticeable', 4: 'Strong' };
-
-    let isFullscreen = $state(false);
-    $effect(() => {
-        const displayMode = window.matchMedia('(display-mode: fullscreen)');
-        const sync = () => (isFullscreen = isFullscreenActive());
-        sync();
-        document.addEventListener('fullscreenchange', sync);
-        displayMode.addEventListener('change', sync);
-        return () => {
-            document.removeEventListener('fullscreenchange', sync);
-            displayMode.removeEventListener('change', sync);
-        };
-    });
-
-    let optionsScrollEl;
-    let optionsContentEl;
-    let optionsHasOverflow = $state(false);
-    let optionsScrolledDown = $state(false);
-    const optionsBottomFade = 'linear-gradient(to bottom, #000 0, #000 calc(100% - 5rem), transparent 100%)';
-    const optionsTopAndBottomFade = 'linear-gradient(to bottom, transparent 0, #000 2rem, #000 calc(100% - 2rem), transparent 100%)';
-    const optionsMask = $derived(!optionsHasOverflow
-        ? 'none'
-        : optionsScrolledDown ? optionsTopAndBottomFade : optionsBottomFade);
-
-    function updateOptionsScroll() {
-        if (!optionsScrollEl) return;
-        optionsHasOverflow = optionsScrollEl.scrollHeight > optionsScrollEl.clientHeight + 1;
-        optionsScrolledDown = optionsScrollEl.scrollTop > 0;
+    function update_scroll() {
+        has_overflow = !!scroll_area && scroll_area.scrollHeight > scroll_area.clientHeight + 1;
     }
 
     onMount(() => {
-        updateOptionsScroll();
-        const resizeObserver = new ResizeObserver(updateOptionsScroll);
-        if (optionsScrollEl) resizeObserver.observe(optionsScrollEl);
-        if (optionsContentEl) resizeObserver.observe(optionsContentEl);
-        window.addEventListener('resize', updateOptionsScroll);
+        const display_mode = window.matchMedia('(display-mode: fullscreen)');
+        const sync_fullscreen = () => (is_fullscreen = isFullscreenActive());
+        sync_fullscreen();
+        const observer = new ResizeObserver(update_scroll);
+        observer.observe(scroll_area);
+        observer.observe(content);
+        document.addEventListener('fullscreenchange', sync_fullscreen);
+        display_mode.addEventListener('change', sync_fullscreen);
         return () => {
-            resizeObserver.disconnect();
-            window.removeEventListener('resize', updateOptionsScroll);
+            observer.disconnect();
+            document.removeEventListener('fullscreenchange', sync_fullscreen);
+            display_mode.removeEventListener('change', sync_fullscreen);
         };
     });
 
-    async function clearSavedData(event) {
-        const origin = capture_spread_origin(event);
-        try {
-            await clearBackgroundUploads();
-        } catch (error) {
-            console.error('Could not clear uploaded backgrounds', error);
-            return;
-        }
-        setSoundEnabled(true);
-        set_spread_origin(defaults.background, origin);
-        resetBackgroundValues();
-        window.dispatchEvent(new Event('patter-clear-saved-data'));
+    async function select_tab(tab) {
+        if (active_tab === tab) return;
+        active_tab = tab;
+        playSound('click');
         await tick();
+        scroll_area.scrollTop = 0;
+        update_scroll();
+    }
+
+    function handle_tab_key(event, index) {
+        let next;
+        if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        void select_tab(tabs[next]);
+        tab_list.querySelectorAll('[role="tab"]')[next].focus();
+    }
+
+    async function toggle_fullscreen() {
+        if (fullscreen_pending) return;
+        fullscreen_pending = true;
         try {
-            for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) {
-                localStorage.removeItem(key);
-            }
-        } catch (error) {
-            console.error('Could not clear saved settings', error);
+            playSound('click');
+            await (is_fullscreen ? exitFullscreen() : enterFullscreen());
+            is_fullscreen = isFullscreenActive();
+        } finally {
+            fullscreen_pending = false;
         }
+    }
+
+    function reset_current_tab(event) {
+        if (active_tab === 'Scene') {
+            set_spread_origin(defaults.background, event);
+            for (const key of ['focus', 'tint', 'grain', 'position']) background_values[key] = defaults[key];
+            selectBuiltInBackground(defaults.background);
+        } else if (active_tab === 'Writing') {
+            background_values.textSize = defaults.textSize;
+            persistBackgroundValues();
+        } else mixer?.reset_mix();
+    }
+
+    function toggle_sound() {
+        setSoundEnabled(!sound_enabled.value);
+        if (sound_enabled.value) playSound('click');
     }
 
 </script>
 
-<div class="
-options_shell z-55 patter_ui_text patter_unselectable isolate group/tools patter_options_motion transition ease-in-out absolute right-0 top-0 hidden h-dvh max-w-[calc(100vw-3rem)] items-center justify-center p-6 sm:flex
-      saturate-0 focus-within:saturate-100 hover:saturate-100"
-    class:options_intro={intro}
-    onpointerenter={onintroend}
-    onfocusin={onintroend}
-    role="group"
-    aria-label="Options bar"
-    data-zen-mode-ui="options"
-    ondragstart={(event) => event.preventDefault()}>
-    <div bind:this={optionsScrollEl} data-wheel-controls={optionsHasOverflow ? 'disabled' : undefined} onscroll={updateOptionsScroll} style={`-webkit-mask-image: ${optionsMask}; mask-image: ${optionsMask}`} class="relative z-10 min-h-0 max-h-[calc(100dvh-3rem)] w-90 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain p-1 scrollbar-thin scrollbar-thumb-mauve-100/12">
-        <div bind:this={optionsContentEl} class="flex w-full min-w-0 flex-col gap-5 p-1">
-        <section class="relative w-full shrink-0" aria-label="Customization">
-            <div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>
-        <div class="relative flex min-w-0 max-w-full flex-col items-end gap-5 p-4">
-            <InputPill text="Fullscreen" mode="toggle" bind:value={isFullscreen} ontrue={enterFullscreen} onfalse={exitFullscreen} />
-            <InputPill text="Sound" mode="toggle" bind:value={sound_enabled.value} sound={null} ontrue={() => { setSoundEnabled(true); playSound('click'); }} onfalse={() => setSoundEnabled(false)} />
-            <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
-            <BackgroundPicker sound="paper_turn" />
-            <InputPill text="Focus" min={0} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} onchange={(value) => persistBackgroundValues({ focus: value })} />
-            <InputPill text="Tint" min={0} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} displayValues={tintLabels} unit="%" onchange={(value) => persistBackgroundValues({ tint: value })} />
-            <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grainLabels} onchange={(value) => persistBackgroundValues({ grain: value })} />
-            <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => persistBackgroundValues({ textSize: value })} />
-            <div class="h-0.5 w-full bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0"></div>
-            <div class="flex w-full flex-col gap-4">
-                <div class="flex w-full justify-end min-w-0 flex-wrap gap-4">
-                    <HoldButton text="Reset everything" oncomplete={clearSavedData} />
+<div class="options_shell patter_ui_text patter_unselectable patter_options_motion transition ease-in-out" class:options_intro={intro}
+    onpointerenter={onintroend} onfocusin={onintroend} role="group" aria-label="Options bar"
+    data-zen-mode-ui="options" ondragstart={(event) => event.preventDefault()}>
+    <section id="patter_options_panel" class="options_panel" aria-label="Customization">
+        <div aria-hidden="true" class="options_glass patter_surface pointer-events-none rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></div>
+        <header class="options_header">
+            <HoldButton iconOnly text={`Reset ${active_tab.toLowerCase()}`} oncomplete={reset_current_tab} />
+            <div class="quick_actions">
+                <button type="button" class="icon_button patter_control patter_control_round" aria-label={sound_enabled.value ? 'Mute sound' : 'Enable sound'} aria-pressed={sound_enabled.value} onclick={toggle_sound}>
+                    <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />{#if sound_enabled.value}<path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />{:else}<path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />{/if}</svg>
+                </button>
+                <button type="button" class="icon_button patter_control patter_control_round" aria-label={is_fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} aria-pressed={is_fullscreen} disabled={fullscreen_pending} onclick={toggle_fullscreen}>
+                    <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={is_fullscreen ? 'M4 9h5V4m11 5h-5V4M4 15h5v5m11-5h-5v5' : 'M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5'} stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </button>
+            </div>
+        </header>
+        <div bind:this={tab_list} class="options_tabs" style={`--active-tab: ${tabs.indexOf(active_tab)}`} role="tablist" aria-label="Customize your space">
+            {#each tabs as tab, index}
+                <button type="button" role="tab" id={'options_tab_' + tab.toLowerCase()} aria-controls={'options_content_' + tab.toLowerCase()} aria-selected={active_tab === tab} tabindex={active_tab === tab ? 0 : -1} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab}</button>
+            {/each}
+        </div>
+        <div bind:this={scroll_area} class="options_scroll scrollbar-thin scrollbar-thumb-mauve-100/12" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
+            <div bind:this={content}>
+                <div id="options_content_scene" role="tabpanel" aria-labelledby="options_tab_scene" tabindex="0" hidden={active_tab !== 'Scene'} class="tab_content">
+                    <BackgroundPicker sound="paper_turn" compact />
+                    <div class="options_divider" aria-hidden="true"></div>
+                    <div class="setting_rows">
+                        <InputPill text="Focus" min={0} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} onchange={(value) => persistBackgroundValues({ focus: value })} />
+                        <InputPill text="Tint" min={0} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} displayValues={tint_labels} unit="%" onchange={(value) => persistBackgroundValues({ tint: value })} />
+                        <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grain_labels} onchange={(value) => persistBackgroundValues({ grain: value })} />
+                    </div>
+                </div>
+                <div id="options_content_writing" role="tabpanel" aria-labelledby="options_tab_writing" tabindex="0" hidden={active_tab !== 'Writing'} class="tab_content">
+                    <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => persistBackgroundValues({ textSize: value })} />
+                </div>
+                <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" tabindex="0" hidden={active_tab !== 'Audio'} class="tab_content">
+                    <AmbientMixer bind:this={mixer} embedded />
                 </div>
             </div>
         </div>
-        </section>
-        <AmbientMixer />
-        </div>
-    </div>
+
+    </section>
 </div>
 
 <style>
-    .options_shell { opacity: var(--patter_opacity_disabled); transform: translateX(calc(100% - 3 * var(--patter_control_height) - 2rem)); }
+    .options_shell {
+        position: absolute;
+        z-index: 55;
+        right: 0;
+        top: 0;
+        display: flex;
+        align-items: center;
+        width: 26.5rem;
+        max-width: calc(100vw - 3rem);
+        height: 100dvh;
+        padding: 1.5rem;
+        opacity: var(--patter_opacity_disabled);
+        transform: translateX(calc(100% - 3 * var(--patter_control_height) - 2rem));
+        filter: saturate(0);
+    }
     .options_shell.options_intro {
         opacity: var(--patter_opacity_secondary);
         transform: translateX(calc(100% - 5 * var(--patter_control_height) - 2rem));
     }
-    .options_shell:hover, .options_shell:focus-within { opacity: 1; transform: translateX(0); }
+    .options_shell:hover, .options_shell:focus-within {
+        opacity: 1;
+        transform: translateX(0);
+        filter: saturate(1);
+    }
+    .options_panel {
+        position: relative;
+        isolation: isolate;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: min(40rem, calc(100dvh - 3rem));
+        flex-shrink: 0;
+        min-height: 0;
+        padding: 1rem;
+        border-radius: 0.75rem;
+    }
+    .options_glass { position: absolute; inset: 0; z-index: -1; }
+    .options_header, .quick_actions { display: flex; align-items: center; }
+    .options_header { justify-content: space-between; padding-bottom: 1rem; flex-shrink: 0; }
+    .quick_actions { gap: 1rem; }
+    .icon_button {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--patter_control_height);
+        height: var(--patter_control_height);
+        flex-shrink: 0;
+        cursor: pointer;
+        color: inherit;
+    }
+    .icon_button svg { position: relative; width: 1.25rem; height: 1.25rem; pointer-events: none; }
+    .icon_surface { position: absolute; inset: 0; border-radius: 50%; }
+    .options_tabs {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        flex-shrink: 0;
+    }
+    .options_tabs button {
+        position: relative;
+        padding: 0.75rem 0.25rem 1rem;
+        cursor: pointer;
+        opacity: var(--patter_opacity_secondary);
+        transition: opacity var(--patter_motion_standard) ease-out;
+    }
+    .options_tabs button:hover, .options_tabs button[aria-selected='true'] { opacity: 1; }
+    .options_divider, .options_tabs::after {
+        height: 2px;
+        background: linear-gradient(to right, transparent, color-mix(in srgb, currentColor 12%, transparent), transparent);
+        flex-shrink: 0;
+        pointer-events: none;
+    }
+    .options_tabs::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-image: radial-gradient(ellipse at center, color-mix(in srgb, currentColor 40%, transparent), transparent 75%), linear-gradient(to right, transparent, color-mix(in srgb, currentColor 12%, transparent), transparent);
+        background-size: 50% 100%, 100% 100%;
+        background-repeat: no-repeat;
+        background-position: calc(var(--active-tab) * 50%) 0, 0 0;
+        transition: background-position var(--patter_motion_standard) ease-out;
+    }
+    @media (prefers-reduced-motion: reduce) { .options_tabs::after { transition: none; } }
+    .options_scroll {
+        flex: 1;
+        min-height: 0;
+        margin: 0 -0.5rem;
+        padding: 1.25rem 0.5rem;
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+    }
+    .tab_content, .setting_rows { display: flex; flex-direction: column; gap: 1.25rem; }
+    .tab_content { padding: 0.25rem; }
+    .tab_content[hidden] { display: none; }
+    @media (max-width: 639px) { .options_shell { display: none; } }
 </style>

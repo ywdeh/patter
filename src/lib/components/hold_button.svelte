@@ -7,6 +7,7 @@
         text = 'Hold to confirm',
         duration = 1000,
         oncomplete = null,
+        iconOnly = false,
         sound = 'click'
     } = $props();
 
@@ -64,6 +65,8 @@
     bind:this={button}
     type="button"
     aria-label={text}
+    class:icon_only={iconOnly}
+    class:patter_control_round={iconOnly}
     aria-describedby="hold-button-description"
     onpointerdown={(event) => {
         if (event.button === 0) startHold();
@@ -92,12 +95,24 @@
         class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"
     ></span>
     <span class="relative flex min-h-(--patter_control_height) items-center px-3 py-2 pointer-events-none select-none">
-        {text}
+        {#if iconOnly}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.5 7M4 4v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        {:else}
+            {text}
+        {/if}
     </span>
     <span id="hold-button-description" class="sr-only">Press and hold for {duration / 1000} seconds to confirm.</span>
 </button>
 
 <style>
+    .icon_only {
+        width: var(--patter_control_height);
+        height: var(--patter_control_height);
+        justify-content: center;
+    }
+    .icon_only > .patter_surface,
+    .icon_only > .overflow-hidden { border-radius: 50%; }
+
     .hold_progress {
         width: 100%;
         transition-duration: var(--hold-duration);
