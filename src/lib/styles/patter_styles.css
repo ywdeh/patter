@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 :root {
+	color: var(--patter_color_text, oklch(99% 0.003 325.6));
 	--patter_font_header: 'Amarante', serif;
 	--patter_font_body: 'Bitter', serif;
 	--patter_font_ui: 'Google Sans', sans-serif;
@@ -44,6 +45,7 @@
 
 @theme {
 	--color-mauve-100: var(--patter_color_text);
+	--color-white: var(--patter_color_text);
 	--default-transition-duration: var(--patter_motion_short);
 }
 
