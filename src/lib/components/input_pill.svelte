@@ -182,7 +182,7 @@
             onclick={(event) => setToggle(false, event)}
             disabled={!value}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+            <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
                 <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_left.svg); -webkit-mask-image: url(/chevron_left.svg)"></span>
             </span>
@@ -205,7 +205,7 @@
             onclick={(event) => setToggle(true, event)}
             disabled={value}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+            <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
                 <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_right.svg); -webkit-mask-image: url(/chevron_right.svg)"></span>
             </span>
@@ -226,7 +226,7 @@
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span
                 aria-hidden="true"
-                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
+                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient">
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
@@ -259,7 +259,7 @@
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span
                 aria-hidden="true"
-                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
+                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient">
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
@@ -274,7 +274,7 @@
             class="patter_control patter_control_round group transition size-6 shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span
                 aria-hidden="true"
-                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0">
+                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient">
             </span>
 
             <span class="relative flex size-4 shrink-0 items-center justify-center pointer-events-none">

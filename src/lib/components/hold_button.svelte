@@ -87,7 +87,7 @@
         class="patter_hover patter_active absolute inset-0 overflow-hidden rounded-xl"
     >
         <span
-            class="block h-full bg-mauve-100/6 transition-[width] ease-linear"
+            class="block h-full bg-(--patter_surface_fill) transition-[width] ease-linear"
             class:w-full={isComplete}
             class:w-0={!isHolding && !isComplete}
             class:hold_progress={isHolding}
@@ -95,7 +95,7 @@
         ></span>
     </span>
     <span
-        class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0"
+        class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl patter_surface_gradient"
     ></span>
     {#if iconOnly}
         <span class="hold_ring patter_hover patter_active absolute inset-0 pointer-events-none" aria-hidden="true"><svg width="100%" height="100%" viewBox="0 0 40 40" fill="none" style="overflow: visible">

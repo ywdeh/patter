@@ -73,7 +73,8 @@ function chooseSource(sound, sources) {
 }
 
 export function playSound(sound = 'click', volumeScale = 1) {
-    if (!sound || !sound_enabled.value) return;
+    if (!sound) return;
+    if (!sound_enabled.value) return;
     const preset = sound_presets[sound];
     const sources = preset?.sources ?? [sound];
     const source = chooseSource(sound, sources);

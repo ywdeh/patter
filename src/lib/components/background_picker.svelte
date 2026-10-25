@@ -202,13 +202,14 @@
         aria-label="Add an image or video background" />
     <div class="upload_controls col-span-2 grid grid-cols-2 gap-4">
         <div class="upload_slot patter_control patter_control_compact relative" aria-busy={processing_upload}>
-        <span aria-hidden="true" class="pointer-events-none absolute rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0 {uploads.length ? (background_values.background === `upload:${uploads[0].id}` ? 'patter_surface patter_surface_selected inset-1' : 'patter_surface patter_hover patter_active inset-0') : 'patter_surface_dashed patter_hover patter_active inset-0'}"></span>
+        {#if uploads.length === 0}
+            <span aria-hidden="true" class="pointer-events-none absolute rounded-lg patter_surface_gradient patter_surface_dashed patter_hover patter_active inset-0"></span>
+        {/if}
         {#key uploads[0]?.id ?? 'empty'}
         <div class="upload_frame" transition:fade={{ duration: upload_motion('standard', 200) }}>
         {#if uploads.length > 0}
             {#each uploads as uploadItem (uploadItem.id)}
                 <BackgroundThumbnail
-                    showSurface={false}
                     onready={() => onpickerchange(false)}
                     src={uploadItem.url}
                     kind={uploadItem.kind}
@@ -241,7 +242,7 @@
             disabled={uploads.length === 0}
             aria-label="Remove uploaded background"
             class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small disabled:cursor-default  disabled:pointer-events-none">
-            <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
+            <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg patter_surface_gradient"></span>
             <svg class="patter_icon relative size-5 text-mauve-100" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M5 10h10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />
             </svg>
@@ -258,6 +259,6 @@
     .compact { gap: 1rem; padding: 0; }
     .compact .upload_controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
     .compact .upload_controls > :global([data-background-thumbnail]) { width: 100%; }
-    .compact .upload_action { aspect-ratio: 16 / 9; min-height: var(--patter_pill_height); flex-direction: row; width: auto; flex: 1; gap: 0.5rem; }
+    .compact .upload_action { aspect-ratio: 16 / 9; min-height: var(--patter_pill_height); flex-direction: column; width: 100%; min-width: 0; padding: 0.75rem; gap: 0.25rem; }
     .compact .upload_action svg { width: 1.25rem; height: 1.25rem; }
 </style>

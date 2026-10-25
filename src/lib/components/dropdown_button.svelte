@@ -175,7 +175,7 @@
 
 <div bind:this={root} class="patter_control_text relative inline-flex w-fit" class:pointer-events-none={disabled} role="group" aria-label={text} {@attach attachNonPassiveWheel}>
 	<div class="patter_control group/hitbox relative flex items-center w-fit" class:patter_disabled={disabled}>
-		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
+		<div class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl patter_surface_gradient backdrop-blur-lg"></div>
 		<button type="button" disabled={disabled} aria-label={selectedOption?.label ?? text} class="relative min-h-(--patter_control_height) cursor-pointer px-3 py-2 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
 			{text}
 		</button>
@@ -201,14 +201,14 @@
 			id="export-format-options"
 			role="group"
 			aria-label="Save format"
-			class="patter_control_text fixed z-500 min-w-max rounded-xl p-1 outline-2 outline-offset-2 outline-mauve-100/16"
+			class="patter_control_text fixed z-500 min-w-max rounded-xl p-1 outline-2 outline-offset-2 patter_outline_normal"
 			style={`top:${menuPosition.top}px;left:${menuPosition.left}px;min-width:${menuPosition.minWidth}px`}
 		>
-			<div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0 backdrop-blur-lg"></div>
+			<div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl patter_surface_gradient backdrop-blur-lg"></div>
 			{#each options as option (option.value)}
-				<button type="button" aria-pressed={selectedValue === option.value} class="relative z-10 block w-full whitespace-nowrap rounded-lg px-3 py-2 text-left transition-colors hover:bg-mauve-100/10 focus-visible:bg-mauve-100/10 focus-visible:outline-2 focus-visible:outline-mauve-100/40" onclick={() => selectOption(option)}>
+				<button type="button" aria-pressed={selectedValue === option.value} class="relative z-10 block w-full whitespace-nowrap rounded-lg px-3 py-2 text-left transition-colors hover:bg-(--patter_surface_normal) focus-visible:bg-(--patter_surface_normal) focus-visible:outline-2 focus-visible:outline-mauve-100/40" onclick={() => selectOption(option)}>
 					{option.menuLabel ?? option.label}
-					{#if selectedValue === option.value}<span class="ml-3 opacity-60" aria-hidden="true">✓</span>{/if}
+					{#if selectedValue === option.value}<span class="ml-3 opacity-(--patter_opacity_secondary)" aria-hidden="true">✓</span>{/if}
 				</button>
 			{/each}
 		</div>

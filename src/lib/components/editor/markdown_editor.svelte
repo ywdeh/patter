@@ -544,5 +544,5 @@
     .markdown_surface :global(.heading_2) { font-size: 1.35em; font-weight: 700; }
     .markdown_surface :global(.heading_3) { font-size: 1.15em; font-weight: 700; }
     .markdown_surface :global(.list_line) { position: relative; padding-left: 1.5em; }
-    .markdown_surface :global(.list_line::before) { content: attr(data-list-marker); position: absolute; left: 0; opacity: 0.7; }
+    .markdown_surface :global(.list_line::before) { content: attr(data-list-marker); position: absolute; left: 0; opacity: var(--patter_opacity_secondary); }
 </style>

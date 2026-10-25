@@ -25,10 +25,12 @@
     const thumbnail_loading = $derived(loaded_source !== image_source && failed_source !== image_source);
 
     const positions = ['top', 'center', 'bottom'];
+    let hover_tilt = $state(0);
     let video_preview_active = $state(false);
     let preview_poster = $state(null);
     let preview_video = $state(null);
     let wheelLocked = false;
+    let wheel_pressed = $state(false);
     let wheelLockTimer = null;
     let prefersReducedMotion = false;
 
@@ -52,12 +54,14 @@
     });
 
     function startVideoPreview() {
+        hover_tilt = prefersReducedMotion ? 0 : (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.6);
         if (kind !== 'video' || prefersReducedMotion) return;
         video_preview_active = true;
         preview_video?.play().catch(() => {});
     }
 
     function stopVideoPreview() {
+        hover_tilt = 0;
         video_preview_active = false;
         preview_video?.pause();
         if (preview_video?.readyState > 0) preview_video.currentTime = 0;
@@ -86,8 +90,10 @@
         const focusedThumbnail = focused?.closest('[data-background-thumbnail]');
         if (focusedThumbnail && focusedThumbnail !== event.currentTarget) focused.blur();
         wheelLocked = true;
+        wheel_pressed = true;
         wheelLockTimer = setTimeout(() => {
             wheelLocked = false;
+            wheel_pressed = false;
             wheelLockTimer = null;
         }, motionDuration('short', 150));
     }
@@ -101,18 +107,19 @@
     }
 </script>
 
-<div data-background-thumbnail aria-busy={thumbnail_loading} role="group" aria-label={label} class="group/inputpill relative w-full aspect-video" onpointerenter={startVideoPreview} onpointerleave={stopVideoPreview} {@attach attachNonPassiveWheel}>
+<div data-background-thumbnail aria-busy={thumbnail_loading} role="group" aria-label={label} class="background_thumbnail group/inputpill relative w-full aspect-video" style={`rotate: ${hover_tilt}deg`} onpointerenter={startVideoPreview} onpointerleave={stopVideoPreview} {@attach attachNonPassiveWheel}>
     <button
         type="button"
         draggable="false"
         onclick={onselect}
         aria-label={label}
         aria-pressed={selected}
+        class:wheel_pressed
         class="patter_control patter_control_compact absolute inset-0 w-full cursor-pointer">
         <span
             class="media_viewport absolute inset-0 block rounded-lg bg-center patter_shadow overflow-hidden {selected ? 'is-selected' : ''}">
             {#if thumbnail_loading}
-                <span class="thumbnail_loading absolute inset-0 flex items-center justify-center bg-mauve-100/6" role="status" aria-label="Loading background preview">
+                <span class="thumbnail_loading absolute inset-0 flex items-center justify-center bg-(--patter_surface_fill)" role="status" aria-label="Loading background preview">
                     <span class="loading_ring" aria-hidden="true"></span>
                 </span>
             {/if}
@@ -129,7 +136,7 @@
                         onerror={(event) => { failed_source = event.currentTarget.getAttribute('src'); onready(); }}
                         aria-hidden="true">
                 {:else}
-                    <span class="absolute inset-0 bg-mauve-100/5" aria-hidden="true"></span>
+                    <span class="absolute inset-0 bg-(--patter_surface_fill)" aria-hidden="true"></span>
                 {/if}
                 <video
                     bind:this={preview_video}
@@ -160,7 +167,7 @@
         <span
         class="patter_surface absolute rounded-lg pointer-events-none
             {selected
-                ? 'patter_surface_selected inset-1'
+                ? 'patter_surface_selected patter_active inset-0'
                 : 'patter_hover patter_active inset-0'}"></span>
         {/if}
     </button>
@@ -184,6 +191,10 @@
 </div>
 
 <style>
+    .background_thumbnail { transition: rotate var(--patter_motion_standard) ease-out; }
+    @media (prefers-reduced-motion: reduce) { .background_thumbnail { rotate: none !important; } }
+
+
     .position_choice {
         width: 16px;
         height: 16px;
@@ -192,22 +203,22 @@
         min-height: 0;
         cursor: pointer;
         border-radius: 0.25rem;
-        background: color-mix(in srgb, var(--patter_color_text) 24%, transparent);
+        background: var(--patter_surface_normal);
         transition: background-color var(--patter_motion_standard) ease-out,
             outline-color var(--patter_motion_standard) ease-out;
         outline: 2px solid transparent;
         outline-offset: 2px;
     }
-    .position_choice:hover { background: color-mix(in srgb, var(--patter_color_text) 40%, transparent); }
+    .position_choice:hover { background: var(--patter_surface_hover); }
     .position_choice.position_selected {
-        background: color-mix(in srgb, var(--patter_color_text) 40%, transparent);
-        outline-color: color-mix(in srgb, var(--patter_color_text) 55%, transparent);
+        background: var(--patter_surface_selected);
+        outline-color: var(--patter_surface_selected);
     }
     .loading_ring {
         width: 1rem;
         height: 1rem;
-        border: 2px solid color-mix(in srgb, var(--patter_color_text) 12%, transparent);
-        border-top-color: color-mix(in srgb, var(--patter_color_text) 40%, transparent);
+        border: 2px solid var(--patter_surface_normal);
+        border-top-color: var(--patter_surface_selected);
         border-radius: 50%;
         animation: preview_loading calc(var(--patter_motion_slow) * 2) linear infinite;
     }
@@ -224,12 +235,19 @@
         clip-path: inset(0.25rem round 0.5rem);
     }
 
-    button:active .media_viewport:not(.is-selected) {
+    button:active .media_viewport:not(.is-selected),
+    button.wheel_pressed .media_viewport:not(.is-selected) {
         clip-path: inset(0.5rem round 0.5rem);
     }
 
-    .media_viewport.is-selected {
-        clip-path: inset(0.25rem round 0.5rem);
+    .media_viewport.is-selected,
+    button:hover .media_viewport.is-selected,
+    button:focus-visible .media_viewport.is-selected {
+        clip-path: inset(0 round 0.5rem);
     }
 
+    button:active .media_viewport.is-selected,
+    button.wheel_pressed .media_viewport.is-selected {
+        clip-path: inset(0.5rem round 0.5rem);
+    }
 </style>

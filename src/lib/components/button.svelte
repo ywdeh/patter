@@ -42,7 +42,7 @@
     onclick={handleClick}
     class="patter_control patter_control_text group/hitbox relative flex w-fit cursor-pointer items-center disabled:cursor-default disabled:pointer-events-none"
 >
-    <span class="patter_surface patter_hover {disabled ? '' : 'patter_active'} absolute inset-0 rounded-xl bg-linear-to-b from-mauve-100/6 to-mauve-100/0" aria-hidden="true"></span>
+    <span class="patter_surface patter_hover {disabled ? '' : 'patter_active'} absolute inset-0 rounded-xl patter_surface_gradient" aria-hidden="true"></span>
     {@render buttonContent()}
 </button>
 
