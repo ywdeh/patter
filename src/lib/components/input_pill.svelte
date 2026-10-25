@@ -178,12 +178,13 @@
     {#if mode === "toggle"}
     <div class="flex flex-[1.5] gap-3 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
         <button
+            aria-label={falseLabel}
             onclick={(event) => setToggle(false, event)}
             disabled={!value}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/chevron_left.svg" alt={falseLabel} class="patter_icon size-4">
+                <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_left.svg); -webkit-mask-image: url(/chevron_left.svg)"></span>
             </span>
         </button>
 
@@ -200,18 +201,20 @@
         </div>
 
         <button
+            aria-label={trueLabel}
             onclick={(event) => setToggle(true, event)}
             disabled={value}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full bg-linear-to-b from-mauve-100/6 to-mauve-100/0"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/chevron_right.svg" alt={trueLabel} class="patter_icon size-4">
+                <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_right.svg); -webkit-mask-image: url(/chevron_right.svg)"></span>
             </span>
         </button>
     </div>
     {:else}
     <div class="flex flex-[1.5] gap-3 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
         <button
+            aria-label="decrease"
             onclick={() => handleClick(-step)}
             onpointerdown={(event) => { if (event.button === 0) startHold(-step); }}
             onpointerup={endHold}
@@ -227,7 +230,7 @@
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/chevron_left.svg" alt="decrease" class="patter_icon size-4">
+                <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_left.svg); -webkit-mask-image: url(/chevron_left.svg)"></span>
             </span>
         </button>
 
@@ -244,6 +247,7 @@
         </div>
 
         <button
+            aria-label="increase"
             onclick={() => handleClick(step)}
             onpointerdown={(event) => { if (event.button === 0) startHold(step); }}
             onpointerup={endHold}
@@ -259,7 +263,7 @@
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <img src="/chevron_right.svg" alt="increase" class="patter_icon size-4">
+                <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_right.svg); -webkit-mask-image: url(/chevron_right.svg)"></span>
             </span>
         </button>
 
@@ -274,7 +278,7 @@
             </span>
 
             <span class="flex items-center gap-2 px-1 relative pointer-events-none">
-                <img src="/undo.svg" alt="" class="size-5">
+                <span aria-hidden="true" class="patter_mask_icon size-5" style="mask-image: url(/undo.svg); -webkit-mask-image: url(/undo.svg)"></span>
             </span>
         </button>
     </div>

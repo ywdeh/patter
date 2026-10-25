@@ -1,3 +1,4 @@
+import { editor_fonts } from './editor_fonts.js';
 import backgroundsFromFolder from 'virtual:patter-backgrounds';
 import { getBackgroundPoster } from '$lib/state/background_posters.js';
 import { preloadBackgroundImages } from '$lib/state/background_preloader.js';
@@ -15,6 +16,7 @@ export const defaults = {
     tintShade: 0,
     grain: 2,
     textSize: 18,
+    editorFont: 0,
     position: 'center',
     background: defaultBackground,
 };
@@ -37,6 +39,7 @@ function applyToDocument(values) {
     document.documentElement.style.setProperty("--patter_tint", `${values.tint / 100}`);
     document.documentElement.style.setProperty('--patter_tint_color', values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
     document.documentElement.style.setProperty("--patter_grain", `${values.grain / 100}`);
+    document.documentElement.style.setProperty('--patter_editor_font', editor_fonts[values.editorFont]);
     document.documentElement.style.setProperty('--patter_body_text_size', `${values.textSize}px`);
     document.documentElement.style.setProperty('--patter_background_position', values.position);
     if (!values.background.startsWith('upload:')) {
@@ -56,7 +59,7 @@ function load() {
         const parsed = JSON.parse(saved);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { ...defaults };
         const values = Object.fromEntries(Object.entries(defaults).map(([key, fallback]) => [key, parsed[key] ?? fallback]));
-        for (const [key, min, max] of [['tintShade', 0, 1], ['focus', 0, 15], ['tint', 0, 80], ['grain', 0, 4], ['textSize', 14, 24]]) {
+        for (const [key, min, max] of [['editorFont', 0, 3], ['tintShade', 0, 1], ['focus', 0, 15], ['tint', 0, 80], ['grain', 0, 4], ['textSize', 14, 24]]) {
             const value = values[key];
             values[key] = typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
                 ? value : defaults[key];
@@ -123,6 +126,7 @@ export function resetBackgroundValues() {
     background_values.tintShade = defaults.tintShade;
     background_values.grain = defaults.grain;
     background_values.textSize = defaults.textSize;
+    background_values.editorFont = defaults.editorFont;
     background_values.position = defaults.position;
     selectBuiltInBackground(defaults.background);
 }

@@ -180,7 +180,7 @@
 			{text}
 		</button>
 		<div aria-hidden="true" class="relative h-5 w-0.5 shrink-0 bg-mauve-100/12"></div>
-		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="relative flex min-h-(--patter_control_height) min-w-9 cursor-pointer items-center justify-center px-2 transition-colors hover:text-white disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
+		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="relative flex min-h-(--patter_control_height) min-w-9 cursor-pointer items-center justify-center px-2 transition-colors hover:text-mauve-100 disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
 			<span class="patter_text_subtle grid min-w-8 whitespace-nowrap" aria-hidden="true">
 				{#each options as option (option.value)}
 					<span class="invisible col-start-1 row-start-1">{option.value}</span>

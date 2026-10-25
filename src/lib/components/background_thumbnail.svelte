@@ -166,7 +166,7 @@
     </button>
 
     <div
-        class="pointer-events-none absolute inset-0 z-10 grid grid-rows-3 gap-2 overflow-hidden rounded-lg p-2 opacity-0 transition-opacity patter_duration_standard group-hover/inputpill:opacity-100 group-focus-within/inputpill:opacity-100 justify-end"
+        class="position_picker pointer-events-none absolute right-2 top-2 bottom-2 z-10 grid grid-rows-3 gap-2 opacity-0 transition-opacity patter_duration_standard group-hover/inputpill:opacity-100 group-focus-within/inputpill:opacity-100"
         role="group"
         aria-label="Choose image position">
         {#each positions as choice}
@@ -175,17 +175,31 @@
                 onclick={(event) => onposition?.(choice, { event })}
                 aria-label={`${label}, align ${choice}`}
                 aria-pressed={position === choice}
-                class="pointer-events-auto patter_control patter_control_compact relative aspect-square h-full cursor-pointer rounded-lg bg-mauve-100/12 transition-colors patter_duration_standard hover:bg-mauve-100/24 focus-visible:bg-mauve-100/24 {position === choice ? 'bg-mauve-100/40' : ''}"
+                class="position_choice pointer-events-auto relative cursor-pointer" class:position_selected={position === choice}
             >
-                {#if position === choice}
-                    <span aria-hidden="true" class="pointer-events-none absolute inset-0 outline-2 outline-offset-2 rounded-lg outline-inset outline-mauve-100/40"></span>
-                {/if}
+
             </button>
         {/each}
     </div>
 </div>
 
 <style>
+    .position_choice {
+        width: 20px;
+        min-height: 0;
+        cursor: pointer;
+        border-radius: 0.25rem;
+        background: color-mix(in srgb, var(--patter_color_text) 24%, transparent);
+        transition: background-color var(--patter_motion_standard) ease-out,
+            outline-color var(--patter_motion_standard) ease-out;
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+    }
+    .position_choice:hover { background: color-mix(in srgb, var(--patter_color_text) 40%, transparent); }
+    .position_choice.position_selected {
+        background: color-mix(in srgb, var(--patter_color_text) 40%, transparent);
+        outline-color: color-mix(in srgb, var(--patter_color_text) 55%, transparent);
+    }
     .loading_ring {
         width: 1rem;
         height: 1rem;

@@ -28,7 +28,7 @@
     <span class="flex min-h-(--patter_control_height) items-center gap-2 relative px-3 py-2 pointer-events-none">
         {text}
         {#if icon}
-            <img src={icon} alt="" class="patter_icon size-5 fill-black pointer-events-none" draggable="false">
+            <span aria-hidden="true" class="patter_icon patter_mask_icon size-5 pointer-events-none" style={`mask-image: url("${icon}"); -webkit-mask-image: url("${icon}")`}></span>
         {/if}
     </span>
 {/snippet}

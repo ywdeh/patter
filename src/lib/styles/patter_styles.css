@@ -277,3 +277,23 @@ a[href^="mailto:"] * {
 .landing_intro_pending [data-landing-intro-reveal] {
 	visibility: hidden;
 }
+
+@font-face {
+    font-family: 'OpenDyslexic';
+    src: url('/fonts/open_dyslexic_regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+.patter_mask_icon {
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+}

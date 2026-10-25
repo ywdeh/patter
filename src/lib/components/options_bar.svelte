@@ -1,4 +1,5 @@
 <script>
+    import { editor_font_labels } from '$lib/state/editor_fonts.js';
     import HoldButton from './hold_button.svelte';
     import { set_spread_origin } from '$lib/state/background_spread.js';
     import InputPill from './input_pill.svelte';
@@ -105,6 +106,7 @@
             selectBuiltInBackground(defaults.background);
         } else if (active_tab === 'Writing') {
             background_values.textSize = defaults.textSize;
+            background_values.editorFont = defaults.editorFont;
             persistBackgroundValues();
         } else mixer?.reset_mix();
     }
@@ -152,6 +154,7 @@
                     </div>
                 </div>
                 <div id="options_content_writing" role="tabpanel" aria-labelledby="options_tab_writing" tabindex="0" inert={active_tab !== 'Writing'} aria-hidden={active_tab !== 'Writing'} class:tab_inactive={active_tab !== 'Writing'} class="tab_content">
+                    <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} onchange={(value) => persistBackgroundValues({ editorFont: value })} />
                     <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => persistBackgroundValues({ textSize: value })} />
                 </div>
                 <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" tabindex="0" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
