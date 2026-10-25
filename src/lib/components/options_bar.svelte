@@ -5,10 +5,12 @@
     import InputPill from './input_pill.svelte';
     import AmbientMixer from './ambient_mixer.svelte';
     import BackgroundPicker from './background_picker.svelte';
-    import { background_values, persistBackgroundValues, defaults, selectBuiltInBackground } from '$lib/state/background_state.svelte.js';
+    import { background_values, persistBackgroundValues, defaults, resetBackgroundValues } from '$lib/state/background_state.svelte.js';
     import { enterFullscreen, exitFullscreen, isFullscreenActive } from '$lib/fullscreen.js';
     import { sound_enabled, setSoundEnabled } from '$lib/state/sound_settings.svelte.js';
     import { playSound } from '$lib/state/sound.js';
+    import { clearBackgroundUploads } from '$lib/state/background_media.js';
+    import { setEditorDocument } from '$lib/state/editor_document.js';
     import { onMount, tick } from 'svelte';
 
     let { intro = false, onintroend = () => {} } = $props();
@@ -104,16 +106,28 @@
         }
     }
 
-    function reset_current_tab(event) {
-        if (active_tab === 'Scene') {
+    let reset_pending = false;
+    async function reset_options(event) {
+        if (reset_pending) return;
+        reset_pending = true;
+        try {
+            if (event.shiftKey) await clearBackgroundUploads();
             set_spread_origin(defaults.background, event);
-            for (const key of ['focus', 'tint', 'tintShade', 'grain', 'position']) background_values[key] = defaults[key];
-            selectBuiltInBackground(defaults.background);
-        } else if (active_tab === 'Writing') {
-            background_values.textSize = defaults.textSize;
-            background_values.editorFont = defaults.editorFont;
-            persistBackgroundValues();
-        } else mixer?.reset_mix();
+            resetBackgroundValues();
+            setSoundEnabled(true);
+            mixer?.reset_mix();
+            if (document.fullscreenElement) await exitFullscreen();
+            if (event.shiftKey) {
+                setEditorDocument('');
+                window.dispatchEvent(new Event('patter-clear-saved-data'));
+                await tick();
+                for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) localStorage.removeItem(key);
+            }
+        } catch (error) {
+            console.error('Could not reset saved data', error);
+        } finally {
+            reset_pending = false;
+        }
     }
 
     function toggle_sound() {
@@ -129,7 +143,7 @@
     <section id="patter_options_panel" class="options_panel" aria-label="Customization">
         <div aria-hidden="true" class="options_glass patter_surface pointer-events-none rounded-xl patter_surface_gradient"></div>
         <header class="options_header">
-            <HoldButton iconOnly text={`Reset ${active_tab.toLowerCase()}`} oncomplete={reset_current_tab} />
+            <HoldButton iconOnly text="Reset options; hold Shift to reset all app data" oncomplete={reset_options} />
             <div class="quick_actions">
                 <button type="button" class="icon_button patter_control patter_control_round group/hitbox" aria-label={sound_enabled.value ? 'Mute sound' : 'Enable sound'} aria-pressed={sound_enabled.value} onclick={toggle_sound}>
                     <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active patter_surface_gradient"></span>
@@ -148,7 +162,7 @@
         </div>
         <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll scrollbar-thin scrollbar-thumb-mauve-100/12" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
             <div bind:this={content} class="tab_stack">
-                <div id="options_content_scene" role="tabpanel" aria-labelledby="options_tab_scene" tabindex="0" inert={active_tab !== 'Scene'} aria-hidden={active_tab !== 'Scene'} class:tab_inactive={active_tab !== 'Scene'} class="tab_content">
+                <div id="options_content_scene" role="tabpanel" aria-labelledby="options_tab_scene" inert={active_tab !== 'Scene'} aria-hidden={active_tab !== 'Scene'} class:tab_inactive={active_tab !== 'Scene'} class="tab_content">
                     <BackgroundPicker sound="paper_turn" compact onpickerchange={handle_picker} />
                     <div class="options_divider" aria-hidden="true"></div>
                     <div class="setting_rows">
@@ -158,11 +172,11 @@
                         <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grain_labels} onchange={(value) => persistBackgroundValues({ grain: value })} />
                     </div>
                 </div>
-                <div id="options_content_writing" role="tabpanel" aria-labelledby="options_tab_writing" tabindex="0" inert={active_tab !== 'Writing'} aria-hidden={active_tab !== 'Writing'} class:tab_inactive={active_tab !== 'Writing'} class="tab_content">
+                <div id="options_content_writing" role="tabpanel" aria-labelledby="options_tab_writing" inert={active_tab !== 'Writing'} aria-hidden={active_tab !== 'Writing'} class:tab_inactive={active_tab !== 'Writing'} class="tab_content">
                     <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} onchange={(value) => persistBackgroundValues({ editorFont: value })} />
                     <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => persistBackgroundValues({ textSize: value })} />
                 </div>
-                <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" tabindex="0" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
+                <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
                     <AmbientMixer bind:this={mixer} embedded />
                 </div>
             </div>

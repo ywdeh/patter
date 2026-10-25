@@ -246,9 +246,10 @@ a[href^="mailto:"] * {
 }
 
 :focus-visible {
-	outline: 2px solid currentColor;
-	outline-offset: 4px;
-	border-radius: inherit;
+    outline: none;
+    background-color: var(--patter_surface_fill);
+    box-shadow: 0 0 0 8px var(--patter_surface_fill);
+    border-radius: var(--patter_focus_radius, 0.5rem);
 }
 
 .patter_control:focus-visible {
@@ -269,8 +270,9 @@ a[href^="mailto:"] * {
 
 [contenteditable]:focus,
 [contenteditable]:focus-visible {
-	outline: none;
-	box-shadow: none;
+    outline: none;
+    box-shadow: none;
+    background-color: transparent;
 }
 
 .route_surface,

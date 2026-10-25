@@ -14,6 +14,7 @@
     const minimum_progress = 0.33;
     const component_id = $props.id();
     const description_id = `${component_id}-description`;
+    let shift_down = $state(false);
     let progress = $state(0);
     const visual_progress = $derived(progress);
     let phase = 'idle';
@@ -42,7 +43,7 @@
             phase = 'idle';
         }, motionDuration('slow', 400));
         if (sound) playSound(sound);
-        oncomplete?.({ type: 'click', detail: 0, currentTarget: button });
+        oncomplete?.({ type: 'click', detail: 0, currentTarget: button, shiftKey: shift_down });
     }
 
     function advance(now) {
@@ -82,6 +83,7 @@
     }
 
     function pointer_down(event) {
+        shift_down = event.shiftKey;
         if (event.button !== 0 || active_key !== null || !press()) return;
         pointer_id = event.pointerId;
     }
@@ -109,7 +111,7 @@
     });
 </script>
 
-<svelte:window onblur={release} onpointerup={pointer_end} onpointercancel={pointer_end} />
+<svelte:window onkeydown={(event) => { shift_down = event.shiftKey; }} onkeyup={(event) => { shift_down = event.shiftKey; }} onblur={() => { shift_down = false; release(); }} onpointerup={pointer_end} onpointercancel={pointer_end} />
 
 <button
     bind:this={button}

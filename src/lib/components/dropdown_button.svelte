@@ -206,7 +206,7 @@
 		>
 			<div aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl patter_surface_gradient backdrop-blur-lg"></div>
 			{#each options as option (option.value)}
-				<button type="button" aria-pressed={selectedValue === option.value} class="relative z-10 block w-full whitespace-nowrap rounded-lg px-3 py-2 text-left transition-colors hover:bg-(--patter_surface_normal) focus-visible:bg-(--patter_surface_normal) focus-visible:outline-2 focus-visible:outline-mauve-100/40" onclick={() => selectOption(option)}>
+				<button type="button" aria-pressed={selectedValue === option.value} class="relative z-10 block w-full whitespace-nowrap rounded-lg px-3 py-2 text-left transition-colors hover:bg-(--patter_surface_normal)" onclick={() => selectOption(option)}>
 					{option.menuLabel ?? option.label}
 					{#if selectedValue === option.value}<span class="ml-3 opacity-(--patter_opacity_secondary)" aria-hidden="true">✓</span>{/if}
 				</button>
