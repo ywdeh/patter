@@ -1,4 +1,5 @@
 <script>
+    import { track_event, track_setting } from '$lib/state/analytics.js';
     import { editor_font_labels, editor_fonts } from '$lib/state/editor_fonts.js';
     import { reset_editor_visuals } from '$lib/state/editor_font_transition.js';
     import HoldButton from './hold_button.svelte';
@@ -76,6 +77,7 @@
     async function select_tab(tab) {
         if (active_tab === tab) return;
         active_tab = tab;
+        track_event('options_tab_changed', { tab: tab.toLowerCase() });
         playSound('click');
         await tick();
         scroll_area.scrollTop = 0;
@@ -129,6 +131,7 @@
             };
             if (event.shiftKey) await reset_editor_visuals(apply);
             else await apply();
+            track_event('settings_reset', { scope: event.shiftKey ? 'all' : 'options' });
         } catch (error) {
             console.error('Could not reset saved data', error);
         } finally {
@@ -138,6 +141,7 @@
 
     function toggle_sound() {
         setSoundEnabled(!sound_enabled.value);
+        track_setting('sound', sound_enabled.value);
         if (sound_enabled.value) playSound('click');
     }
 
@@ -172,19 +176,19 @@
                     <BackgroundPicker sound="paper_turn" compact onpickerchange={handle_picker} />
                     <div class="options_divider" aria-hidden="true"></div>
                     <div class="setting_rows">
-                        <InputPill text="Focus" min={0} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} onchange={(value) => persistBackgroundValues({ focus: value })} />
-                        <InputPill text="Tint" min={0} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} displayValues={tint_labels} unit="%" onchange={(value) => persistBackgroundValues({ tint: value })} />
-                        <InputPill text="Tone" min={0} max={2} step={1} displayValues={{ 0: 'Cool', 1: 'Warm', 2: 'Olive' }} bind:value={background_values.tintShade} defaultValue={defaults.tintShade} onchange={(value) => persistBackgroundValues({ tintShade: value })} />
-                        <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grain_labels} onchange={(value) => persistBackgroundValues({ grain: value })} />
+                        <InputPill text="Focus" min={0} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} onchange={(value) => { persistBackgroundValues({ focus: value }); track_setting('focus', value); }} />
+                        <InputPill text="Tint" min={0} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} displayValues={tint_labels} unit="%" onchange={(value) => { persistBackgroundValues({ tint: value }); track_setting('tint', value); }} />
+                        <InputPill text="Tone" min={0} max={2} step={1} displayValues={{ 0: 'Cool', 1: 'Warm', 2: 'Olive' }} bind:value={background_values.tintShade} defaultValue={defaults.tintShade} onchange={(value) => { persistBackgroundValues({ tintShade: value }); track_setting('tintShade', value); }} />
+                        <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grain_labels} onchange={(value) => { persistBackgroundValues({ grain: value }); track_setting('grain', value); }} />
                     </div>
                 </div>
                 <div id="options_content_writing" role="tabpanel" aria-labelledby="options_tab_writing" inert={active_tab !== 'Writing'} aria-hidden={active_tab !== 'Writing'} class:tab_inactive={active_tab !== 'Writing'} class="tab_content">
-                    <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} displayFonts={editor_fonts} onchange={(value) => persistBackgroundValues({ editorFont: value })} />
-                    <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => persistBackgroundValues({ textSize: value })} />
+                    <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} displayFonts={editor_fonts} onchange={(value) => { persistBackgroundValues({ editorFont: value }); track_setting('editorFont', value); }} />
+                    <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => { persistBackgroundValues({ textSize: value }); track_setting('textSize', value); }} />
                 </div>
                 <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
                     <div class="setting_rows" class:patter_disabled={!sound_enabled.value} inert={!sound_enabled.value}>
-                        <InputPill text="Typewriter" mode="toggle" bind:value={typing_sound_enabled.value} defaultValue={true} ontrue={() => setTypingSoundEnabled(true)} onfalse={() => setTypingSoundEnabled(false)} />
+                        <InputPill text="Typewriter" mode="toggle" bind:value={typing_sound_enabled.value} defaultValue={true} ontrue={() => { setTypingSoundEnabled(true); track_setting('typewriter', true); }} onfalse={() => { setTypingSoundEnabled(false); track_setting('typewriter', false); }} />
                     </div>
                     <div class="options_divider" aria-hidden="true"></div>
                     <AmbientMixer bind:this={mixer} embedded />

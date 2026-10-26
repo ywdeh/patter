@@ -1,3 +1,4 @@
+import { track_event } from './analytics.js';
 import { getEditorDocument } from '$lib/state/editor_document.js';
 import { EXPORT_SIGNATURE } from '$lib/state/editor_signature.js';
 import { createExportFilename } from '$lib/state/editor_filename.js';
@@ -32,4 +33,5 @@ export function exportEditorDocument(format = 'txt') {
     const body = getEditorDocument();
     if (!body.trim()) return;
 	downloadTextExport(body, format, body);
+    track_event('document_exported', { format: format === 'md' ? 'md' : 'txt' });
 }

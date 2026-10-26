@@ -1,4 +1,5 @@
 <script>
+    import { track_event } from '$lib/state/analytics.js';
     import { onMount } from 'svelte';
     import { optimize_background_upload } from '$lib/state/background_upload.js';
     import { fade } from 'svelte/transition';
@@ -68,6 +69,7 @@
         hasUserAction = true;
         playClick();
         selectBuiltInBackground(item.src, item.kind);
+        track_event('background_changed', { background: backgroundLabel(item.src).toLowerCase() });
     }
 
     function selectUpload(item, event) {
@@ -76,6 +78,7 @@
         hasUserAction = true;
         playClick();
         selectUploadedBackground(item.id, item.kind, item.url);
+        track_event('background_changed', { background: `custom_${item.kind}` });
     }
 
     function selectPosition(item, position, { fromWheel = false, event } = {}) {
@@ -93,6 +96,8 @@
         background_values.position = position;
         if (item.uploaded) selectUploadedBackground(item.id, item.kind, item.url);
         else selectBuiltInBackground(item.src, item.kind);
+        track_event('background_position_changed', { position });
+        if (changesBackground) track_event('background_changed', { background: item.uploaded ? `custom_${item.kind}` : backgroundLabel(item.src).toLowerCase() });
         return true;
     }
 
@@ -136,6 +141,8 @@
             uploads = [{ id, kind, name: optimized.name, blob: optimized, url, poster: null }];
             set_spread_origin(`upload:${id}`, uploadOrigin);
             selectUploadedBackground(id, kind, url);
+            track_event('background_uploaded', { type: kind });
+            track_event('background_changed', { background: `custom_${kind}` });
             uploadError = '';
             if (kind === 'image') {
                 createImagePoster(optimized).then((poster) => {
@@ -166,6 +173,7 @@
             }
             const removedActiveBackground = uploads.some((item) => background_values.background === `upload:${item.id}`);
             uploads = [];
+            track_event('background_removed');
             if (removedActiveBackground) {
                 set_spread_origin(defaults.background, origin);
                 selectBuiltInBackground(defaults.background);

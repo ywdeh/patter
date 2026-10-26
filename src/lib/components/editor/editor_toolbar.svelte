@@ -1,4 +1,5 @@
 <script>
+	import { track_event } from '$lib/state/analytics.js';
 	import { onMount } from 'svelte';
 	import Button from '$lib/components/button.svelte';
 	import DropdownButton from '$lib/components/dropdown_button.svelte';
@@ -28,6 +29,7 @@
 			const body = await readTextImport(file);
 			window.dispatchEvent(new CustomEvent('patter-import-document', { detail: { body } }));
 			importError = '';
+            track_event('document_imported', { format: /\.md$/i.test(file.name) ? 'md' : 'txt' });
 		} catch (error) {
 			importError = error instanceof Error ? error.message : 'This file could not be opened.';
 		}

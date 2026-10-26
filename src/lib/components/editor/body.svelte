@@ -1,4 +1,5 @@
 <script>
+    import { track_writing, mount_editor_time_tracking } from '$lib/state/analytics.js';
     import StatValue from './stat_value.svelte';
     import { onMount } from 'svelte';
     import { countEditorText, estimateReadingTime, formatMinutes } from '$lib/state/editor_counts.js';
@@ -221,6 +222,7 @@
     }
 
     function handleInput(bodyText) {
+        track_writing();
         onwriting();
         updateEmpty(bodyText);
         updateCounts(markdownEditor.getVisibleText());
@@ -238,6 +240,7 @@
     }
 
     onMount(() => {
+        const stop_time_tracking = mount_editor_time_tracking();
         const initialText = load();
         bodyEl = markdownEditor.getElement();
         markdownEditor.setSource(initialText);
@@ -289,6 +292,7 @@
         }
 
         return () => {
+            stop_time_tracking();
             flush_pending_save();
             counts_worker?.terminate();
             selectionWorker?.terminate();

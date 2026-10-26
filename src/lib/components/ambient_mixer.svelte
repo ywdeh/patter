@@ -1,4 +1,5 @@
 <script>
+    import { track_event, track_setting } from '$lib/state/analytics.js';
     import { onMount } from 'svelte';
     import InputPill from './input_pill.svelte';
     import { ambient_tracks, create_ambient_player } from '$lib/state/ambient_player.js';
@@ -18,9 +19,13 @@
     let error = $state('');
 
     function update_track(id, changes) {
+        const starting = tracks.find((track) => track.id === id)?.volume === 0 && changes.volume > 0;
         tracks = tracks.map((track) => track.id === id ? { ...track, ...changes } : track);
+        track_setting(`${id}_volume`, changes.volume);
         error = '';
-        void sync_playback();
+        void sync_playback().then((started) => {
+            if (starting && started && sound_enabled.value) track_event('audio_started', { track: id });
+        });
     }
 
     async function sync_playback() {
@@ -28,7 +33,7 @@
         player?.set_mix(tracks);
         if (!tracks.some((track) => track.volume > 0)) player?.pause();
         else {
-            try { await player?.play(); }
+            try { if (!player) return false; await player.play(); return true; }
             catch (cause) { error = cause.message; }
         }
     }

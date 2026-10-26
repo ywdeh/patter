@@ -23,12 +23,20 @@ caret-mauve-100" spellcheck="false">
 		<meta name="twitter:title" content="Patter" />
 		<meta name="twitter:description" content="An ambient writing editor that keeps everything else out of sight while you write." />
 		<meta name="twitter:image" content="https://patter.hedwy.art/patter-og.jpg" />
-		<script async src="https://www.googletagmanager.com/gtag/js?id=G-2LFQ1HS7XW"></script>
 		<script>
+			window.patter_analytics_enabled = location.hostname === 'patter.hedwy.art';
 			window.dataLayer = window.dataLayer || [];
 			function gtag(){dataLayer.push(arguments);}
-			gtag('js', new Date());
-			gtag('config', 'G-2LFQ1HS7XW');
+			if (window.patter_analytics_enabled) {
+				// The visible editor title can contain writing. Analytics always gets a static title.
+				gtag('set', { page_title: 'Patter', page_location: location.origin + location.pathname });
+				gtag('js', new Date());
+				gtag('config', 'G-2LFQ1HS7XW', { page_title: 'Patter' });
+				const analytics = document.createElement('script');
+				analytics.async = true;
+				analytics.src = 'https://www.googletagmanager.com/gtag/js?id=G-2LFQ1HS7XW';
+				document.head.append(analytics);
+			}
 		</script>
 
 		<script>
