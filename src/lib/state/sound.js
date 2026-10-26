@@ -1,5 +1,5 @@
 import { schedule_idle_task } from './browser_tasks.js';
-import { sound_enabled } from '$lib/state/sound_settings.svelte.js';
+import { sound_enabled, typing_sound_enabled } from '$lib/state/sound_settings.svelte.js';
 
 const click_sources = Object.freeze(['/click_1.mp3', '/click_2.mp3', '/click_3.mp3']);
 
@@ -74,7 +74,7 @@ function chooseSource(sound, sources) {
 
 export function playSound(sound = 'click', volumeScale = 1) {
     if (!sound) return;
-    if (!sound_enabled.value) return;
+    if (!sound_enabled.value || (sound === 'typing' && !typing_sound_enabled.value)) return;
     const preset = sound_presets[sound];
     const sources = preset?.sources ?? [sound];
     const source = chooseSource(sound, sources);

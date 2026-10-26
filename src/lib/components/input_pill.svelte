@@ -1,4 +1,5 @@
 <script>
+    import { fit_label } from '$lib/state/fit_label.js';
     import { can_use_wheel_controls } from '$lib/state/user_interaction.js';
     import { onDestroy, untrack } from "svelte";
     import { fly } from "svelte/transition";
@@ -15,6 +16,7 @@
         step = 10,
         unit = "",
         displayValues = null,
+        displayFonts = null,
         holdInterval = 200,
         trueLabel = "On",
         falseLabel = "Off",
@@ -238,6 +240,8 @@
             {#key value}
                 <p
                     class="absolute inset-0"
+                    style:font-family={displayFonts?.[value]}
+                    use:fit_label={{ value, font: displayFonts?.[value] }}
                     in:fly={{ x: direction * 20, duration: inDuration, delay: outDuration }}
                     out:fly={{ x: direction * -20, duration: outDuration }}
                 >

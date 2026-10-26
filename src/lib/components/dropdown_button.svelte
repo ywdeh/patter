@@ -58,6 +58,12 @@
         return { destroy() { node.remove(); } };
     }
     function menu_key(event) {
+        if (event.key === 'Tab') {
+            close_menu();
+            trigger?.focus({ preventScroll: true });
+            if (event.shiftKey) event.preventDefault();
+            return;
+        }
         const buttons = Array.from(menu?.querySelectorAll('button') ?? []);
         const index = buttons.indexOf(document.activeElement);
         let next;
@@ -106,7 +112,7 @@
         onpointerenter={cancel_close} onpointerleave={schedule_close} onkeydown={menu_key} onfocusout={schedule_close}>
         <span aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl patter_surface_gradient"></span>
         {#each options as option (option.value)}
-            <button type="button" role="menuitem" class="relative block w-full whitespace-nowrap rounded-lg px-3 py-2 text-left cursor-pointer transition-colors hover:bg-(--patter_surface_normal)" onclick={() => choose(option)}>{option.menuLabel ?? option.label}</button>
+            <button type="button" role="menuitem" tabindex="-1" class="relative block w-full whitespace-nowrap rounded-lg px-3 py-2 text-left cursor-pointer transition-colors hover:bg-(--patter_surface_normal)" onclick={() => choose(option)}>{option.menuLabel ?? option.label}</button>
         {/each}
     </div>
 {/if}

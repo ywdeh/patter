@@ -1,5 +1,5 @@
 <script>
-    import { editor_font_labels } from '$lib/state/editor_fonts.js';
+    import { editor_font_labels, editor_fonts } from '$lib/state/editor_fonts.js';
     import { reset_editor_visuals } from '$lib/state/editor_font_transition.js';
     import HoldButton from './hold_button.svelte';
     import { set_spread_origin } from '$lib/state/background_spread.js';
@@ -8,7 +8,7 @@
     import BackgroundPicker from './background_picker.svelte';
     import { background_values, persistBackgroundValues, defaults, resetBackgroundValues } from '$lib/state/background_state.svelte.js';
     import { enterFullscreen, exitFullscreen, isFullscreenActive } from '$lib/fullscreen.js';
-    import { sound_enabled, setSoundEnabled } from '$lib/state/sound_settings.svelte.js';
+    import { sound_enabled, setSoundEnabled, typing_sound_enabled, setTypingSoundEnabled } from '$lib/state/sound_settings.svelte.js';
     import { playSound } from '$lib/state/sound.js';
     import { clearBackgroundUploads } from '$lib/state/background_media.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
@@ -117,13 +117,14 @@
                 set_spread_origin(defaults.background, event);
                 resetBackgroundValues();
                 setSoundEnabled(true);
+                setTypingSoundEnabled(true);
                 mixer?.reset_mix();
                 if (document.fullscreenElement) await exitFullscreen();
                 if (event.shiftKey) {
                     setEditorDocument('');
                     window.dispatchEvent(new Event('patter-clear-saved-data'));
                     await tick();
-                    for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) localStorage.removeItem(key);
+                    for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-typing-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) localStorage.removeItem(key);
                 }
             };
             if (event.shiftKey) await reset_editor_visuals(apply);
@@ -162,7 +163,7 @@
         </header>
         <div bind:this={tab_list} class="options_tabs" style={`--active-tab: ${tabs.indexOf(active_tab)}`} role="tablist" aria-label="Customize your space">
             {#each tabs as tab, index}
-                <button type="button" role="tab" id={'options_tab_' + tab.toLowerCase()} aria-controls={'options_content_' + tab.toLowerCase()} aria-selected={active_tab === tab} tabindex={active_tab === tab ? 0 : -1} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab}</button>
+                <button type="button" role="tab" id={'options_tab_' + tab.toLowerCase()} aria-controls={'options_content_' + tab.toLowerCase()} aria-selected={active_tab === tab} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab}</button>
             {/each}
         </div>
         <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll scrollbar-thin scrollbar-thumb-mauve-100/12" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
@@ -178,10 +179,14 @@
                     </div>
                 </div>
                 <div id="options_content_writing" role="tabpanel" aria-labelledby="options_tab_writing" inert={active_tab !== 'Writing'} aria-hidden={active_tab !== 'Writing'} class:tab_inactive={active_tab !== 'Writing'} class="tab_content">
-                    <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} onchange={(value) => persistBackgroundValues({ editorFont: value })} />
+                    <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} displayFonts={editor_fonts} onchange={(value) => persistBackgroundValues({ editorFont: value })} />
                     <InputPill text="Text size" min={14} max={24} step={1} bind:value={background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => persistBackgroundValues({ textSize: value })} />
                 </div>
                 <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
+                    <div class="setting_rows" class:patter_disabled={!sound_enabled.value} inert={!sound_enabled.value}>
+                        <InputPill text="Typewriter" mode="toggle" bind:value={typing_sound_enabled.value} defaultValue={true} ontrue={() => setTypingSoundEnabled(true)} onfalse={() => setTypingSoundEnabled(false)} />
+                    </div>
+                    <div class="options_divider" aria-hidden="true"></div>
                     <AmbientMixer bind:this={mixer} embedded />
                 </div>
             </div>

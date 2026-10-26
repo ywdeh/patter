@@ -52,6 +52,10 @@
         const handleContentChange = (event) => updatePageTitle(event.detail?.text ?? '');
         window.addEventListener('patter-editor-content-change', handleContentChange);
 
+        function handleKeyboardNavigation(event) {
+            if (zenMode && (event.key === 'Tab' || event.key === 'Escape')) setZenMode(false);
+        }
+
         function handlePointerMove(event) {
             if (event.pointerType !== 'mouse') return;
             const position = { x: event.clientX, y: event.clientY };
@@ -70,10 +74,12 @@
             }
         }
 
+        window.addEventListener('keydown', handleKeyboardNavigation);
         window.addEventListener('pointermove', handlePointerMove);
         window.addEventListener('pointerdown', handlePointerDown, { passive: true });
         return () => {
             window.removeEventListener('patter-editor-content-change', handleContentChange);
+            window.removeEventListener('keydown', handleKeyboardNavigation);
             window.removeEventListener('pointermove', handlePointerMove);
             window.removeEventListener('pointerdown', handlePointerDown);
             setZenMode(false);
