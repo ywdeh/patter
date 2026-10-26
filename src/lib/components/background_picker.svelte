@@ -228,7 +228,7 @@
                 class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small">
 
                 <svg class="patter_icon relative size-5 text-mauve-100" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+                    <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"  stroke-linejoin="round" />
                 </svg>
                 <span class="relative tracking-wide">Add image or video</span>
             </button>
@@ -244,7 +244,7 @@
             class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small disabled:cursor-default  disabled:pointer-events-none">
             <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg patter_surface_gradient"></span>
             <svg class="patter_icon relative size-5 text-mauve-100" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M5 10h10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+                <path d="M5 10h10" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"  stroke-linejoin="round" />
             </svg>
             <span class="relative tracking-wide">Remove</span>
         </button>

@@ -3,6 +3,7 @@ import { getEditorPlaceholder } from './editor_placeholders.js';
 // This visual overlay stays outside the editable DOM and never enters the document source.
 export function placeholder_ink(node, initial_text) {
     const reduced_motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let resetting = false;
     let target = initial_text;
     let displayed = initial_text;
     let overlay;
@@ -63,11 +64,13 @@ export function placeholder_ink(node, initial_text) {
 
     function update(text) {
         target = text;
-        if (node.dataset.empty !== 'true' || reduced_motion.matches) finish();
+        if (resetting || node.dataset.empty !== 'true' || reduced_motion.matches) finish();
     }
 
     function on_spread(event) {
         const detail = event.detail;
+        if (resetting) { finish(); return; }
+        if (!overlay && displayed === target && getEditorPlaceholder(detail.key) === target) return;
         if (node.dataset.empty !== 'true' || reduced_motion.matches) {
             if (overlay || displayed !== target) finish();
             return;
@@ -126,6 +129,10 @@ export function placeholder_ink(node, initial_text) {
     window.addEventListener('resize', invalidate_bounds);
     const resize = new ResizeObserver(layout);
     resize.observe(node);
+    const reset_start = () => { resetting = true; finish(); };
+    const reset_end = () => { finish(); resetting = false; };
+    window.addEventListener('patter-editor-reset-start', reset_start);
+    window.addEventListener('patter-editor-reset-end', reset_end);
     window.addEventListener('patter-wallpaper-spread', on_spread);
     return {
         update,
@@ -134,6 +141,8 @@ export function placeholder_ink(node, initial_text) {
             resize.disconnect();
             node.parentElement?.removeEventListener('scroll', invalidate_bounds);
             window.removeEventListener('resize', invalidate_bounds);
+            window.removeEventListener('patter-editor-reset-start', reset_start);
+            window.removeEventListener('patter-editor-reset-end', reset_end);
             window.removeEventListener('patter-wallpaper-spread', on_spread);
             finish();
             node.style.removeProperty('--patter_placeholder_frame');

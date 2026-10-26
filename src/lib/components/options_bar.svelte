@@ -1,5 +1,6 @@
 <script>
     import { editor_font_labels } from '$lib/state/editor_fonts.js';
+    import { reset_editor_visuals } from '$lib/state/editor_font_transition.js';
     import HoldButton from './hold_button.svelte';
     import { set_spread_origin } from '$lib/state/background_spread.js';
     import InputPill from './input_pill.svelte';
@@ -112,17 +113,21 @@
         reset_pending = true;
         try {
             if (event.shiftKey) await clearBackgroundUploads();
-            set_spread_origin(defaults.background, event);
-            resetBackgroundValues();
-            setSoundEnabled(true);
-            mixer?.reset_mix();
-            if (document.fullscreenElement) await exitFullscreen();
-            if (event.shiftKey) {
-                setEditorDocument('');
-                window.dispatchEvent(new Event('patter-clear-saved-data'));
-                await tick();
-                for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) localStorage.removeItem(key);
-            }
+            const apply = async () => {
+                set_spread_origin(defaults.background, event);
+                resetBackgroundValues();
+                setSoundEnabled(true);
+                mixer?.reset_mix();
+                if (document.fullscreenElement) await exitFullscreen();
+                if (event.shiftKey) {
+                    setEditorDocument('');
+                    window.dispatchEvent(new Event('patter-clear-saved-data'));
+                    await tick();
+                    for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) localStorage.removeItem(key);
+                }
+            };
+            if (event.shiftKey) await reset_editor_visuals(apply);
+            else await apply();
         } catch (error) {
             console.error('Could not reset saved data', error);
         } finally {
@@ -147,7 +152,7 @@
             <div class="quick_actions">
                 <button type="button" class="icon_button patter_control patter_control_round group/hitbox" aria-label={sound_enabled.value ? 'Mute sound' : 'Enable sound'} aria-pressed={sound_enabled.value} onclick={toggle_sound}>
                     <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active patter_surface_gradient"></span>
-                    <svg class="patter_icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" />{#if sound_enabled.value}<path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />{:else}<path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" />{/if}</svg>
+                    <svg class="patter_icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"  stroke-linecap="round" />{#if sound_enabled.value}<path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"  stroke-linejoin="round" />{:else}<path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"  stroke-linejoin="round" />{/if}</svg>
                 </button>
                 <button type="button" class="icon_button patter_control patter_control_round group/hitbox" aria-label={is_fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} aria-pressed={is_fullscreen} disabled={fullscreen_pending || browser_fullscreen} onclick={toggle_fullscreen}>
                     <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active patter_surface_gradient"></span>
@@ -168,7 +173,7 @@
                     <div class="setting_rows">
                         <InputPill text="Focus" min={0} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} onchange={(value) => persistBackgroundValues({ focus: value })} />
                         <InputPill text="Tint" min={0} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} displayValues={tint_labels} unit="%" onchange={(value) => persistBackgroundValues({ tint: value })} />
-                        <InputPill text="Tint color" min={0} max={2} step={1} displayValues={{ 0: 'Cold', 1: 'Warm', 2: 'Olive' }} bind:value={background_values.tintShade} defaultValue={defaults.tintShade} onchange={(value) => persistBackgroundValues({ tintShade: value })} />
+                        <InputPill text="Tone" min={0} max={2} step={1} displayValues={{ 0: 'Cool', 1: 'Warm', 2: 'Olive' }} bind:value={background_values.tintShade} defaultValue={defaults.tintShade} onchange={(value) => persistBackgroundValues({ tintShade: value })} />
                         <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grain_labels} onchange={(value) => persistBackgroundValues({ grain: value })} />
                     </div>
                 </div>

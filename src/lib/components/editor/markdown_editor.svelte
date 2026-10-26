@@ -519,7 +519,7 @@
 <div
     bind:this={editor}
     use:placeholder_ink={placeholder}
-    use:editor_font_transition={editor_fonts[background_values.editorFont]}
+    use:editor_font_transition={{ font: editor_fonts[background_values.editorFont], size: background_values.textSize }}
     data-patter-body
     data-empty="true"
     data-placeholder={placeholder}
@@ -541,7 +541,7 @@
 ></div>
 
 <style>
-    .markdown_surface { font-family: var(--patter_editor_font, var(--patter_font_body)); font-size: var(--patter_body_text_size, 18px); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; position: relative; transition: font-size var(--patter_motion_standard) ease; }
+    .markdown_surface { font-family: var(--patter_editor_font, var(--patter_font_body)); font-size: var(--patter_body_text_size, 18px); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; position: relative; }
     .markdown_surface :global(.markdown_line) { min-height: 1.5em; }
     .markdown_surface :global(.markdown_syntax) { display: none; }
     .markdown_surface :global(.heading_1) { font-size: 1.65em; font-weight: 700; }
