@@ -1,7 +1,6 @@
 <script>
 	import { can_use_wheel_controls } from '$lib/state/user_interaction.js';
 	import { onMount, tick } from 'svelte';
-	import { fly } from 'svelte/transition';
 	import { playSound } from '$lib/state/sound.js';
 	import { motionDuration } from '$lib/state/motion.js';
 
@@ -20,14 +19,10 @@
 	let menuTrigger;
 	let open = $state(false);
 	let selectedValue = $state('');
-	let direction = $state(1);
 	let wheelRemainder = 0;
 	let wheelOnCooldown = false;
 	let wheelCooldownTimer = null;
-	const outDuration = motionDuration('quick', 100);
-	const inDuration = motionDuration('short', 150);
 	const wheelCooldownDuration = motionDuration('short', 150);
-	const labelShift = 8;
 	let menuPosition = $state({ top: 0, left: 0, minWidth: 0 });
 	let selectedOption = $derived(options.find((option) => option.value === selectedValue) ?? options[0]);
 
@@ -86,7 +81,6 @@
 		if (option.value === selectedValue) return;
 		const previousIndex = options.findIndex((item) => item.value === selectedValue);
 		const nextIndex = options.findIndex((item) => item.value === option.value);
-		direction = nextIndex > previousIndex ? 1 : -1;
 		selectedValue = option.value;
 		closeMenu();
 		if (returnFocus) menuTrigger?.focus();
@@ -179,18 +173,8 @@
 		<button type="button" disabled={disabled} aria-label={selectedOption?.label ?? text} class="relative min-h-(--patter_control_height) cursor-pointer px-3 py-2 disabled:cursor-default disabled:pointer-events-none" onclick={exportSelected}>
 			{text}
 		</button>
-		<div aria-hidden="true" class="relative h-5 w-0.5 shrink-0 bg-mauve-100/12"></div>
 		<button bind:this={menuTrigger} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} aria-controls={open ? 'export-format-options' : undefined} class="relative flex min-h-(--patter_control_height) min-w-9 cursor-pointer items-center justify-center px-2 transition-colors hover:text-mauve-100 disabled:cursor-default disabled:pointer-events-none" onclick={toggleMenu}>
-			<span class="patter_text_subtle grid min-w-8 whitespace-nowrap" aria-hidden="true">
-				{#each options as option (option.value)}
-					<span class="invisible col-start-1 row-start-1">{option.value}</span>
-				{/each}
-				<span class="dropdown_value_mask relative col-start-1 row-start-1 h-6">
-					{#key selectedValue}
-						<span class="absolute inset-0 flex items-center justify-center" in:fly={{ y: direction * labelShift, duration: inDuration, delay: outDuration }} out:fly={{ y: direction * -labelShift, duration: outDuration }}>{selectedValue}</span>
-					{/key}
-				</span>
-			</span>
+            <svg class="save_chevrons patter_icon size-4 pointer-events-none" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m5 5 3-3 3 3m-6 6 3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
 		</button>
 	</div>
 
@@ -216,8 +200,5 @@
 </div>
 
 <style>
-	.dropdown_value_mask {
-		-webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 25%, #000 75%, transparent 100%);
-		mask-image: linear-gradient(to bottom, transparent 0%, #000 25%, #000 75%, transparent 100%);
-	}
+    .patter_control:active .save_chevrons, .patter_control.wheel_pressed .save_chevrons { scale: 1; }
 </style>

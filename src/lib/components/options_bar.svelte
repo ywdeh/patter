@@ -168,7 +168,7 @@
                     <div class="setting_rows">
                         <InputPill text="Focus" min={0} max={15} step={1} bind:value={background_values.focus} defaultValue={defaults.focus} onchange={(value) => persistBackgroundValues({ focus: value })} />
                         <InputPill text="Tint" min={0} max={80} step={5} bind:value={background_values.tint} defaultValue={defaults.tint} displayValues={tint_labels} unit="%" onchange={(value) => persistBackgroundValues({ tint: value })} />
-                        <InputPill text="Tint color" min={0} max={2} step={1} displayValues={{ 0: 'Dusk', 1: 'Ember', 2: 'Fern' }} bind:value={background_values.tintShade} defaultValue={defaults.tintShade} onchange={(value) => persistBackgroundValues({ tintShade: value })} />
+                        <InputPill text="Tint color" min={0} max={2} step={1} displayValues={{ 0: 'Cold', 1: 'Warm', 2: 'Olive' }} bind:value={background_values.tintShade} defaultValue={defaults.tintShade} onchange={(value) => persistBackgroundValues({ tintShade: value })} />
                         <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grain_labels} onchange={(value) => persistBackgroundValues({ grain: value })} />
                     </div>
                 </div>
