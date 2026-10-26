@@ -121,7 +121,6 @@
                 setSoundEnabled(true);
                 setTypingSoundEnabled(true);
                 mixer?.reset_mix();
-                if (document.fullscreenElement) await exitFullscreen();
                 if (event.shiftKey) {
                     setEditorDocument('');
                     window.dispatchEvent(new Event('patter-clear-saved-data'));
