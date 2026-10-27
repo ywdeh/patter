@@ -218,7 +218,7 @@
                     <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} displayFonts={editor_fonts} onchange={(value) => { persistBackgroundValues({ editorFont: value }); track_setting('editorFont', value); }} />
                     <InputPill text="Text size" min={mobile_mode ? 16 : 14} max={24} step={1} value={mobile_mode ? Math.max(16, background_values.textSize) : background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => { background_values.textSize = value; persistBackgroundValues({ textSize: value }); track_setting('textSize', value); }} />
                     <div class="options_divider" aria-hidden="true"></div>
-                    <InputPill text="Controls" mode="toggle" falseLabel="Narrow" trueLabel="Wide" bind:value={background_values.cornerControls} defaultValue={defaults.cornerControls} onchange={(value) => { persistBackgroundValues({ cornerControls: value }); track_setting('corner_controls', value); }} />
+                    <InputPill text="Controls" mode="toggle" falseLabel="Wide" trueLabel="Narrow" value={!background_values.cornerControls} defaultValue={!defaults.cornerControls} onchange={(value) => { background_values.cornerControls = !value; persistBackgroundValues({ cornerControls: !value }); track_setting('corner_controls', !value); }} />
                 </div>
                 <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
                     <AmbientMixer bind:this={mixer} embedded />

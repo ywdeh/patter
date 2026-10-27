@@ -17,7 +17,7 @@ export const defaults = {
     grain: 2,
     textSize: 18,
     editorFont: 0,
-    cornerControls: false,
+    cornerControls: true,
     position: 'center',
     background: defaultBackground,
 };
