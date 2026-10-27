@@ -51,8 +51,8 @@ export function spread_wallpaper(node, { duration, signal, origin, key, sequence
     const center_y = bounds.height * y / 100;
     const radius = Math.hypot(Math.max(center_x, bounds.width - center_x), Math.max(center_y, bounds.height - center_y)) + 16;
     const phase = Math.random() * Math.PI * 2;
-    const edges = Array.from({ length: 160 }, (_, index) => {
-        const angle = index / 160 * Math.PI * 2;
+    const edges = Array.from({ length: 120 }, (_, index) => {
+        const angle = index / 120 * Math.PI * 2;
         return {
             x: Math.cos(angle), y: Math.sin(angle),
             sin3: Math.sin(angle * 3 + phase), cos3: Math.cos(angle * 3 + phase),
