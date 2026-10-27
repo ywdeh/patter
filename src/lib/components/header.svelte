@@ -1,4 +1,5 @@
 <script>
+    import { wait_for_page_reveal } from '$lib/state/page_ready.js';
 	import { onMount } from 'svelte';
     import Button from '$lib/components/button.svelte';
     import { pwa_install, prompt_pwa_install } from '$lib/state/pwa_install.svelte.js';
@@ -10,7 +11,8 @@
 		let cleanup = () => {};
 
 		import('$lib/state/landing_intro.js')
-			.then(({ mountLandingIntro }) => {
+			.then(async ({ mountLandingIntro }) => {
+                await wait_for_page_reveal();
 				if (!cancelled) cleanup = mountLandingIntro(landingRoot);
 			})
 			.catch(() => landingRoot?.classList.remove('landing_intro_pending'));

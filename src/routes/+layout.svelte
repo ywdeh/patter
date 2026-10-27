@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { begin_page_reveal, finish_page_reveal } from '$lib/state/page_ready.js';
     import { mount_mobile_viewport } from '$lib/state/mobile_viewport.js';
     import { mount_panel_occlusion } from '$lib/state/panel_occlusion.js';
     import { mount_ui_hover_sound } from '$lib/state/ui_hover_sound.js';
@@ -29,8 +30,9 @@
 		const version = ++routeRevealVersion;
 		void document.fonts.ready.then(async () => {
 			if (version !== routeRevealVersion) return;
-			const surface = document.querySelector<HTMLElement>('.route_surface');
-			if (surface) await fade_page_in([surface]);
+			await fade_page_in(get_page_motion_targets());
+            if (version !== routeRevealVersion) return;
+            finish_page_reveal();
             if (initial && optionsIntroAllowed && version === routeRevealVersion
                 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
                 optionsIntro = true;
@@ -50,6 +52,7 @@
 		if (!navigation.from || !destination || navigation.from.url.pathname === destination.url.pathname) return;
 		if (routeTransitionInProgress) return;
 		routeTransitionInProgress = true;
+        begin_page_reveal();
 
 		playSound('paper_turn');
 		playSound('click', 0.5);
@@ -60,8 +63,6 @@
 	afterNavigate(({ from }) => {
 		routeTransitionInProgress = false;
 		if (!from) return;
-		const background = document.querySelector<HTMLElement>('.route_background');
-		if (background) void fade_page_in([background]);
 		revealSurfaceWhenFontsReady();
 	});
 
@@ -80,14 +81,12 @@
         };
         document.addEventListener('beforeinput', stopOnWriting);
 
-		requestAnimationFrame(() => {
-			const background = document.querySelector<HTMLElement>('.route_background');
-			if (background) void fade_page_in([background]);
-		});
 		revealSurfaceWhenFontsReady(true);
 
 		return () => {
             stopOptionsIntro();
+            routeRevealVersion++;
+            finish_page_reveal();
             document.removeEventListener('beforeinput', stopOnWriting);
 			cleanupInstall();
 			cleanupInteraction();

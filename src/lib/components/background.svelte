@@ -1,4 +1,5 @@
 <script>
+    import { wait_for_page_reveal } from '$lib/state/page_ready.js';
     import { onDestroy, onMount } from 'svelte';
     import { untrack } from 'svelte';
     import { tick } from 'svelte';
@@ -96,8 +97,11 @@
         if (prefersReducedMotion) video.pause();
         else video.play().catch(() => {});
         void updateAmbientColor(video, background.posterKey || background.url, 'video');
-        const layer = untrack(() => visible_backgrounds.find((item) => item.id === background.id));
-        if (layer) layer.videoOpacity = 1;
+        void wait_for_page_reveal().then(() => {
+            if (destroyed) return;
+            const layer = untrack(() => visible_backgrounds.find((item) => item.id === background.id));
+            if (layer) layer.videoOpacity = 1;
+        });
 
         const posterKey = background.posterKey || background.url;
         if (getBackgroundPoster(posterKey)) return;
@@ -180,7 +184,8 @@
 
         const fadeInLoop = async () => {
             if (!await waitForVideoFrame(incoming.id)) return;
-            if (untrack(() => visible_backgrounds.at(-1)?.id) !== incoming.id) return;
+            await wait_for_page_reveal();
+            if (destroyed || untrack(() => visible_backgrounds.at(-1)?.id) !== incoming.id) return;
 
             const incomingLayer = untrack(() => visible_backgrounds.at(-1));
             if (!incomingLayer || incomingLayer.id !== incoming.id) return;
@@ -228,6 +233,9 @@
                 await updateAmbientColor(next.url, next.posterKey);
                 if (id !== transitionId) return;
             }
+
+            await wait_for_page_reveal();
+            if (destroyed || id !== transitionId) return;
 
             const outgoing = untrack(() => visible_backgrounds.at(-1));
             if (!outgoing) return;

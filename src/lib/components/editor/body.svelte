@@ -1,4 +1,5 @@
 <script>
+    import { wait_for_page_reveal } from '$lib/state/page_ready.js';
     import { create_editor_autosave } from '$lib/state/editor_autosave.js';
     import { track_writing, mount_editor_time_tracking } from '$lib/state/analytics.js';
     import { schedule_recovery_snapshot, reset_recovery_buffer, cancel_pending_recovery, resume_recovery_snapshots } from '$lib/state/editor_recovery.js';
@@ -263,6 +264,7 @@
 
         let sessionTimer;
         let autofocusFrame = 0;
+        let autofocus_cancelled = false;
         const sessionStartedAt = performance.now();
         const updateSessionTime = () => {
             const elapsed = performance.now() - sessionStartedAt;
@@ -300,18 +302,22 @@
         window.addEventListener('patter-import-document', onImportDocument);
 
         if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-            autofocusFrame = requestAnimationFrame(() => {
-                autofocusFrame = 0;
-                const canTakeFocus = document.activeElement === document.body
-                    || document.activeElement === document.documentElement;
-                if (!canTakeFocus || !bodyEl?.isConnected) return;
+            void wait_for_page_reveal().then(() => {
+                if (autofocus_cancelled) return;
+                autofocusFrame = requestAnimationFrame(() => {
+                    autofocusFrame = 0;
+                    const canTakeFocus = document.activeElement === document.body
+                        || document.activeElement === document.documentElement;
+                    if (!canTakeFocus || !bodyEl?.isConnected) return;
 
-                markdownEditor.setSelectionToEnd();
-                bodyEl.focus({ preventScroll: true });
+                    markdownEditor.setSelectionToEnd();
+                    bodyEl.focus({ preventScroll: true });
+                });
             });
         }
 
         return () => {
+            autofocus_cancelled = true;
             cancel_pending_recovery();
             stop_time_tracking();
             flush_pending_save();
