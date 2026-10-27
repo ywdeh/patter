@@ -25,7 +25,7 @@
     let progress = $state(0);
     const visual_progress = $derived(progress);
     const close_radius = $derived(3.5 * (1 - visual_progress));
-    let phase = 'idle';
+    let phase = $state('idle');
     let button;
     let frame = 0;
     let completion_timer;
@@ -137,13 +137,13 @@
     class="patter_control patter_control_text group/hitbox relative flex w-fit cursor-pointer select-none touch-none items-center patter_font_body"
 >
     <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl patter_surface_gradient">
-        <span class="fill_clip absolute inset-0 overflow-hidden">
+        <span class="fill_clip hold_progress absolute inset-0 overflow-hidden" class:completed={phase === 'complete'}>
             <span class="hold_fill block h-full bg-(--patter_surface_fill)"
                 style:width={iconOnly ? '100%' : `${visual_progress * 100}%`}
                 style:--hold-angle={`${visual_progress * 360}deg`}></span>
         </span>
         {#if iconOnly}
-            <span class="hold_ring absolute inset-0 pointer-events-none"><svg width="100%" height="100%" fill="none" style="overflow: visible">
+            <span class="hold_ring hold_progress absolute inset-0 pointer-events-none" class:completed={phase === 'complete'}><svg width="100%" height="100%" fill="none" style="overflow: visible">
                 <circle style:stroke-dashoffset={1 - visual_progress} style:opacity={progress > 0 ? 'var(--patter_opacity_subtle)' : 0} cx="50%" cy="50%" r="50%" pathLength="1" />
             </svg></span>
         {/if}
@@ -170,6 +170,9 @@
     .compact > .hold_content { min-height: 0; padding: 0; }
     .icon_only > .patter_surface { border-radius: 50%; }
     .fill_clip { border-radius: inherit; pointer-events: none; }
+
+    .hold_progress { transition: opacity var(--patter_motion_slow) ease-out; }
+    .hold_progress.completed { opacity: 0; }
 
     .hold_ring svg {
         position: absolute;
