@@ -90,7 +90,7 @@
 
 </script>
 
-<div class="flex w-full shrink-0 min-w-0 flex-wrap items-center justify-between gap-3 px-2 sm:flex-nowrap sm:gap-4 sm:px-8" data-zen-mode-ui="editor-toolbar">
+<div class="patter_editor_controls flex w-full shrink-0 min-w-0 flex-wrap items-center justify-between gap-3 px-2 sm:flex-nowrap sm:gap-4 sm:px-8" data-zen-mode-ui="editor-toolbar">
 	<Button round icon="/chevron_left.svg" ariaLabel="Back home" href="/" />
 	<div class="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-4">
 		<DropdownButton text="Save" options={exportOptions} disabled={!hasContent} onexport={(format) => exportEditorDocument(format)} />

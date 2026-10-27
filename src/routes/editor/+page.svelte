@@ -120,11 +120,6 @@
         pointer-events: none !important;
     }
 
-    :global([data-zen-mode-ui="editor-stats"]) {
-        transition-property: opacity;
-        transition-timing-function: ease;
-    }
-
     :global(.zen-mode-placeholder-dimmed) {
         --patter_opacity_placeholder: calc(var(--patter_opacity_subtle) * 0.5);
     }

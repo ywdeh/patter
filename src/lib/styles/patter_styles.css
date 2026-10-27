@@ -45,6 +45,7 @@
 	--patter_motion_short: 150ms;
 	--patter_motion_standard: 200ms;
 	--patter_motion_slow: 400ms;
+    --patter_ease_in_out: cubic-bezier(0.77, 0, 0.175, 1);
 	--patter_motion_gentle: 600ms;
 	--patter_motion_ink: 800ms;
 	--patter_motion_fullscreen_out: 250ms;
@@ -328,4 +329,15 @@ button, a, [role="button"] { touch-action: manipulation; -webkit-touch-callout: 
     .patter_control:hover:not(:active) > .patter_hover { inset: 0; outline-color: var(--patter_surface_normal); }
     [data-patter-body] { font-size: max(16px, var(--patter_body_text_size, 18px)) !important; }
     input, textarea, select { font-size: 16px; }
+}
+
+.patter_editor_controls {
+    width: 100%;
+    margin-inline: 0;
+    transition: width var(--patter_motion_slow) var(--patter_ease_in_out), margin-inline var(--patter_motion_slow) var(--patter_ease_in_out), opacity var(--patter_motion_slow) ease-out;
+}
+[data-corner-controls] .patter_editor_controls {
+    --patter_controls_width: max(100%, calc(100vw - var(--patter_space_8)));
+    width: var(--patter_controls_width);
+    margin-inline: calc((100% - var(--patter_controls_width)) / 2);
 }

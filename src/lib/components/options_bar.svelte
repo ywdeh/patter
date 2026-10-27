@@ -217,6 +217,8 @@
                 <div id="options_content_writing" role="tabpanel" aria-labelledby="options_tab_writing" inert={active_tab !== 'Writing'} aria-hidden={active_tab !== 'Writing'} class:tab_inactive={active_tab !== 'Writing'} class="tab_content">
                     <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} displayFonts={editor_fonts} onchange={(value) => { persistBackgroundValues({ editorFont: value }); track_setting('editorFont', value); }} />
                     <InputPill text="Text size" min={mobile_mode ? 16 : 14} max={24} step={1} value={mobile_mode ? Math.max(16, background_values.textSize) : background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => { background_values.textSize = value; persistBackgroundValues({ textSize: value }); track_setting('textSize', value); }} />
+                    <div class="options_divider" aria-hidden="true"></div>
+                    <InputPill text="Controls" mode="toggle" falseLabel="Narrow" trueLabel="Wide" bind:value={background_values.cornerControls} defaultValue={defaults.cornerControls} onchange={(value) => { persistBackgroundValues({ cornerControls: value }); track_setting('corner_controls', value); }} />
                 </div>
                 <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
                     <AmbientMixer bind:this={mixer} embedded />
@@ -234,6 +236,7 @@
 
 <style>
     .options_shell {
+        pointer-events: none;
         position: absolute;
         z-index: 55;
         right: 0;
@@ -258,6 +261,7 @@
         filter: saturate(1);
     }
     .options_panel {
+        pointer-events: auto;
         position: relative;
         isolation: isolate;
         display: flex;
@@ -268,6 +272,9 @@
         max-height: calc(100dvh - 3rem);
         padding: var(--patter_space_4);
         border-radius: 0.75rem;
+    }
+    @media (min-width: 640px) and (hover: hover) and (pointer: fine) {
+        .options_panel::before { content: ''; position: absolute; inset-block: 0; inset-inline-end: 100%; width: var(--patter_space_6); pointer-events: auto; }
     }
     .options_glass { position: absolute; inset: 0; z-index: -1; }
     .options_header, .quick_actions { display: flex; align-items: center; }
@@ -347,6 +354,7 @@
         .mobile_options_toggle { position: fixed; right: max(1rem, env(safe-area-inset-right)); top: calc(var(--patter_viewport_height, 100dvh) - 44px - max(1rem, env(safe-area-inset-bottom))); z-index: 60; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; cursor: pointer; }
         .options_shell { --patter_setting_gap: var(--patter_space_4); position: fixed; width: min(25rem, 100vw); max-width: 100vw; height: var(--patter_viewport_height, 100dvh); padding: max(var(--patter_space_4), env(safe-area-inset-top)) max(var(--patter_space_4), env(safe-area-inset-right)) calc(var(--patter_mobile_controls_clearance) + env(safe-area-inset-bottom)) max(var(--patter_space_4), env(safe-area-inset-left)); align-items: center; }
         .options_shell:not(.touch_open) { opacity: 0; transform: translateX(100%); pointer-events: none; }
+        .options_shell:not(.touch_open) .options_panel { pointer-events: none; }
         .options_shell.touch_open { opacity: 1; transform: translateX(0); filter: none; }
         .options_panel { max-height: 100%; padding: var(--patter_space_3); }
         .options_header { padding-bottom: var(--patter_space_2); }

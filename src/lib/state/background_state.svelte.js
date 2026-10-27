@@ -17,6 +17,7 @@ export const defaults = {
     grain: 2,
     textSize: 18,
     editorFont: 0,
+    cornerControls: false,
     position: 'center',
     background: defaultBackground,
 };
@@ -35,6 +36,7 @@ function builtInBackground(src) {
 
 function applyToDocument(values) {
     if (typeof document === "undefined") return;
+    document.documentElement.toggleAttribute('data-corner-controls', values.cornerControls);
     document.documentElement.style.setProperty("--patter_focus", `${values.focus}px`);
     document.documentElement.style.setProperty("--patter_tint", `${values.tint / 100}`);
     document.documentElement.style.setProperty('--patter_tint_color', values.tintShade === 2 ? 'oklch(15.3% 0.025 135)' : values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
@@ -64,6 +66,7 @@ function load() {
             values[key] = typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
                 ? value : defaults[key];
         }
+        values.cornerControls = typeof values.cornerControls === 'boolean' ? values.cornerControls : defaults.cornerControls;
         values.position = ['top', 'center', 'bottom'].includes(values.position) ? values.position : defaults.position;
         values.background = validBackground(values.background);
         return values;
@@ -127,6 +130,7 @@ export function resetBackgroundValues() {
     background_values.grain = defaults.grain;
     background_values.textSize = defaults.textSize;
     background_values.editorFont = defaults.editorFont;
+    background_values.cornerControls = defaults.cornerControls;
     background_values.position = defaults.position;
     selectBuiltInBackground(defaults.background);
 }

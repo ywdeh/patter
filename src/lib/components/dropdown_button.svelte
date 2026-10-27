@@ -138,6 +138,8 @@
         if (!menu) return;
         const observer = new ResizeObserver(schedule_position);
         observer.observe(menu);
+        const toolbar = trigger?.closest('[data-zen-mode-ui="editor-toolbar"]');
+        if (toolbar) observer.observe(toolbar);
         return () => observer.disconnect();
     });
     onMount(() => {
