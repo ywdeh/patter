@@ -41,7 +41,7 @@ function getSoundPool(source, volume, voiceCount) {
 }
 
 if (typeof window !== 'undefined') {
-    schedule_idle_task(() => prepare_hover_audio(click_sources[0]));
+    schedule_idle_task(() => prepare_hover_audio(click_sources));
     const pending_sources = new Map();
     for (const preset of Object.values(sound_presets)) {
         for (const source of preset.sources) pending_sources.set(source, preset);
@@ -79,10 +79,10 @@ export function playSound(sound = 'click', volumeScale = 1) {
     if (!sound) return;
     if (!sound_enabled.value || (sound === 'typing' && !typing_sound_enabled.value)) return;
     const preset = sound_presets[sound];
-    if (sound === 'hover' && play_hover_audio(preset.volume * Math.max(0, Math.min(1, volumeScale)))) return;
     const sources = preset?.sources ?? [sound];
     const source = chooseSource(sound, sources);
     if (typeof source !== 'string' || !source) return;
+    if (sound === 'hover' && play_hover_audio(source, preset.volume * Math.max(0, Math.min(1, volumeScale)))) return;
 
     const pool = getSoundPool(source, preset?.volume ?? sound_presets.click.volume, preset?.voices ?? 4);
     if (!pool?.length) return;
