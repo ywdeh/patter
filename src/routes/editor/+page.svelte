@@ -108,7 +108,7 @@
 
 <style>
     @media (max-width: 639px), (hover: none), (pointer: coarse) {
-        .mobile_editor_shell { height: var(--patter_viewport_height, 100dvh); padding-top: max(var(--patter_space_4), env(safe-area-inset-top)); padding-left: max(var(--patter_space_3), env(safe-area-inset-left)); padding-right: max(var(--patter_space_3), env(safe-area-inset-right)); padding-bottom: calc(var(--patter_mobile_controls_clearance) + env(safe-area-inset-bottom)); }
+        .mobile_editor_shell { height: var(--patter_viewport_height, 100dvh); padding-top: max(var(--patter_space_4), env(safe-area-inset-top)); padding-left: max(var(--patter_space_3), env(safe-area-inset-left)); padding-right: max(var(--patter_space_3), env(safe-area-inset-right)); padding-bottom: max(var(--patter_space_4), env(safe-area-inset-bottom)); }
     }
     :global([data-zen-mode-ui]) {
         transition-duration: var(--patter_motion_slow) !important;
