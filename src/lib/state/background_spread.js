@@ -51,7 +51,6 @@ export function spread_wallpaper(node, { duration, signal, origin, key, sequence
     const center_y = bounds.height * y / 100;
     const radius = Math.hypot(Math.max(center_x, bounds.width - center_x), Math.max(center_y, bounds.height - center_y)) + 16;
     const phase = Math.random() * Math.PI * 2;
-    // Fixed angular terms are shared by every frame of this reveal.
     const edges = Array.from({ length: 160 }, (_, index) => {
         const angle = index / 160 * Math.PI * 2;
         return {

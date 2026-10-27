@@ -1,4 +1,3 @@
-// Visual viewport handles software keyboards where dvh keeps the full page height.
 export function mount_mobile_viewport() {
     const viewport = window.visualViewport;
     const touch = window.matchMedia('(hover: none), (pointer: coarse)');

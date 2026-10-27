@@ -252,7 +252,7 @@
         clip-path: inset(0.5rem round 0.5rem);
     }
     @media (hover: none), (pointer: coarse) {
-        .position_picker { opacity: 1; flex-direction: row; left: 0.5rem; right: 0.5rem; top: auto; bottom: 0.5rem; height: 24px; gap: 0.25rem; }
+        .position_picker { opacity: 1; flex-direction: row; left: 0.5rem; right: 0.5rem; top: auto; bottom: 0.5rem; height: 24px; gap: var(--patter_space_1); }
         .position_choice { width: 24px; height: 24px; min-height: 24px; }
         .background_thumbnail:has(> button[aria-pressed="false"]) .position_picker { opacity: 0; pointer-events: none; }
         .background_thumbnail:has(> button[aria-pressed="false"]) .position_choice { pointer-events: none; }

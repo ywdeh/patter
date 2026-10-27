@@ -1,6 +1,19 @@
 @import 'tailwindcss';
 
 :root {
+    --patter_space_1: 0.25rem;
+    --patter_space_2: calc(var(--patter_space_1) * 2);
+    --patter_space_3: calc(var(--patter_space_1) * 3);
+    --patter_space_4: calc(var(--patter_space_1) * 4);
+    --patter_space_5: calc(var(--patter_space_1) * 5);
+    --patter_space_6: calc(var(--patter_space_1) * 6);
+    --patter_space_8: calc(var(--patter_space_1) * 8);
+    --patter_space_12: calc(var(--patter_space_1) * 12);
+    --patter_space_16: calc(var(--patter_space_1) * 16);
+    --patter_space_18: calc(var(--patter_space_1) * 18);
+    --patter_space_24: calc(var(--patter_space_1) * 24);
+    --patter_setting_gap: var(--patter_space_5);
+    --patter_mobile_controls_clearance: var(--patter_space_18);
 	color: var(--patter_color_text, oklch(99% 0.003 325.6));
 	--patter_font_header: 'Amarante', serif;
 	--patter_font_body: 'Bitter', serif;
@@ -11,7 +24,6 @@
 	--patter_line_height_control: 24px;
 	--patter_control_height: 40px;
 	--patter_pill_height: 36px;
-    --patter_setting_gap: 1.25rem;
     --patter_divider: linear-gradient(to right, transparent, var(--patter_surface_normal), transparent);
 	--patter_opacity_subtle: 0.4;
     --patter_surface_fill: color-mix(in srgb, var(--patter_color_text) 6%, transparent);
@@ -51,6 +63,7 @@
 }
 
 @theme {
+    --spacing: var(--patter_space_1);
 	--color-mauve-100: var(--patter_color_text);
 	--color-white: var(--patter_color_text);
 	--default-transition-duration: var(--patter_motion_short);
@@ -108,7 +121,7 @@
 	position: fixed;
 	z-index: 10000;
 	inset: auto 1rem 1rem;
-	padding: 0.75rem 1rem;
+	padding: var(--patter_space_3) var(--patter_space_4);
 	border: 2px solid rgb(243 241 243 / 24%);
 	border-radius: 0.75rem;
 	background: var(--patter_color_base);
@@ -311,7 +324,7 @@ html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%;
 body { overscroll-behavior: none; }
 button, a, [role="button"] { touch-action: manipulation; -webkit-touch-callout: none; }
 @media (hover: none), (pointer: coarse) {
-    :root { --patter_control_height: 44px; --patter_pill_height: 44px; --patter_setting_gap: 1rem; }
+    :root { --patter_control_height: 44px; --patter_pill_height: 44px; --patter_setting_gap: var(--patter_space_4); }
     .patter_control:hover:not(:active) > .patter_hover { inset: 0; outline-color: var(--patter_surface_normal); }
     [data-patter-body] { font-size: max(16px, var(--patter_body_text_size, 18px)) !important; }
     input, textarea, select { font-size: 16px; }

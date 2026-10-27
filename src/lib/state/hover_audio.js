@@ -1,4 +1,3 @@
-// Decoded hover audio avoids the startup latency of an HTML audio element.
 let context;
 const buffers = new Map();
 let preparing;
@@ -12,12 +11,11 @@ export function prepare_hover_audio(sources) {
                 const response = await fetch(source);
                 if (!response.ok) return;
                 const buffer = await context.decodeAudioData(await response.arrayBuffer());
-                // Remove only leading near-silence, leaving each sound's attack intact.
                 const samples = buffer.getChannelData(0);
                 const first = samples.findIndex((sample) => Math.abs(sample) > 0.002);
                 const start_offset = Math.max(0, first - Math.round(buffer.sampleRate * 0.002)) / buffer.sampleRate;
                 buffers.set(source, { buffer, start_offset });
-            } catch { /* This source can still use the native audio fallback. */ }
+            } catch {  }
         }));
     })().catch(() => {});
 }

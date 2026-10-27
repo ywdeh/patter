@@ -61,8 +61,8 @@
 
 <style>
     @media (max-width: 639px), (hover: none), (pointer: coarse) {
-        .mobile_landing { min-height: 100svh; padding-top: env(safe-area-inset-top); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); overflow-y: auto; max-height: 100dvh; }
-        .mobile_landing_content { min-height: min(38rem, 80svh); gap: 3rem; padding-block: 3rem; }
-        .mobile_landing footer { grid-row: 2; padding: 0.75rem 0 calc(4.5rem + env(safe-area-inset-bottom)); }
+        .mobile_landing { min-height: 100svh; padding-top: env(safe-area-inset-top); padding-left: max(var(--patter_space_4), env(safe-area-inset-left)); padding-right: max(var(--patter_space_4), env(safe-area-inset-right)); overflow-y: auto; max-height: 100dvh; }
+        .mobile_landing_content { min-height: min(38rem, 80svh); gap: var(--patter_space_12); padding-block: var(--patter_space_12); }
+        .mobile_landing footer { grid-row: 2; padding: var(--patter_space_3) 0 calc(var(--patter_mobile_controls_clearance) + env(safe-area-inset-bottom)); }
     }
 </style>

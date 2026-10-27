@@ -1,7 +1,6 @@
 import { motionDuration } from './motion.js';
 import { render_markdown_line } from './markdown_render.js';
 
-// Each read-only layer crossfades independently; raw writing and undo never change.
 export function recovery_preview(editor) {
     const scroll = editor.parentElement;
     const host = scroll.parentElement;
@@ -76,7 +75,6 @@ export function recovery_preview(editor) {
     }
     function preview(event) {
         requested = typeof event.detail?.text === 'string' ? event.detail.text : null;
-        // Blur/leave followed by focus/enter in one frame must not flash the draft.
         if (!frame) frame = requestAnimationFrame(() => { frame = 0; apply(requested); });
     }
     function clear_immediately() {

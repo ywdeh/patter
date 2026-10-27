@@ -1,5 +1,3 @@
-// Bounded insertion/deletion distance: quick for small edits, stops at the limit.
-// Comparing raw Markdown also preserves meaningful formatting changes.
 export function recovery_text_is_similar(left, right) {
     const limit = Math.min(40, Math.max(5, Math.round(Math.min(left.length, right.length) * 0.02)));
     if (Math.abs(left.length - right.length) > limit) return false;

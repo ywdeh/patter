@@ -1,5 +1,3 @@
-// Panels expose their priority with data-patter-panel. Backgrounds are exempt.
-// One app-wide rule masks all other content, including other lower-priority panels.
 export function mount_panel_occlusion() {
     const panel_selector = '[data-patter-panel]';
     const targets = new Map();
@@ -64,7 +62,6 @@ export function mount_panel_occlusion() {
             const style = styles(node);
             return { node, order: panels.indexOf(node), priority: Number(node.dataset.patterPanel) || 0, bounds: node.getBoundingClientRect(), opacity: Number(style.opacity), radius: parseFloat(style.borderTopLeftRadius) || 0 };
         });
-        // Read geometry before writing any masks.
         const geometry = [...targets].map(([node, original]) => ({ node, original, bounds: covers.length ? node.getBoundingClientRect() : null }));
         for (const { node, original, bounds } of geometry) {
             if (!covers.length) { write(node, original); continue; }
@@ -102,7 +99,6 @@ export function mount_panel_occlusion() {
             if (record.type === 'attributes' && record.attributeName === 'style' && written_styles.get(record.target) === record.target.getAttribute('style')) continue;
             if (record.attributeName === 'data-patter-panel') rescan = true;
             if (record.type === 'childList') {
-                // Typing changes editor descendants, not the roots that need masks.
                 const structural = [...record.addedNodes, ...record.removedNodes].some((node) =>
                     node instanceof Element && (node.matches(panel_selector) || node.querySelector(panel_selector) || targets.has(node)));
                 if (structural || record.target === document.body) rescan = true;

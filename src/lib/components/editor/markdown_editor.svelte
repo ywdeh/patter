@@ -389,7 +389,6 @@
         if (!editor.contains(range.startContainer) || !editor.contains(range.endContainer)) return null;
         const fragment = range.cloneContents();
         for (const syntax of fragment.querySelectorAll('.markdown_syntax')) syntax.remove();
-        // Preserve paragraph boundaries, but do not insert spaces between inline marks.
         let text = '';
         for (const child of fragment.childNodes) {
             if (child.nodeType === Node.ELEMENT_NODE && child.classList.contains('markdown_line') && text) text += '\n';

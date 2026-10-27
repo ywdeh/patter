@@ -28,7 +28,6 @@ caret-mauve-100" spellcheck="false">
 			window.dataLayer = window.dataLayer || [];
 			function gtag(){dataLayer.push(arguments);}
 			if (window.patter_analytics_enabled) {
-				// The visible editor title can contain writing. Analytics always gets a static title.
 				gtag('set', { page_title: 'Patter', page_location: location.origin + location.pathname });
 				gtag('js', new Date());
 				gtag('config', 'G-2LFQ1HS7XW', { page_title: 'Patter' });
@@ -42,7 +41,7 @@ caret-mauve-100" spellcheck="false">
 		<script>
 			(() => {
 				const defaults = { focus: 10, tint: 50, grain: 2, textSize: 18, background: '/backgrounds/book.webp' };
-				const backgrounds = /* patter_background_catalog */ [];
+				const backgrounds = [];
 				let saved = {};
 				let fallbackBackground = defaults.background;
 				let selectedBackground = defaults.background;

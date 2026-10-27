@@ -1,6 +1,5 @@
 import { getEditorPlaceholder } from './editor_placeholders.js';
 
-// This visual overlay stays outside the editable DOM and never enters the document source.
 export function placeholder_ink(node, initial_text) {
     const reduced_motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let resetting = false;
@@ -11,7 +10,6 @@ export function placeholder_ink(node, initial_text) {
     let overlay_bounds;
     let newest = -1;
     const reveals = new Map();
-    // Keep the visible quote independent of reactive data-placeholder updates.
     node.style.setProperty('--patter_placeholder_frame', JSON.stringify(displayed));
 
     function layout() {
@@ -112,7 +110,6 @@ export function placeholder_ink(node, initial_text) {
             reveal = { wrapper, outgoing, incoming };
             reveals.set(detail.sequence, reveal);
         }
-        // The overlay does not move during a reveal; avoid forcing layout after each mask write.
         const bounds = overlay_bounds ??= overlay.getBoundingClientRect();
         const points = detail.points.map(([x, y]) => `${(x + detail.left - bounds.left).toFixed(1)}px ${(y + detail.top - bounds.top).toFixed(1)}px`);
         const outer = `0px 0px, ${bounds.width}px 0px, ${bounds.width}px ${bounds.height}px, 0px ${bounds.height}px, 0px 0px`;

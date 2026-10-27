@@ -1,4 +1,3 @@
-// Keep image scaling and pixel readback off the UI thread.
 self.onmessage = ({ data: { id, bitmap, width, height } }) => {
     try {
         const canvas = new OffscreenCanvas(width, height);

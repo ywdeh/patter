@@ -5,6 +5,6 @@ const background_catalog = JSON.stringify(backgrounds.map(({ src, kind }) => ({ 
 
 export function handle({ event, resolve }) {
     return resolve(event, {
-        transformPageChunk: ({ html }) => html.replace('/* patter_background_catalog */ []', background_catalog)
+        transformPageChunk: ({ html }) => html.replace('const backgrounds = [];', `const backgrounds = ${background_catalog};`)
     });
 }

@@ -180,7 +180,7 @@ function readBackgroundPixels(source, kind) {
         const sample_height = Math.max(1, Math.round(height * scale));
         if (typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined' && typeof createImageBitmap === 'function') {
             try { return await readPixelsInWorker(media, sample_width, sample_height); }
-            catch { /* Keep background colors available if worker startup is blocked. */ }
+            catch {  }
         }
         const canvas = document.createElement('canvas');
         canvas.width = sample_width;

@@ -62,7 +62,7 @@
                 }
                 selectionWorker.postMessage({ version, text });
                 return;
-            } catch { /* Counting still works when workers are unavailable. */ }
+            } catch {  }
         }
         selectionCounts = countEditorText(text);
     }

@@ -1,4 +1,3 @@
-// Optimize static raster uploads locally before they enter browser storage.
 export async function optimize_background_upload(file) {
     if (!/\.(?:png|jpe?g)$/i.test(file.name)) return file;
     const image = await createImageBitmap(file);

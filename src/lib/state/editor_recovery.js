@@ -56,7 +56,6 @@ async function check_snapshot() {
     const text = source;
     const visible_at_check = visible;
     try {
-        // No slots for untouched writing, deletion-only edits, or an already checked version.
         const added_content = visible_at_check.length > saved_visible.length;
         if (text !== checked_source && text.trim() && added_content
             && (!first_snapshot || word_count(visible_at_check) >= first_snapshot_words)) {
@@ -68,7 +67,7 @@ async function check_snapshot() {
                 if (result.has_snapshots) first_snapshot = false;
             }
         }
-    } catch { /* Retry on the next check; draft safety saving remains independent. */ }
+    } catch {  }
     if (version === document_version && !stopped) {
         if (!first_snapshot) schedule_check(snapshot_interval);
         else if (text !== source) schedule_check(snapshot_pause);
@@ -97,7 +96,6 @@ export function schedule_recovery_snapshot(text, visible_text = text) {
     } else if (!timer) schedule_check(snapshot_interval);
 }
 
-// Hiding or leaving the editor never forces a history slot.
 export function cancel_pending_recovery() {
     clearTimeout(timer);
     timer = null;
@@ -123,7 +121,6 @@ export function clear_recovery_snapshots() {
     return enqueue(() => transact((store) => { store.clear(); }));
 }
 
-// Removing one history slot never changes the active draft or its safety save.
 export function dismiss_recovery_snapshot(id) {
     return enqueue(() => transact((store) => { store.delete(id); }));
 }

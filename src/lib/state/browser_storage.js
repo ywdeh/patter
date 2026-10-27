@@ -1,4 +1,3 @@
-// A short-lived connection per operation keeps upgrades and reset operations unblocked.
 export function create_browser_store(database, store, options) {
     function open() {
         return new Promise((resolve, reject) => {

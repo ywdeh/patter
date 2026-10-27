@@ -230,7 +230,7 @@
         width: 25rem;
         max-width: calc(100vw - 3rem);
         height: 100dvh;
-        padding: 1.5rem;
+        padding: var(--patter_space_6);
         opacity: var(--patter_opacity_disabled);
         transform: translateX(calc(100% - 3 * var(--patter_control_height) - 2rem));
         filter: saturate(0);
@@ -253,13 +253,13 @@
         flex-shrink: 0;
         min-height: 0;
         max-height: calc(100dvh - 3rem);
-        padding: 1rem;
+        padding: var(--patter_space_4);
         border-radius: 0.75rem;
     }
     .options_glass { position: absolute; inset: 0; z-index: -1; }
     .options_header, .quick_actions { display: flex; align-items: center; }
-    .options_header { justify-content: space-between; padding-bottom: 1rem; flex-shrink: 0; }
-    .quick_actions { gap: 1rem; }
+    .options_header { justify-content: space-between; padding-bottom: var(--patter_space_4); flex-shrink: 0; }
+    .quick_actions { gap: var(--patter_space_4); }
     .icon_button {
         position: relative;
         display: flex;
@@ -281,7 +281,7 @@
     }
     .options_tabs button {
         position: relative;
-        padding: 0.75rem 0.25rem 1rem;
+        padding: var(--patter_space_3) var(--patter_space_1) var(--patter_space_4);
         cursor: pointer;
         opacity: var(--patter_opacity_secondary);
         transition: opacity var(--patter_motion_standard) ease-out;
@@ -311,31 +311,31 @@
         -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--options-top-fade), #000 calc(100% - var(--options-bottom-fade)), transparent 100%);
         flex: 1;
         min-height: 0;
-        margin: 0 -0.5rem;
-        padding: 1.25rem 0.5rem;
+        margin: 0 calc(var(--patter_space_2) * -1);
+        padding: var(--patter_space_5) var(--patter_space_2);
         overflow-y: auto;
         overflow-x: hidden;
         overscroll-behavior: contain;
         scrollbar-gutter: stable;
     }
     .tab_content, .setting_rows { display: flex; flex-direction: column; gap: var(--patter_setting_gap); }
-    .tab_content { padding: 0.25rem; }
+    .tab_content { padding: var(--patter_space_1); }
     .tab_stack { display: grid; }
     .tab_content { grid-area: 1 / 1; align-self: start; }
     .tab_inactive { visibility: hidden; pointer-events: none; }
     @media (max-width: 420px) {
-        .options_scroll :global([data-setting-control]) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+        .options_scroll :global([data-setting-control]) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--patter_space_2); }
         .options_scroll :global([data-setting-control] > div) { min-width: 0; width: 100%; }
     }
     .mobile_options_toggle { display: none; }
     @media (max-width: 639px), (hover: none), (pointer: coarse) {
         .mobile_options_toggle { position: fixed; right: max(1rem, env(safe-area-inset-right)); top: calc(var(--patter_viewport_height, 100dvh) - 44px - max(1rem, env(safe-area-inset-bottom))); z-index: 60; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; cursor: pointer; }
-        .options_shell { --patter_setting_gap: 1rem; position: fixed; width: min(25rem, 100vw); max-width: 100vw; height: var(--patter_viewport_height, 100dvh); padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) calc(4.5rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); align-items: center; }
+        .options_shell { --patter_setting_gap: var(--patter_space_4); position: fixed; width: min(25rem, 100vw); max-width: 100vw; height: var(--patter_viewport_height, 100dvh); padding: max(var(--patter_space_4), env(safe-area-inset-top)) max(var(--patter_space_4), env(safe-area-inset-right)) calc(var(--patter_mobile_controls_clearance) + env(safe-area-inset-bottom)) max(var(--patter_space_4), env(safe-area-inset-left)); align-items: center; }
         .options_shell:not(.touch_open) { opacity: 0; transform: translateX(100%); pointer-events: none; }
         .options_shell.touch_open { opacity: 1; transform: translateX(0); filter: none; }
-        .options_panel { max-height: 100%; padding: 0.75rem; }
-        .options_header { padding-bottom: 0.5rem; }
-        .quick_actions { gap: 0.75rem; }
-        .options_scroll { padding-block: 0.75rem; }
+        .options_panel { max-height: 100%; padding: var(--patter_space_3); }
+        .options_header { padding-bottom: var(--patter_space_2); }
+        .quick_actions { gap: var(--patter_space_3); }
+        .options_scroll { padding-block: var(--patter_space_3); }
     }
 </style>

@@ -70,9 +70,6 @@ export function getCaretRect(range, editor) {
 		};
 	}
 
-	// Prefer the browser's native collapsed-range geometry. Inserting a measuring
-	// marker here mutates the editable DOM and can make the first typed character
-	// move the live selection into a neighboring line.
 	const nativeRect = range.getBoundingClientRect();
 	if (nativeRect.height > 0) {
 		return { left: nativeRect.left, top: nativeRect.top, width: nativeRect.width, height: nativeRect.height };

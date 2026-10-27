@@ -45,7 +45,6 @@
         phase = 'complete';
         pointer_id = null;
         active_key = null;
-        // One full turn resets invisibly after the completion pause.
         completion_timer = window.setTimeout(() => {
             progress = 0;
             phase = 'idle';

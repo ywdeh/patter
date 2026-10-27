@@ -1,6 +1,5 @@
 import { motionDuration } from './motion.js';
 
-// Only these predefined fields can leave the app. Never pass editor or file content.
 const fields = {
     writing_started: [],
     editor_time_milestone: ['minutes'],
@@ -22,7 +21,7 @@ export function track_event(name, parameters = {}) {
         const safe = Object.fromEntries(fields[name].filter((key) => parameters[key] !== undefined)
             .map((key) => [key, parameters[key]]));
         window.gtag?.('event', name, safe);
-    } catch { /* Analytics must not interrupt an action. */ }
+    } catch {  }
 }
 
 export function track_writing() {
@@ -30,7 +29,7 @@ export function track_writing() {
     const now = Date.now();
     try {
         if (!last_writing_activity) last_writing_activity = Number(sessionStorage.getItem(writing_storage_key)) || 0;
-    } catch { /* Session deduplication still works in memory. */ }
+    } catch {  }
     if (now - last_writing_activity >= writing_session_idle) track_event('writing_started');
     last_writing_activity = now;
     if (now - saved_writing_activity >= 60000) {
@@ -48,7 +47,6 @@ export function track_setting(setting, value) {
     }, motionDuration('slow', 400)));
 }
 
-// Visible editor time during this page visit, retained across internal navigation.
 const editor_milestones = [1, 5, 15, 30, 60];
 let editor_elapsed = 0;
 let next_editor_milestone = 0;

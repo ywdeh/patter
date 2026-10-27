@@ -1,7 +1,6 @@
 import { playSound } from './sound.js';
 import { motionDuration } from './motion.js';
 
-// One delegated listener covers controls, including portalled menus.
 export function mount_ui_hover_sound() {
     let last_sound = -Infinity;
     function hover(event) {

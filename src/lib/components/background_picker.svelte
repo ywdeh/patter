@@ -264,9 +264,9 @@
     .upload_slot { display: grid; min-width: 0; aspect-ratio: 16 / 9; }
     .upload_frame { grid-area: 1 / 1; min-width: 0; }
     .upload_frame > button { height: 100%; }
-    .compact { gap: 1rem; padding: 0; }
-    .compact .upload_controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .compact { gap: var(--patter_space_4); padding: 0; }
+    .compact .upload_controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--patter_space_4); }
     .compact .upload_controls > :global([data-background-thumbnail]) { width: 100%; }
-    .compact .upload_action { aspect-ratio: 16 / 9; min-height: var(--patter_pill_height); flex-direction: column; width: 100%; min-width: 0; padding: 0.75rem; gap: 0.25rem; }
+    .compact .upload_action { aspect-ratio: 16 / 9; min-height: var(--patter_pill_height); flex-direction: column; width: 100%; min-width: 0; padding: var(--patter_space_3); gap: var(--patter_space_1); }
     .compact .upload_action svg { width: 1.25rem; height: 1.25rem; }
 </style>

@@ -1,4 +1,3 @@
-// Safety saving is independent of pauses and recent-history slots.
 export function create_editor_autosave(save) {
     const interval = 30000;
     let timer;
@@ -16,7 +15,6 @@ export function create_editor_autosave(save) {
         if (save(text) !== false) {
             if (pending === text) pending = null;
         }
-        // A failed write stays pending and retries without requiring more typing.
         if (pending !== null) timer = setTimeout(flush, interval);
     }
     function schedule(text) {

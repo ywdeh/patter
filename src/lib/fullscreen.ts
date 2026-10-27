@@ -45,7 +45,6 @@ export async function enterFullscreen() {
 
 export async function exitFullscreen() {
 	if (fullscreen_transition_pending) return false;
-	// Browser-managed F11 fullscreen must be exited through the browser.
 	if (!document.fullscreenElement) return !isFullscreenActive();
 	fullscreen_transition_pending = true;
 	try {

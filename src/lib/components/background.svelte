@@ -274,7 +274,6 @@
             });
             spread_controllers.delete(spread_controller);
             if (destroyed) return;
-            // A completed reveal covers every older layer, even while newer reveals run.
             const completed_index = untrack(() => visible_backgrounds.findIndex((layer) => layer.id === incoming.id));
             if (completed_index > 0) visible_backgrounds = untrack(() => visible_backgrounds.slice(completed_index));
             if (id !== transitionId) return;

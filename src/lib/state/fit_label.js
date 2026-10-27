@@ -2,7 +2,6 @@ export function fit_label(node) {
     let frame = 0;
     function measure() {
         frame = 0;
-        // Inherit the normal text size before calculating the required reduction.
         node.style.removeProperty('font-size');
         const width = node.clientWidth;
         if (!width) return;
