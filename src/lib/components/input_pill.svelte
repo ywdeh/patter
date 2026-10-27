@@ -173,20 +173,24 @@
 
 </script>
 
+{#snippet chevron(direction)}
+    <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style={`mask-image: url(/chevron_${direction}.svg); -webkit-mask-image: url(/chevron_${direction}.svg)`}></span>
+{/snippet}
+
 <svelte:window onblur={endHold} />
 
-<div role="group" aria-label={text ?? 'Setting controls'} class="flex gap-3 items-center w-full">
+<div data-setting-control role="group" aria-label={text ?? 'Setting controls'} class="flex gap-3 items-center w-full">
     <p class="flex-1">{text}</p>
     {#if mode === "toggle"}
-    <div class="flex flex-[1.5] gap-3 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
-        <button
+    <div class="flex flex-[1.5] gap-3 justify-between items-center patter_pill_gradient rounded-full text-center">
+        <button data-ui-hover-sound={Boolean(sound)}
             aria-label={falseLabel}
             onclick={(event) => setToggle(false, event)}
             disabled={!value}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_left.svg); -webkit-mask-image: url(/chevron_left.svg)"></span>
+                {@render chevron("left")}
             </span>
         </button>
 
@@ -202,21 +206,21 @@
             {/key}
         </div>
 
-        <button
+        <button data-ui-hover-sound={Boolean(sound)}
             aria-label={trueLabel}
             onclick={(event) => setToggle(true, event)}
             disabled={value}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient"></span>
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_right.svg); -webkit-mask-image: url(/chevron_right.svg)"></span>
+                {@render chevron("right")}
             </span>
         </button>
     </div>
     {:else}
-    <div class="flex flex-[1.5] gap-3 justify-between items-center bg-linear-to-r from-mauve-100/0 via-mauve-100/12 to-mauve-100/0 rounded-full text-center">
-        <button
-            aria-label="decrease"
+    <div class="flex flex-[1.5] gap-3 justify-between items-center patter_pill_gradient rounded-full text-center">
+        <button data-ui-hover-sound={Boolean(sound)}
+            aria-label={`Decrease ${text ?? "value"}`}
             onclick={() => handleClick(-step)}
             onpointerdown={(event) => { if (event.button === 0) startHold(-step); }}
             onpointerup={endHold}
@@ -232,7 +236,7 @@
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_left.svg); -webkit-mask-image: url(/chevron_left.svg)"></span>
+                {@render chevron("left")}
             </span>
         </button>
 
@@ -250,8 +254,8 @@
             {/key}
         </div>
 
-        <button
-            aria-label="increase"
+        <button data-ui-hover-sound={Boolean(sound)}
+            aria-label={`Increase ${text ?? "value"}`}
             onclick={() => handleClick(step)}
             onpointerdown={(event) => { if (event.button === 0) startHold(step); }}
             onpointerup={endHold}
@@ -267,11 +271,11 @@
             </span>
 
             <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/chevron_right.svg); -webkit-mask-image: url(/chevron_right.svg)"></span>
+                {@render chevron("right")}
             </span>
         </button>
 
-        <button
+        <button data-ui-hover-sound={Boolean(sound)}
             onclick={() => reset()}
             disabled={value === resetTo}
             aria-label="Reset to default"
@@ -282,7 +286,7 @@
             </span>
 
             <span class="relative flex size-4 shrink-0 items-center justify-center pointer-events-none">
-                <svg class="size-4 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10a8 8 0 1 0-1.5 7M20 4v6h-6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                <svg class="patter_icon size-4 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10a8 8 0 1 0-1.5 7M20 4v6h-6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" /></svg>
             </span>
         </button>
     </div>

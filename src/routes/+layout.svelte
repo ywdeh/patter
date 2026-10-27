@@ -1,4 +1,7 @@
 <script lang="ts">
+    import { mount_mobile_viewport } from '$lib/state/mobile_viewport.js';
+    import { mount_panel_occlusion } from '$lib/state/panel_occlusion.js';
+    import { mount_ui_hover_sound } from '$lib/state/ui_hover_sound.js';
 	import Background from '$lib/components/background.svelte';
 	import OptionsBar from '$lib/components/options_bar.svelte';
 	import '$lib/styles/patter_styles.css';
@@ -65,6 +68,9 @@
 	onMount(() => {
 		const cleanupInstall = mount_pwa_install();
 		const cleanupInteraction = mount_user_interaction();
+        const cleanupViewport = mount_mobile_viewport();
+        const cleanupPanels = mount_panel_occlusion();
+        const cleanupHoverSound = mount_ui_hover_sound();
 		const handleFullscreenChange = () => {
 			void fade_page_in(get_page_motion_targets());
 		};
@@ -85,6 +91,9 @@
             document.removeEventListener('beforeinput', stopOnWriting);
 			cleanupInstall();
 			cleanupInteraction();
+            cleanupHoverSound();
+            cleanupPanels();
+            cleanupViewport();
 			document.removeEventListener('fullscreenchange', handleFullscreenChange);
 		};
 	});

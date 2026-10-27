@@ -22,8 +22,8 @@
 	});
 </script>
 
-<main bind:this={landingRoot} class="landing_intro_pending grid min-h-dvh w-full grid-cols-1 grid-rows-1 px-4 sm:px-6 md:px-24">
-    <div class="col-start-1 row-start-1 flex min-h-dvh w-full flex-col items-center justify-center gap-16 text-center sm:gap-24">
+<main bind:this={landingRoot} class="mobile_landing landing_intro_pending grid min-h-dvh w-full grid-cols-1 grid-rows-1 px-4 sm:px-6 md:px-24">
+    <div class="mobile_landing_content col-start-1 row-start-1 flex min-h-dvh w-full flex-col items-center justify-center gap-16 text-center sm:gap-24">
 
         <div class="flex flex-col gap-4">
             <h1 aria-label="Patter" class="patter_font_header text-7xl tracking-tight sm:text-8xl md:text-9xl">
@@ -54,7 +54,15 @@
     <footer data-landing-intro-reveal class="col-start-1 row-start-1 z-10 flex w-full flex-col-reverse items-center gap-1 self-end px-6 pt-8 pb-6 text-center patter_text_subtle">
         <p class="max-w-full opacity-80">Patter is in active development. Back up your files, just in case</p>
         <div data-selectable-text class="flex justify-center gap-2">
-                <p class="opacity-(--patter_opacity_secondary)">feedback <a href="mailto:itshedwy@icloud.com" class="transition-all border-b-2 border-transparent hover:border-inherit">itshedwy@icloud.com</a>, <a href="https://reddit.com/r/patterapp" target="_blank" class="transition-all border-b-2 border-transparent hover:border-inherit">reddit</a></p>
+                <p class="opacity-(--patter_opacity_secondary)">feedback <a href="mailto:itshedwy@icloud.com" class="transition-[border-color] border-b-2 border-transparent hover:border-inherit">itshedwy@icloud.com</a>, <a href="https://reddit.com/r/patterapp" target="_blank" class="transition-[border-color] border-b-2 border-transparent hover:border-inherit">reddit</a></p>
         </div>
     </footer>
 </main>
+
+<style>
+    @media (max-width: 639px), (hover: none), (pointer: coarse) {
+        .mobile_landing { min-height: 100svh; padding-top: env(safe-area-inset-top); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); overflow-y: auto; max-height: 100dvh; }
+        .mobile_landing_content { min-height: min(38rem, 80svh); gap: 3rem; padding-block: 3rem; }
+        .mobile_landing footer { grid-row: 2; padding: 0.75rem 0 calc(4.5rem + env(safe-area-inset-bottom)); }
+    }
+</style>

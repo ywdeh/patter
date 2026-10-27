@@ -33,7 +33,7 @@
     </span>
 {/snippet}
 
-<button
+<button data-ui-hover-sound={Boolean(sound)}
     type="button"
     disabled={disabled}
     class:patter_control_round={round}

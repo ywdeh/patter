@@ -11,6 +11,8 @@
 	--patter_line_height_control: 24px;
 	--patter_control_height: 40px;
 	--patter_pill_height: 36px;
+    --patter_setting_gap: 1.25rem;
+    --patter_divider: linear-gradient(to right, transparent, var(--patter_surface_normal), transparent);
 	--patter_opacity_subtle: 0.4;
     --patter_surface_fill: color-mix(in srgb, var(--patter_color_text) 6%, transparent);
     --patter_surface_gradient: linear-gradient(to bottom, var(--patter_surface_fill), transparent);
@@ -80,13 +82,9 @@
 	text-shadow: 0 0 12px var(--patter_shadow_text_color);
 }
 
-.patter_text_subtle {
-	font-size: var(--patter_font_size_small);
-	line-height: var(--patter_line_height_small);
-	letter-spacing: 0.025em;
-	opacity: var(--patter_opacity_subtle);
-}
+.patter_text_subtle { opacity: var(--patter_opacity_subtle); }
 
+.patter_text_subtle,
 .patter_text_small {
 	font-size: var(--patter_font_size_small);
 	line-height: var(--patter_line_height_small);
@@ -219,10 +217,6 @@ a[href^="mailto:"] * {
 	border-radius: var(--patter_active_radius);
 }
 
-.patter_control:disabled > .patter_active {
-	@apply inset-2;
-}
-
 .patter_icon {
     opacity: 0.65;
     transition: opacity var(--patter_motion_standard) ease-out, scale var(--patter_motion_standard) ease-out;
@@ -310,4 +304,15 @@ a[href^="mailto:"] * {
 }
 
 .patter_surface_gradient { background-image: var(--patter_surface_gradient); }
+.patter_pill_gradient { background-image: var(--patter_divider); }
 .patter_outline_normal { outline-color: var(--patter_surface_normal); }
+
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; overscroll-behavior: none; }
+body { overscroll-behavior: none; }
+button, a, [role="button"] { touch-action: manipulation; -webkit-touch-callout: none; }
+@media (hover: none), (pointer: coarse) {
+    :root { --patter_control_height: 44px; --patter_pill_height: 44px; --patter_setting_gap: 1rem; }
+    .patter_control:hover:not(:active) > .patter_hover { inset: 0; outline-color: var(--patter_surface_normal); }
+    [data-patter-body] { font-size: max(16px, var(--patter_body_text_size, 18px)) !important; }
+    input, textarea, select { font-size: 16px; }
+}

@@ -131,6 +131,7 @@ export function placeholder_ink(node, initial_text) {
     resize.observe(node);
     const reset_start = () => { resetting = true; finish(); };
     const reset_end = () => { finish(); resetting = false; };
+    node.addEventListener('patter-document-replaced', finish);
     window.addEventListener('patter-editor-reset-start', reset_start);
     window.addEventListener('patter-editor-reset-end', reset_end);
     window.addEventListener('patter-wallpaper-spread', on_spread);
@@ -141,6 +142,7 @@ export function placeholder_ink(node, initial_text) {
             resize.disconnect();
             node.parentElement?.removeEventListener('scroll', invalidate_bounds);
             window.removeEventListener('resize', invalidate_bounds);
+            node.removeEventListener('patter-document-replaced', finish);
             window.removeEventListener('patter-editor-reset-start', reset_start);
             window.removeEventListener('patter-editor-reset-end', reset_end);
             window.removeEventListener('patter-wallpaper-spread', on_spread);

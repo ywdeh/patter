@@ -53,7 +53,8 @@
         };
     });
 
-    function startVideoPreview() {
+    function startVideoPreview(event) {
+        if (event?.pointerType !== 'mouse' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
         hover_tilt = prefersReducedMotion ? 0 : (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.6);
         if (kind !== 'video' || prefersReducedMotion) return;
         video_preview_active = true;
@@ -108,7 +109,7 @@
 </script>
 
 <div data-background-thumbnail aria-busy={thumbnail_loading} role="group" aria-label={label} class="background_thumbnail group/inputpill relative w-full aspect-video" style={`rotate: ${hover_tilt}deg`} onpointerenter={startVideoPreview} onpointerleave={stopVideoPreview} {@attach attachNonPassiveWheel}>
-    <button
+    <button data-ui-hover-sound="true"
         type="button"
         draggable="false"
         onclick={onselect}
@@ -177,7 +178,7 @@
         role="group"
         aria-label="Choose image position">
         {#each positions as choice}
-            <button
+            <button data-ui-hover-sound="true"
                 type="button"
                 onclick={(event) => onposition?.(choice, { event })}
                 aria-label={`${label}, align ${choice}`}
@@ -249,5 +250,11 @@
     button:active .media_viewport.is-selected,
     button.wheel_pressed .media_viewport.is-selected {
         clip-path: inset(0.5rem round 0.5rem);
+    }
+    @media (hover: none), (pointer: coarse) {
+        .position_picker { opacity: 1; flex-direction: row; left: 0.5rem; right: 0.5rem; top: auto; bottom: 0.5rem; height: 24px; gap: 0.25rem; }
+        .position_choice { width: 24px; height: 24px; min-height: 24px; }
+        .background_thumbnail:has(> button[aria-pressed="false"]) .position_picker { opacity: 0; pointer-events: none; }
+        .background_thumbnail:has(> button[aria-pressed="false"]) .position_choice { pointer-events: none; }
     }
 </style>

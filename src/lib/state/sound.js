@@ -1,9 +1,11 @@
+import { prepare_hover_audio, play_hover_audio } from './hover_audio.js';
 import { schedule_idle_task } from './browser_tasks.js';
 import { sound_enabled, typing_sound_enabled } from '$lib/state/sound_settings.svelte.js';
 
 const click_sources = Object.freeze(['/click_1.mp3', '/click_2.mp3', '/click_3.mp3']);
 
 export const sound_presets = Object.freeze({
+    hover: Object.freeze({ sources: click_sources, volume: 0.025, voices: 4 }),
     click: Object.freeze({ sources: click_sources, volume: 0.1, voices: 4 }),
     typing: Object.freeze({ sources: click_sources, volume: 0.2, voices: 4 }),
     paper_turn: Object.freeze({
@@ -39,6 +41,7 @@ function getSoundPool(source, volume, voiceCount) {
 }
 
 if (typeof window !== 'undefined') {
+    schedule_idle_task(() => prepare_hover_audio(click_sources[0]));
     const pending_sources = new Map();
     for (const preset of Object.values(sound_presets)) {
         for (const source of preset.sources) pending_sources.set(source, preset);
@@ -76,6 +79,7 @@ export function playSound(sound = 'click', volumeScale = 1) {
     if (!sound) return;
     if (!sound_enabled.value || (sound === 'typing' && !typing_sound_enabled.value)) return;
     const preset = sound_presets[sound];
+    if (sound === 'hover' && play_hover_audio(preset.volume * Math.max(0, Math.min(1, volumeScale)))) return;
     const sources = preset?.sources ?? [sound];
     const source = chooseSource(sound, sources);
     if (typeof source !== 'string' || !source) return;

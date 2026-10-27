@@ -1,5 +1,7 @@
 <script>
+    import { create_editor_autosave } from '$lib/state/editor_autosave.js';
     import { track_writing, mount_editor_time_tracking } from '$lib/state/analytics.js';
+    import { schedule_recovery_snapshot, reset_recovery_buffer, cancel_pending_recovery, resume_recovery_snapshots } from '$lib/state/editor_recovery.js';
     import StatValue from './stat_value.svelte';
     import { onMount } from 'svelte';
     import { countEditorText, estimateReadingTime, formatMinutes } from '$lib/state/editor_counts.js';
@@ -25,8 +27,8 @@
     let counts_worker_failed = false;
     let counts_version = 0;
     let latest_counts_text = '';
-    let save_timer = 0;
-    let pending_save_text = null;
+    let last_saved_text = null;
+    const autosave = create_editor_autosave((text) => save(text));
     let wordCount = $state(0);
     let characterCount = $state(0);
     let sessionTime = $state('0m');
@@ -83,27 +85,27 @@
     }
 
     function save(text = markdownEditor?.getSource() ?? '') {
-        clearTimeout(save_timer);
-        save_timer = 0;
-        pending_save_text = null;
         setEditorDocument(text);
+        if (text === last_saved_text && !saveUnavailable) return true;
         try {
             if (text.trim()) localStorage.setItem(STORAGE_KEY, JSON.stringify({ text }));
             else localStorage.removeItem(STORAGE_KEY);
+            last_saved_text = text;
             if (saveUnavailable) saveUnavailable = false;
+            return true;
         } catch {
             saveUnavailable = true;
+            return false;
         }
     }
 
     function flush_pending_save() {
-        if (pending_save_text !== null) save(pending_save_text);
+        autosave.flush();
     }
 
     function schedule_save(text) {
         setEditorDocument(text);
-        pending_save_text = text;
-        if (!save_timer) save_timer = window.setTimeout(flush_pending_save, motionDuration('short', 150));
+        autosave.schedule(text);
     }
 
     function updateEmpty(text = markdownEditor?.getSource() ?? '') {
@@ -227,15 +229,19 @@
         updateEmpty(bodyText);
         updateCounts(markdownEditor.getVisibleText());
         schedule_save(bodyText);
+        schedule_recovery_snapshot(bodyText, markdownEditor.getVisibleText());
         scheduleCaretScroll();
     }
 
-    function replaceDocument(text) {
+    function replaceDocument(text, { undoable = false } = {}) {
         if (!bodyEl) return;
         const bodyText = String(text ?? '').replace(/\r\n?/gu, '\n');
-        markdownEditor.setSource(bodyText);
-        save(bodyText);
         updateEmpty(bodyText);
+        markdownEditor.setSource(bodyText, { undoable });
+        bodyEl.dispatchEvent(new Event('patter-document-replaced'));
+        autosave.cancel();
+        if (!save(bodyText)) autosave.schedule(bodyText);
+        reset_recovery_buffer(bodyText, markdownEditor.getVisibleText());
         updateCounts(markdownEditor.getVisibleText());
     }
 
@@ -247,7 +253,8 @@
         bodyEl.dataset.empty = 'true';
         updateEmpty(initialText);
         updateCounts(markdownEditor.getVisibleText());
-        save(initialText);
+        last_saved_text = initialText;
+        reset_recovery_buffer(initialText, markdownEditor.getVisibleText());
         unmountCustomCaret = mountCustomCaret(scrollEl, bodyEl);
         updateTypewriterPadding();
         const typewriterResizeObserver = new ResizeObserver(updateTypewriterPadding);
@@ -266,13 +273,26 @@
 
         const onManualScrollIntent = stopCaretScroll;
         const onClearSavedData = () => replaceDocument('');
-        const onImportDocument = (event) => replaceDocument(String(event.detail?.body ?? ''));
+        const onImportDocument = (event) => {
+            replaceDocument(String(event.detail?.body ?? ''), { undoable: true });
+            bodyEl.focus({ preventScroll: true });
+            markdownEditor.setSelectionToEnd();
+        };
+        const flush_before_leaving = () => {
+            flush_pending_save();
+            cancel_pending_recovery();
+        };
         const flush_when_hidden = () => {
-            if (document.visibilityState === 'hidden') flush_pending_save();
+            if (document.visibilityState === 'hidden') {
+                flush_pending_save();
+                cancel_pending_recovery();
+            } else {
+                resume_recovery_snapshots();
+            }
         };
         document.addEventListener('selectionchange', scheduleSelectionCounts);
         bodyEl.addEventListener('input', scheduleSelectionCounts);
-        window.addEventListener('pagehide', flush_pending_save);
+        window.addEventListener('pagehide', flush_before_leaving);
         document.addEventListener('visibilitychange', flush_when_hidden);
         scrollEl.addEventListener('wheel', onManualScrollIntent, { passive: true });
         scrollEl.addEventListener('touchstart', onManualScrollIntent, { passive: true });
@@ -292,14 +312,16 @@
         }
 
         return () => {
+            cancel_pending_recovery();
             stop_time_tracking();
             flush_pending_save();
+            autosave.cancel();
             counts_worker?.terminate();
             selectionWorker?.terminate();
             if (selectionFrame) cancelAnimationFrame(selectionFrame);
             document.removeEventListener('selectionchange', scheduleSelectionCounts);
             bodyEl.removeEventListener('input', scheduleSelectionCounts);
-            window.removeEventListener('pagehide', flush_pending_save);
+            window.removeEventListener('pagehide', flush_before_leaving);
             document.removeEventListener('visibilitychange', flush_when_hidden);
             if (autofocusFrame) cancelAnimationFrame(autofocusFrame);
             window.clearTimeout(sessionTimer);
@@ -328,13 +350,7 @@
             <div class="flex items-center gap-1"><p>Session time</p><p><StatValue value={sessionTime} /></p></div>
         </div>
     </div>
-    {#if saveUnavailable}
-        <p class="patter_text_small px-4 text-amber-100/80 sm:px-8" role="status" aria-live="polite">
-            {markdownEditor?.getSource().trim()
-                ? 'Local saving is unavailable. Export your writing before leaving.'
-                : 'Local storage is unavailable. Clearing this draft may not persist.'}
-        </p>
-    {/if}
+
 </div>
 
 <style>

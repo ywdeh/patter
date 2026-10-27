@@ -230,7 +230,7 @@
                     onposition={(position, interaction) => selectPosition({ ...uploadItem, uploaded: true }, position, interaction)} />
             {/each}
         {:else}
-            <button
+            <button data-ui-hover-sound="true"
                 type="button"
                 onclick={(event) => { uploadOrigin = capture_spread_origin(event); onpickerchange(true); uploadInput?.click(); }}
                 class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small">
@@ -244,7 +244,7 @@
         </div>
         {/key}
         </div>
-        <button
+        <button data-ui-hover-sound="true"
             type="button"
             onclick={removeUpload}
             disabled={uploads.length === 0}

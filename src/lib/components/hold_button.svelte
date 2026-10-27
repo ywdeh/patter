@@ -8,6 +8,13 @@
         duration = 1000,
         oncomplete = null,
         iconOnly = false,
+        icon = 'reset',
+        compact = false,
+        disabled = false,
+        role = undefined,
+        tabindex = undefined,
+        onfocus = null,
+        onpointerenter = null,
         sound = 'click'
     } = $props();
 
@@ -17,6 +24,7 @@
     let shift_down = $state(false);
     let progress = $state(0);
     const visual_progress = $derived(progress);
+    const close_radius = $derived(3.5 * (1 - visual_progress));
     let phase = 'idle';
     let button;
     let frame = 0;
@@ -65,7 +73,7 @@
     }
 
     function press() {
-        if (phase === 'holding' || phase === 'complete') return false;
+        if (disabled || phase === 'holding' || phase === 'complete') return false;
         phase = 'holding';
         if (!frame) {
             last_frame = performance.now();
@@ -113,9 +121,11 @@
 
 <svelte:window onkeydown={(event) => { shift_down = event.shiftKey; }} onkeyup={(event) => { shift_down = event.shiftKey; }} onblur={() => { shift_down = false; release(); }} onpointerup={pointer_end} onpointercancel={pointer_end} />
 
-<button
+<button data-ui-hover-sound={Boolean(sound)}
     bind:this={button}
     type="button"
+    {disabled} {role} {tabindex} {onfocus} {onpointerenter}
+    class:compact
     aria-label={text}
     class:icon_only={iconOnly}
     class:patter_control_round={iconOnly}
@@ -139,8 +149,10 @@
             </svg></span>
         {/if}
     </span>
-    <span class="relative flex min-h-(--patter_control_height) items-center px-3 py-2 pointer-events-none select-none">
-        {#if iconOnly}
+    <span class="hold_content relative flex min-h-(--patter_control_height) items-center px-3 py-2 pointer-events-none select-none">
+        {#if iconOnly && icon === 'close'}
+            <svg class="patter_icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d={`M${8 - close_radius} ${8 - close_radius}L${8 + close_radius} ${8 + close_radius}M${8 + close_radius} ${8 - close_radius}L${8 - close_radius} ${8 + close_radius}`} stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        {:else if iconOnly}
             <svg class="reset_icon patter_icon" style:transform={`rotate(${visual_progress * 360}deg)`} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10a8 8 0 1 0-1.5 7M20 4v6h-6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" /></svg>
         {:else}
             {text}
@@ -155,6 +167,8 @@
         height: var(--patter_control_height);
         justify-content: center;
     }
+    .icon_only.compact { width: 1.5rem; height: 1.5rem; flex-shrink: 0; }
+    .compact > .hold_content { min-height: 0; padding: 0; }
     .icon_only > .patter_surface { border-radius: 50%; }
     .fill_clip { border-radius: inherit; pointer-events: none; }
 

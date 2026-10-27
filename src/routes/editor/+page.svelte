@@ -3,6 +3,7 @@
     import EditorBody from '$lib/components/editor/body.svelte';
     const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-toolbar"]'];
     let zenMode = false;
+    const previous_inert = new Map();
     let lastPointer = null;
     let pointerOrigin = null;
     let pageTitle = $state('Patter');
@@ -30,7 +31,14 @@
         for (const selector of zenModeUiSelectors) {
             document.querySelectorAll(selector).forEach((element) => {
                 element.classList.toggle('zen-mode-hidden', active);
-                element.inert = active;
+                // Restore each control's own state, including closed mobile panels.
+                if (active) {
+                    if (!previous_inert.has(element)) previous_inert.set(element, element.inert);
+                    element.inert = true;
+                } else if (previous_inert.has(element)) {
+                    element.inert = previous_inert.get(element);
+                    previous_inert.delete(element);
+                }
             });
         }
         document.querySelectorAll('[data-zen-mode-ui="editor-stats"]').forEach((element) => {
@@ -92,7 +100,7 @@
     <title>{pageTitle}</title>
 </svelte:head>
 
-<main aria-label="Editor" class="flex h-dvh w-full flex-col px-3 py-4 sm:px-12 sm:py-12">
+<main aria-label="Editor" class="mobile_editor_shell flex h-dvh w-full flex-col px-3 py-4 sm:px-12 sm:py-12">
     <h1 class="sr-only">Patter editor</h1>
     <div class="w-full h-full max-w-3xl self-center min-h-0" data-editor-container>
         <EditorBody onwriting={handleWriting} sound="typing" />
@@ -100,6 +108,9 @@
 </main>
 
 <style>
+    @media (max-width: 639px), (hover: none), (pointer: coarse) {
+        .mobile_editor_shell { height: var(--patter_viewport_height, 100dvh); padding-top: max(1rem, env(safe-area-inset-top)); padding-left: max(0.75rem, env(safe-area-inset-left)); padding-right: max(0.75rem, env(safe-area-inset-right)); padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+    }
     :global([data-zen-mode-ui]) {
         transition-duration: var(--patter_motion_slow) !important;
         transition-delay: 0ms !important;

@@ -71,5 +71,5 @@
 
 <style>
     .embedded .mixer_content { padding: 0; }
-    .ambient_channels { display: flex; flex-direction: column; gap: 1.25rem; }
+    .ambient_channels { display: flex; flex-direction: column; gap: var(--patter_setting_gap); }
 </style>
