@@ -1,6 +1,6 @@
 <script>
     import { smooth_width } from '$lib/state/smooth_width.js';
-	import { goto } from '$app/navigation';
+    import { navigate_route } from '$lib/state/route_navigation.js';
 	import { playSound } from '$lib/state/sound.js';
 
 	let { text = null, href = null, icon = null, sound = 'click', onclick = null, disabled = false, ariaLabel = null, round = false } = $props();
@@ -21,7 +21,7 @@
 
 		const changesRoute = new URL(href, window.location.href).pathname !== window.location.pathname;
 		if (sound && !changesRoute) playSound(sound);
-		goto(href);
+		void navigate_route(href).catch(() => {});
 	}
 </script>
 

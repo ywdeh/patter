@@ -247,7 +247,7 @@
     .dropdown_row { display: flex; align-items: stretch; gap: var(--patter_space_2); }
     .dropdown_row > .dropdown_item:first-child { flex: 1; min-width: 0; }
     .dropdown_dismiss { align-self: center; margin-inline: var(--patter_space_1); }
-    .dropdown_item { display: flex; align-items: baseline; white-space: nowrap; transition: background-color var(--patter_motion_standard) ease; }
+    .dropdown_item { display: flex; align-items: baseline; white-space: nowrap; transition: var(--patter_focus_transition); }
     .dropdown_item:hover, .dropdown_item:focus-visible { background: var(--patter_surface_normal); }
     .dropdown_item:active { background: var(--patter_surface_hover); }
 

@@ -206,7 +206,7 @@
         border-radius: 0.25rem;
         background: var(--patter_surface_normal);
         transition: background-color var(--patter_motion_standard) ease-out,
-            outline-color var(--patter_motion_standard) ease-out;
+            outline-color var(--patter_motion_standard) ease-out, var(--patter_focus_shadow_transition);
         outline: 2px solid transparent;
         outline-offset: 2px;
     }

@@ -13,7 +13,7 @@ function normalize_targets(targets) {
 	return [...targets].filter((element) => element instanceof HTMLElement);
 }
 
-function animate_opacity(targets, opacity, token, fallback_ms, ease) {
+function animate_opacity(targets, opacity, token, fallback_ms, ease, transition = null) {
 	const elements = normalize_targets(targets);
 	if (!elements.length) return Promise.resolve();
 
@@ -39,6 +39,7 @@ function animate_opacity(targets, opacity, token, fallback_ms, ease) {
 		};
 
 		const tween_options = {
+            data: transition,
 			opacity,
 			duration: motionDuration(token, fallback_ms) / 1000,
 			ease,
@@ -71,10 +72,17 @@ export function fade_page_out(targets, transition = 'route') {
 		0,
 		fullscreen ? 'fullscreen_out' : 'slow',
 		fullscreen ? 250 : 400,
-		'power1.inOut'
+		'power1.inOut',
+        transition
 	);
 }
 
 export function wait_for_page_motion() {
 	return latest_page_motion;
+}
+
+export function finish_route_fade() {
+    for (const tween of gsap.getTweensOf(get_page_motion_targets())) {
+        if (tween.data === 'route' && tween.vars.opacity === 0) tween.progress(1);
+    }
 }

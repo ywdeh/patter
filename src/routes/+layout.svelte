@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { route_navigation_is_urgent } from '$lib/state/route_navigation.js';
     import { begin_page_reveal, finish_page_reveal } from '$lib/state/page_ready.js';
     import { mount_mobile_viewport } from '$lib/state/mobile_viewport.js';
     import { mount_panel_occlusion } from '$lib/state/panel_occlusion.js';
@@ -12,7 +13,7 @@
 	import { mount_pwa_install } from '$lib/state/pwa_install.svelte.js';
 	import { motionDuration } from '$lib/state/motion.js';
 	import { playSound } from '$lib/state/sound.js';
-	import { fade_page_in, fade_page_out, get_page_motion_targets } from '$lib/state/page_motion.js';
+	import { fade_page_in, fade_page_out, finish_route_fade, get_page_motion_targets } from '$lib/state/page_motion.js';
 
 	let { children } = $props();
     let optionsIntro = $state(false);
@@ -52,12 +53,15 @@
 		if (!navigation.from || !destination || navigation.from.url.pathname === destination.url.pathname) return;
 		if (routeTransitionInProgress) return;
 		routeTransitionInProgress = true;
+        routeRevealVersion++;
         begin_page_reveal();
 
 		playSound('paper_turn');
 		playSound('click', 0.5);
 
-		return fade_page_out(get_page_motion_targets());
+		const fade = fade_page_out(get_page_motion_targets());
+        if (route_navigation_is_urgent()) finish_route_fade();
+        return fade;
 	});
 
 	afterNavigate(({ from }) => {

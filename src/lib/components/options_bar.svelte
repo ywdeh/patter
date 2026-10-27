@@ -304,7 +304,7 @@
         padding: var(--patter_space_3) var(--patter_space_1) var(--patter_space_4);
         cursor: pointer;
         opacity: var(--patter_opacity_secondary);
-        transition: opacity var(--patter_motion_standard) ease-out;
+        transition: opacity var(--patter_motion_standard) ease-out, var(--patter_focus_transition);
     }
     .options_tabs button:hover, .options_tabs button[aria-selected='true'] { opacity: 1; }
     .options_tabs button:disabled { opacity: var(--patter_opacity_disabled); cursor: default; pointer-events: none; }

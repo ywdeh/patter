@@ -44,6 +44,8 @@
 	--patter_motion_quick: 100ms;
 	--patter_motion_short: 150ms;
 	--patter_motion_standard: 200ms;
+    --patter_focus_shadow_transition: box-shadow var(--patter_motion_standard) ease-out;
+    --patter_focus_transition: background-color var(--patter_motion_standard) ease-out, var(--patter_focus_shadow_transition);
 	--patter_motion_slow: 400ms;
     --patter_ease_in_out: cubic-bezier(0.77, 0, 0.175, 1);
 	--patter_motion_gentle: 600ms;
@@ -251,6 +253,10 @@ a[href^="mailto:"] * {
 .patter_control:disabled,
 .patter_disabled {
 	opacity: var(--patter_opacity_disabled);
+}
+
+:where(button, a[href], input, select, textarea, [tabindex], [role="button"]):not([contenteditable]) {
+    transition: var(--patter_focus_transition), color var(--patter_motion_short) ease-out, border-color var(--patter_motion_short) ease-out, opacity var(--patter_motion_standard) ease-out;
 }
 
 :focus-visible {
