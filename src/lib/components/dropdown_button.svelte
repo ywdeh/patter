@@ -227,6 +227,7 @@
         background: linear-gradient(to right, transparent, var(--patter_surface_normal));
     }
     .dropdown_separator::after { transform: rotate(180deg); }
+    .dropdown_separator:not(:has(> span)) { gap: 0; }
     .dropdown_separator > span { flex-shrink: 0; }
     .dropdown_option_title { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
     .has_timestamp .dropdown_option_title {

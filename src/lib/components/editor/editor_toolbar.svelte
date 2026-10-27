@@ -22,10 +22,9 @@
                 value: String(snapshot.id),
                 dismissible: true,
                 separator: index === 0,
-                separatorLabel: index === 0 ? 'Recent snapshots' : null,
                 label: createExportFilename(snapshot.text, 'txt', new Date(snapshot.created)).replace(/\.txt$/, ''),
                 meta: snapshot_date.format(snapshot.created)
-            })), ...(recent_snapshots.length ? [] : [{ value: 'empty', label: 'No saved snapshots', separator: true, separatorLabel: 'Recent snapshots', empty: true }])];
+            })), ...(recent_snapshots.length ? [] : [{ value: 'empty', label: 'No saved snapshots', separator: true, empty: true }])];
         } catch { importError = 'Recent writing could not be loaded on this device.'; }
     }
 
