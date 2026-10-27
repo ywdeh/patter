@@ -37,7 +37,7 @@ function applyToDocument(values) {
     if (typeof document === "undefined") return;
     document.documentElement.style.setProperty("--patter_focus", `${values.focus}px`);
     document.documentElement.style.setProperty("--patter_tint", `${values.tint / 100}`);
-    document.documentElement.style.setProperty('--patter_tint_color', values.tintShade === 2 ? 'oklch(15.3% 0.006 107.1)' : values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
+    document.documentElement.style.setProperty('--patter_tint_color', values.tintShade === 2 ? 'oklch(15.3% 0.025 135)' : values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
     document.documentElement.style.setProperty("--patter_grain", `${values.grain / 100}`);
     document.documentElement.style.setProperty('--patter_editor_font', editor_fonts[values.editorFont]);
     document.documentElement.style.setProperty('--patter_body_text_size', `${values.textSize}px`);
