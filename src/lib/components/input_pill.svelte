@@ -26,8 +26,11 @@
         sound = 'click'
     } = $props();
     const initialValue = untrack(() => value);
-    const resetTo = $derived(clamp(defaultValue ?? initialValue));
-    const displayValue = $derived(displayValues?.[value] ?? `${value}${unit}`);
+    const resetTo = $derived(mode === "toggle" ? Boolean(defaultValue ?? initialValue) : clamp(defaultValue ?? initialValue));
+    const lower = $derived(mode === 'toggle' ? 0 : min);
+    const upper = $derived(mode === 'toggle' ? 1 : max);
+    const increment = $derived(mode === 'toggle' ? 1 : step);
+    const displayValue = $derived(mode === 'toggle' ? (value ? trueLabel : falseLabel) : displayValues?.[value] ?? `${value}${unit}`);
 
     let holdTimer = null;
     let holdStarted = false;
@@ -48,21 +51,23 @@
         playSound(sound);
     }
 
-    async function setToggle(next, event) {
-        if (togglePending || event?.type !== "click" || !event.isTrusted || next === value) return;
-
-        togglePending = true;
-        try {
-            playClick();
-            direction = next ? 1 : -1;
-            const actionResult = (next ? ontrue : onfalse)?.();
-            if (await actionResult === false) return;
-
+    async function set_value(next, audible = true) {
+        if (togglePending || next === value) return false;
+        const previous = value;
+        if (audible) playClick();
+        direction = Number(next) > Number(previous) ? 1 : -1;
+        if (mode === 'toggle') {
+            togglePending = true;
+            try {
+                if (await (next ? ontrue : onfalse)?.() === false) return false;
+                value = next;
+                onchange?.(next);
+            } finally { togglePending = false; }
+        } else {
             value = next;
             onchange?.(next);
-        } finally {
-            togglePending = false;
         }
+        return true;
     }
 
     function clamp(v) {
@@ -70,42 +75,31 @@
     }
 
     function step_(delta) {
-        const next = clamp(value + delta);
-        if (next !== value) {
-            playClick();
-            direction = delta > 0 ? 1 : -1;
-            value = next;
-            onchange?.(next);
-        }
+        const next = mode === 'toggle' ? delta > 0 : clamp(value + delta);
+        return set_value(next);
     }
 
-    function handleWheel(event) {
+    async function handleWheel(event) {
         if (!can_use_wheel_controls(event)) return;
-        if (mode === "toggle") return;
         event.preventDefault();
-        if (wheelOnCooldown) return;
-
+        if (wheelOnCooldown || togglePending) return;
         const delta = event.deltaY * (event.deltaMode === 1 ? 40 : event.deltaMode === 2 ? window.innerHeight : 1);
         wheelRemainder -= delta;
-
-        if (Math.abs(wheelRemainder) >= 5) {
-            const direction = Math.sign(wheelRemainder);
-            const previousValue = value;
-            step_(direction * step);
-            wheelRemainder = 0;
-            if (value !== previousValue) {
-                wheelPressedDirection = direction;
-                clearTimeout(wheelAnimationTimer);
-                wheelAnimationTimer = setTimeout(() => {
-                    wheelPressedDirection = 0;
-                    wheelAnimationTimer = null;
-                }, outDuration);
-            }
-            wheelOnCooldown = true;
-            wheelCooldownTimer = setTimeout(() => {
-                wheelOnCooldown = false;
-                wheelCooldownTimer = null;
-            }, wheelCooldownDuration);
+        if (Math.abs(wheelRemainder) < 5) return;
+        const wheel_direction = Math.sign(wheelRemainder);
+        wheelRemainder = 0;
+        wheelOnCooldown = true;
+        wheelCooldownTimer = setTimeout(() => {
+            wheelOnCooldown = false;
+            wheelCooldownTimer = null;
+        }, wheelCooldownDuration);
+        if (await step_(wheel_direction * increment)) {
+            wheelPressedDirection = wheel_direction;
+            clearTimeout(wheelAnimationTimer);
+            wheelAnimationTimer = setTimeout(() => {
+                wheelPressedDirection = 0;
+                wheelAnimationTimer = null;
+            }, outDuration);
         }
     }
 
@@ -118,13 +112,8 @@
         };
     }
 
-    function reset(playSound = true) {
-        if (resetTo !== value) {
-            if (playSound) playClick();
-            direction = resetTo > value ? 1 : -1;
-            value = resetTo;
-            onchange?.(resetTo);
-        }
+    function reset(audible = true) {
+        void set_value(resetTo, audible);
     }
 
     function playResetClick() {
@@ -144,8 +133,8 @@
 
         holdTimer = setInterval(() => {
             holdStarted = true;
-            step_(delta);
-            if (value <= min || value >= max) {
+            void step_(delta);
+            if (Number(value) <= lower || Number(value) >= upper) {
                 clearInterval(holdTimer);
                 holdTimer = null;
             }
@@ -161,7 +150,7 @@
 
     function handleClick(delta) {
         if (holdStarted) return;
-        step_(delta);
+        void step_(delta);
     }
 
     onDestroy(() => {
@@ -177,57 +166,38 @@
     <span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style={`mask-image: url(/chevron_${direction}.svg); -webkit-mask-image: url(/chevron_${direction}.svg)`}></span>
 {/snippet}
 
+{#snippet reset_control()}
+        <button data-ui-hover-sound={Boolean(sound)}
+            onclick={() => reset()}
+            disabled={value === resetTo || togglePending}
+            aria-label="Reset to default"
+            class="patter_control patter_control_round group transition size-6 shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
+            <span
+                aria-hidden="true"
+                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient">
+            </span>
+
+            <span class="relative flex size-4 shrink-0 items-center justify-center pointer-events-none">
+                <svg class="patter_icon size-4 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10a8 8 0 1 0-1.5 7M20 4v6h-6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+        </button>
+{/snippet}
+
 <svelte:window onblur={endHold} />
 
 <div data-setting-control role="group" aria-label={text ?? 'Setting controls'} class="flex gap-3 items-center w-full">
     <p class="flex-1">{text}</p>
-    {#if mode === "toggle"}
+
     <div class="flex flex-[1.5] gap-3 justify-between items-center patter_pill_gradient rounded-full text-center">
         <button data-ui-hover-sound={Boolean(sound)}
-            aria-label={falseLabel}
-            onclick={(event) => setToggle(false, event)}
-            disabled={!value}
-            class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient"></span>
-            <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                {@render chevron("left")}
-            </span>
-        </button>
-
-        <div class="min-w-14 h-6 relative overflow-hidden">
-            {#key value}
-                <p
-                    class="absolute inset-0"
-                    in:fly={{ x: direction * 20, duration: inDuration, delay: outDuration }}
-                    out:fly={{ x: direction * -20, duration: outDuration }}
-                >
-                    {value ? trueLabel : falseLabel}
-                </p>
-            {/key}
-        </div>
-
-        <button data-ui-hover-sound={Boolean(sound)}
-            aria-label={trueLabel}
-            onclick={(event) => setToggle(true, event)}
-            disabled={value}
-            class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient"></span>
-            <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                {@render chevron("right")}
-            </span>
-        </button>
-    </div>
-    {:else}
-    <div class="flex flex-[1.5] gap-3 justify-between items-center patter_pill_gradient rounded-full text-center">
-        <button data-ui-hover-sound={Boolean(sound)}
-            aria-label={`Decrease ${text ?? "value"}`}
-            onclick={() => handleClick(-step)}
-            onpointerdown={(event) => { if (event.button === 0) startHold(-step); }}
+            aria-label={mode === "toggle" ? `${text ?? "Setting"}: ${falseLabel}` : `Decrease ${text ?? "value"}`}
+            onclick={() => handleClick(-increment)}
+            onpointerdown={(event) => { if (event.button === 0) startHold(-increment); }}
             onpointerup={endHold}
             onpointerleave={endHold}
             onpointercancel={endHold}
             onblur={endHold}
-            disabled={value <= min}
+            disabled={Number(value) <= lower || togglePending}
             class:wheel_pressed={wheelPressedDirection === -1}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span
@@ -255,14 +225,14 @@
         </div>
 
         <button data-ui-hover-sound={Boolean(sound)}
-            aria-label={`Increase ${text ?? "value"}`}
-            onclick={() => handleClick(step)}
-            onpointerdown={(event) => { if (event.button === 0) startHold(step); }}
+            aria-label={mode === "toggle" ? `${text ?? "Setting"}: ${trueLabel}` : `Increase ${text ?? "value"}`}
+            onclick={() => handleClick(increment)}
+            onpointerdown={(event) => { if (event.button === 0) startHold(increment); }}
             onpointerup={endHold}
             onpointerleave={endHold}
             onpointercancel={endHold}
             onblur={endHold}
-            disabled={value >= max}
+            disabled={Number(value) >= upper || togglePending}
             class:wheel_pressed={wheelPressedDirection === 1}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span
@@ -275,20 +245,6 @@
             </span>
         </button>
 
-        <button data-ui-hover-sound={Boolean(sound)}
-            onclick={() => reset()}
-            disabled={value === resetTo}
-            aria-label="Reset to default"
-            class="patter_control patter_control_round group transition size-6 shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
-            <span
-                aria-hidden="true"
-                class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient">
-            </span>
-
-            <span class="relative flex size-4 shrink-0 items-center justify-center pointer-events-none">
-                <svg class="patter_icon size-4 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10a8 8 0 1 0-1.5 7M20 4v6h-6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            </span>
-        </button>
+        {@render reset_control()}
     </div>
-    {/if}
 </div>

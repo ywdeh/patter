@@ -1,4 +1,5 @@
 <script>
+    import { smooth_width } from '$lib/state/smooth_width.js';
 	import { goto } from '$app/navigation';
 	import { playSound } from '$lib/state/sound.js';
 
@@ -25,7 +26,7 @@
 </script>
 
 {#snippet buttonContent()}
-    <span class="flex min-h-(--patter_control_height) items-center gap-2 relative px-3 py-2 pointer-events-none">
+    <span data-control-content class="flex w-max shrink-0 min-h-(--patter_control_height) items-center gap-2 relative px-3 py-2 pointer-events-none">
         {text}
         {#if icon}
             <span aria-hidden="true" class="patter_icon patter_mask_icon size-5 pointer-events-none" style={`mask-image: url("${icon}"); -webkit-mask-image: url("${icon}")`}></span>
@@ -33,7 +34,7 @@
     </span>
 {/snippet}
 
-<button data-ui-hover-sound={Boolean(sound)}
+<button use:smooth_width={!round} data-ui-hover-sound={Boolean(sound)}
     type="button"
     disabled={disabled}
     class:patter_control_round={round}

@@ -1,4 +1,5 @@
 <script>
+    import { smooth_width } from '$lib/state/smooth_width.js';
     import { onDestroy } from 'svelte';
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
@@ -41,7 +42,7 @@
         return_progress = progress;
     }
 
-    function finish() {
+    async function finish() {
         phase = 'complete';
         pointer_id = null;
         active_key = null;
@@ -49,8 +50,8 @@
             progress = 0;
             phase = 'idle';
         }, motionDuration('slow', 400));
+        await oncomplete?.({ type: 'click', detail: 0, currentTarget: button, shiftKey: shift_down });
         if (sound) playSound(sound);
-        oncomplete?.({ type: 'click', detail: 0, currentTarget: button, shiftKey: shift_down });
     }
 
     function advance(now) {
@@ -59,7 +60,7 @@
         last_frame = now;
         if (phase === 'holding') {
             progress = Math.min(1, progress + step);
-            if (progress === 1) { finish(); return; }
+            if (progress === 1) { void finish(); return; }
         } else if (phase === 'preview') {
             progress = Math.min(minimum_progress, progress + step);
             if (progress === minimum_progress) begin_return(now);
@@ -120,7 +121,7 @@
 
 <svelte:window onkeydown={(event) => { shift_down = event.shiftKey; }} onkeyup={(event) => { shift_down = event.shiftKey; }} onblur={() => { shift_down = false; release(); }} onpointerup={pointer_end} onpointercancel={pointer_end} />
 
-<button data-ui-hover-sound={Boolean(sound)}
+<button use:smooth_width={!iconOnly} data-ui-hover-sound={Boolean(sound)}
     bind:this={button}
     type="button"
     {disabled} {role} {tabindex} {onfocus} {onpointerenter}
@@ -148,7 +149,7 @@
             </svg></span>
         {/if}
     </span>
-    <span class="hold_content relative flex min-h-(--patter_control_height) items-center px-3 py-2 pointer-events-none select-none">
+    <span data-control-content class="hold_content relative flex w-max shrink-0 min-h-(--patter_control_height) items-center px-3 py-2 pointer-events-none select-none">
         {#if iconOnly && icon === 'close'}
             <svg class="patter_icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d={`M${8 - close_radius} ${8 - close_radius}L${8 + close_radius} ${8 + close_radius}M${8 + close_radius} ${8 - close_radius}L${8 - close_radius} ${8 + close_radius}`} stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
         {:else if iconOnly}

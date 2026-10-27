@@ -6,11 +6,12 @@
     import HoldButton from './hold_button.svelte';
     import { set_spread_origin } from '$lib/state/background_spread.js';
     import InputPill from './input_pill.svelte';
+    import ToggleButton from './toggle_button.svelte';
     import AmbientMixer from './ambient_mixer.svelte';
     import BackgroundPicker from './background_picker.svelte';
     import { background_values, persistBackgroundValues, defaults, resetBackgroundValues } from '$lib/state/background_state.svelte.js';
     import { enterFullscreen, exitFullscreen, isFullscreenActive } from '$lib/fullscreen.js';
-    import { sound_enabled, setSoundEnabled, typing_sound_enabled, setTypingSoundEnabled } from '$lib/state/sound_settings.svelte.js';
+    import { sound_enabled, setSoundEnabled, typing_sound_enabled, setTypingSoundEnabled, interaction_sound_enabled, setInteractionSoundEnabled } from '$lib/state/sound_settings.svelte.js';
     import { playSound } from '$lib/state/sound.js';
     import { clearBackgroundUploads } from '$lib/state/background_media.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
@@ -89,7 +90,7 @@
     });
 
     async function select_tab(tab) {
-        if (active_tab === tab) return;
+        if (active_tab === tab || (tab === 'Audio' && !sound_enabled.value)) return;
         active_tab = tab;
         track_event('options_tab_changed', { tab: tab.toLowerCase() });
         playSound('click');
@@ -99,16 +100,26 @@
     }
 
     function handle_tab_key(event, index) {
+        const available = tabs.filter((tab) => tab !== 'Audio' || sound_enabled.value);
+        const current = available.indexOf(tabs[index]);
         let next;
-        if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
-        else if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+        if (event.key === 'ArrowRight') next = (current + 1) % available.length;
+        else if (event.key === 'ArrowLeft') next = (current + available.length - 1) % available.length;
         else if (event.key === 'Home') next = 0;
-        else if (event.key === 'End') next = tabs.length - 1;
+        else if (event.key === 'End') next = available.length - 1;
         else return;
         event.preventDefault();
-        void select_tab(tabs[next]);
-        tab_list.querySelectorAll('[role="tab"]')[next].focus();
+        void select_tab(available[next]);
+        tab_list.querySelectorAll('[role="tab"]')[tabs.indexOf(available[next])].focus();
     }
+
+    $effect(() => {
+        if (!sound_enabled.value && active_tab === 'Audio') {
+            active_tab = 'Scene';
+            if (scroll_area) scroll_area.scrollTop = 0;
+            update_scroll();
+        }
+    });
 
     async function toggle_fullscreen() {
         if (fullscreen_pending || browser_fullscreen) return;
@@ -137,12 +148,13 @@
                 resetBackgroundValues();
                 setSoundEnabled(true);
                 setTypingSoundEnabled(true);
+                setInteractionSoundEnabled(true);
                 mixer?.reset_mix();
                 if (event.shiftKey) {
                     setEditorDocument('');
                     window.dispatchEvent(new Event('patter-clear-saved-data'));
                     await tick();
-                    for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-typing-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) localStorage.removeItem(key);
+                    for (const key of ['background-values', 'patter-doc', 'patter-sound-enabled', 'patter-typing-sound-enabled', 'patter-interaction-sound-enabled', 'patter-hover-sound-enabled', 'patter-click-sound-enabled', 'patter-video-posters', 'patter-background-ambient-colors-v3', 'patter-background-scrim-v1']) localStorage.removeItem(key);
                 }
             };
             if (event.shiftKey) await reset_editor_visuals(apply);
@@ -187,7 +199,7 @@
         </header>
         <div bind:this={tab_list} class="options_tabs" style={`--active-tab: ${tabs.indexOf(active_tab)}`} role="tablist" aria-label="Customize your space">
             {#each tabs as tab, index}
-                <button data-ui-hover-sound="true" type="button" role="tab" id={'options_tab_' + tab.toLowerCase()} aria-controls={'options_content_' + tab.toLowerCase()} aria-selected={active_tab === tab} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab}</button>
+                <button data-ui-hover-sound="true" type="button" role="tab" id={'options_tab_' + tab.toLowerCase()} aria-controls={'options_content_' + tab.toLowerCase()} aria-selected={active_tab === tab} disabled={tab === 'Audio' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab}</button>
             {/each}
         </div>
         <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll scrollbar-thin scrollbar-thumb-mauve-100/12" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
@@ -207,11 +219,12 @@
                     <InputPill text="Text size" min={mobile_mode ? 16 : 14} max={24} step={1} value={mobile_mode ? Math.max(16, background_values.textSize) : background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => { background_values.textSize = value; persistBackgroundValues({ textSize: value }); track_setting('textSize', value); }} />
                 </div>
                 <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
-                    <div class="setting_rows" class:patter_disabled={!sound_enabled.value} inert={!sound_enabled.value}>
-                        <InputPill text="Typewriter" mode="toggle" bind:value={typing_sound_enabled.value} defaultValue={true} ontrue={() => { setTypingSoundEnabled(true); track_setting('typewriter', true); }} onfalse={() => { setTypingSoundEnabled(false); track_setting('typewriter', false); }} />
-                    </div>
-                    <div class="options_divider" aria-hidden="true"></div>
                     <AmbientMixer bind:this={mixer} embedded />
+                    <div class="options_divider" aria-hidden="true"></div>
+                    <div class="system_sounds">
+                        <ToggleButton text="Typewriter" bind:value={typing_sound_enabled.value} onchange={(value) => { setTypingSoundEnabled(value); track_setting('typewriter', value); }} />
+                        <ToggleButton text="Interactions" bind:value={interaction_sound_enabled.value} onchange={(value) => { setInteractionSoundEnabled(value); track_setting('interaction_sound', value); }} />
+                    </div>
                 </div>
             </div>
         </div>
@@ -287,6 +300,7 @@
         transition: opacity var(--patter_motion_standard) ease-out;
     }
     .options_tabs button:hover, .options_tabs button[aria-selected='true'] { opacity: 1; }
+    .options_tabs button:disabled { opacity: var(--patter_opacity_disabled); cursor: default; pointer-events: none; }
     .options_divider, .options_tabs::after {
         height: 2px;
         background: var(--patter_divider);
@@ -318,6 +332,7 @@
         overscroll-behavior: contain;
         scrollbar-gutter: stable;
     }
+    .system_sounds { display: flex; flex-direction: column; gap: var(--patter_setting_gap); padding: var(--patter_space_1); }
     .tab_content, .setting_rows { display: flex; flex-direction: column; gap: var(--patter_setting_gap); }
     .tab_content { padding: var(--patter_space_1); }
     .tab_stack { display: grid; }

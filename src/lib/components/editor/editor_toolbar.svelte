@@ -68,7 +68,9 @@
 		const update = (event) => { hasContent = event.detail?.hasContent ?? editorHasContent(); };
 		window.addEventListener('patter-editor-content-change', update);
 		queueMicrotask(() => { hasContent = editorHasContent(); });
-		return () => window.removeEventListener('patter-editor-content-change', update);
+		return () => {
+            window.removeEventListener('patter-editor-content-change', update);
+        };
 	});
 
 	async function importDocument(event) {

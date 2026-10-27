@@ -1,4 +1,5 @@
 <script>
+    import { smooth_width } from '$lib/state/smooth_width.js';
     import HoldButton from './hold_button.svelte';
     import { onMount, tick } from 'svelte';
     import { playSound } from '$lib/state/sound.js';
@@ -166,13 +167,15 @@
     });
 </script>
 
-<button data-ui-hover-sound={Boolean(sound)} bind:this={trigger} type="button" {disabled} aria-label={ariaLabel} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menu_id : undefined}
-    class="patter_control patter_control_text group/hitbox relative inline-flex min-h-(--patter_control_height) items-center gap-2 px-3 py-2 cursor-pointer disabled:cursor-default disabled:pointer-events-none"
+<button use:smooth_width data-ui-hover-sound={Boolean(sound)} bind:this={trigger} type="button" {disabled} aria-label={ariaLabel} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menu_id : undefined}
+    class="patter_control patter_control_text group/hitbox relative inline-flex min-h-(--patter_control_height) items-center px-3 py-2 cursor-pointer disabled:cursor-default disabled:pointer-events-none"
     onclick={toggle_menu} onpointerenter={(event) => { if (event.pointerType === 'mouse') void open_menu(); }} onpointerleave={schedule_close}
     onkeydown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); void open_menu(true); } }}>
     <span aria-hidden="true" class="patter_surface patter_hover {disabled ? '' : 'patter_active'} absolute inset-0 rounded-xl patter_surface_gradient"></span>
-    <span class="relative pointer-events-none">{text}</span>
-    <svg class="save_chevrons patter_icon relative size-4 pointer-events-none" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m5 5 3-3 3 3m-6 6 3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    <span data-control-content class="relative inline-flex w-max shrink-0 items-center gap-2 pointer-events-none">
+        <span>{text}</span>
+        <svg class="save_chevrons patter_icon size-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m5 5 3-3 3 3m-6 6 3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </span>
 </button>
 {#if open}
     <div bind:this={menu} use:portal data-patter-panel="1" id={menu_id} role="menu" tabindex="-1" aria-label={ariaLabel} class="dropdown_menu patter_control_text fixed z-500 rounded-xl p-1" inert={!open} transition:menu_motion

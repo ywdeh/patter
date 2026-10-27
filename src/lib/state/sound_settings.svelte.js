@@ -1,33 +1,25 @@
-const STORAGE_KEY = 'patter-sound-enabled';
-
-function loadSoundEnabled(key = STORAGE_KEY) {
-    if (typeof localStorage === 'undefined') return true;
-    try {
-        return localStorage.getItem(key) !== 'false';
-    } catch {
-        return true;
+function create_sound_setting(key) {
+    let enabled = true;
+    try { enabled = typeof localStorage === 'undefined' || localStorage.getItem(key) !== 'false'; } catch {}
+    const state = $state({ value: enabled });
+    function set(value) {
+        state.value = Boolean(value);
+        if (typeof localStorage === 'undefined') return;
+        try {
+            if (state.value) localStorage.removeItem(key);
+            else localStorage.setItem(key, 'false');
+        } catch {}
     }
+    return { state, set };
 }
 
-export const sound_enabled = $state({ value: loadSoundEnabled() });
-const TYPING_STORAGE_KEY = 'patter-typing-sound-enabled';
-export const typing_sound_enabled = $state({ value: loadSoundEnabled(TYPING_STORAGE_KEY) });
+const master = create_sound_setting('patter-sound-enabled');
+const typing = create_sound_setting('patter-typing-sound-enabled');
+const interactions = create_sound_setting('patter-interaction-sound-enabled');
 
-export function setSoundEnabled(enabled) {
-    sound_enabled.value = Boolean(enabled);
-    if (typeof localStorage === 'undefined') return;
-
-    try {
-        if (sound_enabled.value) localStorage.removeItem(STORAGE_KEY);
-        else localStorage.setItem(STORAGE_KEY, 'false');
-    } catch {}
-}
-
-export function setTypingSoundEnabled(enabled) {
-    typing_sound_enabled.value = Boolean(enabled);
-    if (typeof localStorage === 'undefined') return;
-    try {
-        if (typing_sound_enabled.value) localStorage.removeItem(TYPING_STORAGE_KEY);
-        else localStorage.setItem(TYPING_STORAGE_KEY, 'false');
-    } catch {}
-}
+export const sound_enabled = master.state;
+export const typing_sound_enabled = typing.state;
+export const interaction_sound_enabled = interactions.state;
+export const setSoundEnabled = master.set;
+export const setTypingSoundEnabled = typing.set;
+export const setInteractionSoundEnabled = interactions.set;
