@@ -274,7 +274,7 @@
         border-radius: 0.75rem;
     }
     @media (min-width: 640px) and (hover: hover) and (pointer: fine) {
-        .options_panel::before { content: ''; position: absolute; z-index: -1; inset-block: calc(var(--patter_space_3) * -1); inset-inline: calc(var(--patter_space_6) * -1) 0; pointer-events: auto; }
+        .options_panel::before { content: ''; position: absolute; z-index: -1; inset-block: calc(var(--patter_space_3) * -1); inset-inline: calc(var(--patter_space_6) * -1); pointer-events: auto; }
     }
     .options_glass { position: absolute; inset: 0; z-index: -1; }
     .options_header, .quick_actions { display: flex; align-items: center; }
