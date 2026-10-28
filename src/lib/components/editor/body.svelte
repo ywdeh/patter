@@ -348,7 +348,7 @@
 <div class="flex h-full min-h-0 min-w-0 w-full flex-col gap-4 overflow-visible">
     <EditorToolbar />
     <div class="flex min-h-0 min-w-0 w-full flex-1 gap-2 overflow-hidden">
-        <div bind:this={scrollEl} class="editor_body_scroll h-full w-full min-h-0 flex-1 patter_font_body overflow-y-auto scrollbar-thumb-mauve-100/12 scrollbar-thin" style={`--editor-mask: ${hasScrolledDown ? topAndBottomFadeMask : bottomFadeMask}`} onscroll={handleEditorScroll}>
+        <div bind:this={scrollEl} class="editor_body_scroll h-full w-full min-h-0 flex-1 patter_font_body overflow-y-auto" style={`--editor-mask: ${hasScrolledDown ? topAndBottomFadeMask : bottomFadeMask}`} onscroll={handleEditorScroll}>
             <MarkdownEditor bind:this={markdownEditor} onchange={handleInput} onrender={() => updateCounts(markdownEditor.getVisibleText())} onkey={handleEditorKeydown} {placeholder} />
         </div>
     </div>

@@ -202,7 +202,7 @@
                 <button data-ui-hover-sound="true" type="button" role="tab" id={'options_tab_' + tab.toLowerCase()} aria-controls={'options_content_' + tab.toLowerCase()} aria-selected={active_tab === tab} disabled={tab === 'Audio' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab}</button>
             {/each}
         </div>
-        <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll scrollbar-thin scrollbar-thumb-mauve-100/12" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
+        <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
             <div bind:this={content} class="tab_stack">
                 <div id="options_content_scene" role="tabpanel" aria-labelledby="options_tab_scene" inert={active_tab !== 'Scene'} aria-hidden={active_tab !== 'Scene'} class:tab_inactive={active_tab !== 'Scene'} class="tab_content">
                     <BackgroundPicker sound="paper_turn" compact onpickerchange={handle_picker} />
@@ -339,7 +339,6 @@
         overflow-y: auto;
         overflow-x: hidden;
         overscroll-behavior: contain;
-        scrollbar-gutter: stable;
     }
     .system_sounds { display: flex; flex-direction: column; gap: var(--patter_setting_gap); padding: var(--patter_space_1); }
     .tab_content, .setting_rows { display: flex; flex-direction: column; gap: var(--patter_setting_gap); }

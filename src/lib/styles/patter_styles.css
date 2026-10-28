@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+
 :root {
     --patter_space_1: 0.25rem;
     --patter_space_2: calc(var(--patter_space_1) * 2);
