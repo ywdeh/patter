@@ -1,7 +1,7 @@
 export const editor_fonts = [
     "var(--patter_font_body)",
-    "var(--patter_font_ui)",
     'Consolas, "Cascadia Mono", "Liberation Mono", monospace',
+    "var(--patter_font_ui)",
     '"OpenDyslexic", sans-serif'
 ];
-export const editor_font_labels = { 0: 'Serif', 1: 'Sans', 2: 'Mono', 3: 'Dyslexic' };
+export const editor_font_labels = { 0: 'Serif', 1: 'Mono', 2: 'Sans', 3: 'Dyslexic' };
