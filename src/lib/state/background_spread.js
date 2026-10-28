@@ -1,10 +1,19 @@
 let pending_origin = null;
 let spread_sequence = 0;
 let latest_spread = 0;
+let spread_pending = false;
+let after_spread = null;
 
 export function begin_wallpaper_spread() {
+    spread_pending = true;
+    after_spread = null;
     latest_spread = ++spread_sequence;
     return latest_spread;
+}
+
+export function after_wallpaper_spread(callback) {
+    if (spread_pending) after_spread = callback;
+    else callback();
 }
 
 export function capture_spread_origin(event) {
@@ -33,6 +42,12 @@ export function take_spread_origin(key) {
 export function complete_wallpaper_spread(key, sequence = latest_spread) {
     queueMicrotask(() => {
         window.dispatchEvent(new CustomEvent('patter-wallpaper-spread', { detail: { key, sequence, latest: sequence === latest_spread, complete: true } }));
+        if (sequence === latest_spread) {
+            spread_pending = false;
+            const callback = after_spread;
+            after_spread = null;
+            callback?.();
+        }
     });
 }
 

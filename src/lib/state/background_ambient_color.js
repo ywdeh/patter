@@ -1,3 +1,5 @@
+import { after_wallpaper_spread } from './background_spread.js';
+import { motionDuration } from './motion.js';
 import { loadBackgroundImage } from './background_preloader.js';
 
 export const BACKGROUND_AMBIENT_COLOR_ENABLED = true;
@@ -83,7 +85,23 @@ export function setAmbientBackgroundColor(color, key) {
     const safeColor = typeof color === 'string' && /^#[\da-f]{6}$/i.test(color)
         ? color
         : DEFAULT_AMBIENT_BACKGROUND_COLOR;
-    document.documentElement.style.setProperty('--patter_background_base', safeColor);
+    after_wallpaper_spread(() => applyAmbientBackgroundColor(safeColor, key));
+}
+
+function applyAmbientBackgroundColor(safeColor, key) {
+    const root = document.documentElement;
+    if (root.style.getPropertyValue('--patter_background_base') !== safeColor) {
+        const existing_animations = new Set(document.getAnimations());
+        root.style.setProperty('--patter_background_base', safeColor);
+        for (const animation of document.getAnimations()) {
+            if (existing_animations.has(animation) || !('transitionProperty' in animation)) continue;
+            if (!/^(?:color|background-color|outline-color|border-(?:top|right|bottom|left)-color|box-shadow|text-shadow|fill|stroke)$/.test(animation.transitionProperty)) continue;
+            if (animation.effect?.target?.matches?.('.patter_ambient_background')) continue;
+            const duration = Number(animation.effect?.getTiming().duration);
+            const quick_duration = Math.max(1, motionDuration('short', 150));
+            if (Number.isFinite(duration) && duration > quick_duration) animation.updatePlaybackRate(duration / quick_duration);
+        }
+    }
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', safeColor);
     if (!key || !/^#[\da-f]{6}$/i.test(safeColor) || typeof localStorage === 'undefined') return;
     try {
