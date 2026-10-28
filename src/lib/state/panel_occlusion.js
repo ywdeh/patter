@@ -2,10 +2,23 @@ export function mount_panel_occlusion() {
     const panel_selector = '[data-patter-panel]';
     const targets = new Map();
     const written_styles = new WeakMap();
+    const mask_signatures = new WeakMap();
+    const panel_order = new Map();
     let panels = [];
     let frame = 0;
     let rescan = true;
-    const sizes = new ResizeObserver(() => schedule());
+    let refresh_animations = true;
+    let destroyed = false;
+    let animation_nodes = new Set();
+    const active_animations = new Set();
+    const observed_animations = new WeakSet();
+    const animation_relevance = new WeakMap();
+    const sizes = new ResizeObserver(request_update);
+    const paint_only = /^(?:color|background(?:-[a-z]+)?|(?:border|outline)(?:-[a-z]+)*-color|box-shadow|text-shadow|(?:fill|stroke)(?:-opacity)?|caret-color|text-decoration-color|accent-color)$/;
+    const keyframe_metadata = new Set(['offset', 'computedOffset', 'easing', 'composite']);
+    function affects_mask(property) {
+        return !paint_only.test(property.replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase()));
+    }
 
     const mask_properties = ['maskImage', 'maskSize', 'maskPosition', 'maskRepeat', 'maskClip'];
     function remember(node) { return Object.fromEntries(mask_properties.map((key) => [key, node.style[key]])); }
@@ -17,6 +30,8 @@ export function mount_panel_occlusion() {
     function collect() {
         sizes.disconnect();
         panels = [...document.querySelectorAll(panel_selector)];
+        panel_order.clear();
+        panels.forEach((node, index) => panel_order.set(node, index));
         const next = new Set();
         function walk(node) {
             if (!(node instanceof HTMLElement) || node.matches('script, style, link, [data-patter-background]')) return;
@@ -31,6 +46,11 @@ export function mount_panel_occlusion() {
         }
         for (const node of next) if (!targets.has(node)) targets.set(node, remember(node));
         for (const node of new Set([...panels, ...targets.keys()])) sizes.observe(node);
+        animation_nodes = new Set();
+        for (const target of new Set([...panels, ...targets.keys()])) {
+            for (let node = target; node; node = node.parentElement) animation_nodes.add(node);
+        }
+        refresh_animations = true;
         rescan = false;
     }
     function visible(node, styles) {
@@ -41,18 +61,35 @@ export function mount_panel_occlusion() {
         }
         return true;
     }
-    function moving() {
-        const checked = new Set();
-        for (const panel of panels) for (let node = panel; node; node = node.parentElement) {
-            if (checked.has(node)) continue;
-            checked.add(node);
-            if (node.getAnimations().some((animation) => animation.playState === 'running')) return true;
+    function relevant_animation(animation) {
+        if ('transitionProperty' in animation) return affects_mask(animation.transitionProperty);
+        if (!animation_relevance.has(animation)) {
+            const keyframes = animation.effect?.getKeyframes?.();
+            animation_relevance.set(animation, !keyframes?.length || keyframes.some((keyframe) =>
+                Object.keys(keyframe).some((property) => !keyframe_metadata.has(property) && affects_mask(property))));
         }
-        return false;
+        return animation_relevance.get(animation);
+    }
+    function update_animations() {
+        active_animations.clear();
+        for (const node of animation_nodes) for (const animation of node.getAnimations()) {
+            if (!relevant_animation(animation)) continue;
+            active_animations.add(animation);
+            if (observed_animations.has(animation)) continue;
+            observed_animations.add(animation);
+            const finish = () => {
+                active_animations.delete(animation);
+                schedule();
+            };
+            animation.finished.then(finish, finish);
+        }
+        refresh_animations = false;
     }
     function paint() {
         frame = 0;
         if (rescan) collect();
+        if (refresh_animations) update_animations();
+        const moving = [...active_animations].some((animation) => animation.pending || animation.playState === 'running');
         const style_cache = new Map();
         const styles = (node) => {
             if (!style_cache.has(node)) style_cache.set(node, getComputedStyle(node));
@@ -60,13 +97,13 @@ export function mount_panel_occlusion() {
         };
         const covers = panels.filter((node) => visible(node, styles)).map((node) => {
             const style = styles(node);
-            return { node, order: panels.indexOf(node), priority: Number(node.dataset.patterPanel) || 0, bounds: node.getBoundingClientRect(), opacity: Number(style.opacity), radius: parseFloat(style.borderTopLeftRadius) || 0 };
+            return { node, order: panel_order.get(node), priority: Number(node.dataset.patterPanel) || 0, bounds: node.getBoundingClientRect(), opacity: Number(style.opacity), radius: parseFloat(style.borderTopLeftRadius) || 0 };
         });
         const geometry = [...targets].map(([node, original]) => ({ node, original, bounds: covers.length ? node.getBoundingClientRect() : null }));
         for (const { node, original, bounds } of geometry) {
-            if (!covers.length) { write(node, original); continue; }
-            const own_order = panels.indexOf(node);
-            const own_priority = node.matches(panel_selector) ? Number(node.dataset.patterPanel) || 0 : -Infinity;
+            if (!covers.length) { mask_signatures.delete(node); write(node, original); continue; }
+            const own_order = panel_order.get(node) ?? -1;
+            const own_priority = panel_order.has(node) ? Number(node.dataset.patterPanel) || 0 : -Infinity;
             const padding = 32;
             const holes = [];
             for (const cover of covers) {
@@ -79,24 +116,45 @@ export function mount_panel_occlusion() {
                 if (right <= -padding || left >= bounds.width + padding || bottom <= -padding || top >= bounds.height + padding) continue;
                 holes.push(`<rect x="${left.toFixed(2)}" y="${top.toFixed(2)}" width="${(right - left).toFixed(2)}" height="${(bottom - top).toFixed(2)}" rx="${cover.radius + 4}" fill="black" opacity="${cover.opacity.toFixed(3)}"/>`);
             }
-            if (!holes.length) { write(node, original); continue; }
+            if (!holes.length) { mask_signatures.delete(node); write(node, original); continue; }
             const width = bounds.width + padding * 2, height = bounds.height + padding * 2;
+            const holes_markup = holes.join('');
+            const signature = `${width},${height}:${holes_markup}`;
+            if (mask_signatures.get(node) === signature) continue;
             const area = `x="-${padding}" y="-${padding}" width="${width}" height="${height}"`;
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="-${padding} -${padding} ${width} ${height}"><defs><mask id="cut" maskUnits="userSpaceOnUse" ${area} style="mask-type:luminance"><rect ${area} fill="white"/>${holes.join('')}</mask></defs><rect ${area} fill="white" mask="url(#cut)"/></svg>`;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="-${padding} -${padding} ${width} ${height}"><defs><mask id="cut" maskUnits="userSpaceOnUse" ${area} style="mask-type:luminance"><rect ${area} fill="white"/>${holes_markup}</mask></defs><rect ${area} fill="white" mask="url(#cut)"/></svg>`;
             write(node, {
                 maskImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
                 maskSize: `${width}px ${height}px`,
                 maskPosition: `-${padding}px -${padding}px`,
                 maskRepeat: 'no-repeat', maskClip: 'no-clip'
             });
+            mask_signatures.set(node, signature);
         }
-        if (moving()) schedule();
+        if (moving) schedule();
     }
-    function schedule() { if (!frame) frame = requestAnimationFrame(paint); }
+    function schedule() { if (!destroyed && !frame) frame = requestAnimationFrame(paint); }
+    function request_update() {
+        refresh_animations = true;
+        schedule();
+    }
+    function animation_event(event) {
+        if (!animation_nodes.has(event.target)) return;
+        if ('propertyName' in event && !affects_mask(event.propertyName)) return;
+        request_update();
+    }
+    const animation_events = ['transitionrun', 'transitionend', 'transitioncancel', 'animationstart', 'animationend', 'animationcancel'];
     const changes = new MutationObserver((records) => {
         let relevant = false;
+        const checked_styles = new Set();
         for (const record of records) {
-            if (record.type === 'attributes' && record.attributeName === 'style' && written_styles.get(record.target) === record.target.getAttribute('style')) continue;
+            if (record.target instanceof Element && record.target.closest('[data-patter-background]')) continue;
+            if (record.type === 'attributes' && record.attributeName === 'style') {
+                if (checked_styles.has(record.target)) continue;
+                checked_styles.add(record.target);
+                if (written_styles.get(record.target) === record.target.getAttribute('style')) continue;
+                mask_signatures.delete(record.target);
+            }
             if (record.attributeName === 'data-patter-panel') rescan = true;
             if (record.type === 'childList') {
                 const structural = [...record.addedNodes, ...record.removedNodes].some((node) =>
@@ -105,22 +163,22 @@ export function mount_panel_occlusion() {
             }
             relevant = true;
         }
-        if (relevant) schedule();
+        if (relevant) request_update();
     });
     changes.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class', 'hidden', 'inert', 'aria-expanded', 'data-patter-panel'] });
     window.addEventListener('resize', schedule);
     window.addEventListener('scroll', schedule, true);
-    document.addEventListener('transitionrun', schedule);
-    document.addEventListener('animationstart', schedule);
+    for (const event of animation_events) document.addEventListener(event, animation_event);
     schedule();
     return () => {
+        destroyed = true;
+        active_animations.clear();
         changes.disconnect();
         sizes.disconnect();
         cancelAnimationFrame(frame);
         window.removeEventListener('resize', schedule);
         window.removeEventListener('scroll', schedule, true);
-        document.removeEventListener('transitionrun', schedule);
-        document.removeEventListener('animationstart', schedule);
+        for (const event of animation_events) document.removeEventListener(event, animation_event);
         for (const [node, original] of targets) write(node, original);
         targets.clear();
     };

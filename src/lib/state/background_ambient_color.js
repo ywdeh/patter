@@ -1,5 +1,4 @@
 import { after_wallpaper_spread } from './background_spread.js';
-import { motionDuration } from './motion.js';
 import { loadBackgroundImage } from './background_preloader.js';
 
 export const BACKGROUND_AMBIENT_COLOR_ENABLED = true;
@@ -8,6 +7,8 @@ export const DEFAULT_AMBIENT_BACKGROUND_COLOR = '#0b120f';
 const CACHE_KEY = 'patter-background-ambient-colors-v3';
 const SCRIM_CACHE_KEY = 'patter-background-scrim-v1';
 const MAX_CACHED_COLORS = 32;
+const hex_color = /^#[\da-f]{6}$/i;
+const palette_transition = /^(?:color|background-color|outline-color|border-(?:top|right|bottom|left)-color|box-shadow|text-shadow|fill|stroke)$/;
 
 function readColorCache() {
     if (typeof localStorage === 'undefined') return {};
@@ -21,7 +22,7 @@ function readColorCache() {
 
 export function getCachedAmbientBackgroundColor(key) {
     const color = readColorCache()[key];
-    return typeof color === 'string' && /^#[\da-f]{6}$/i.test(color) ? color : null;
+    return typeof color === 'string' && hex_color.test(color) ? color : null;
 }
 
 export function getCachedBackgroundScrim(key) {
@@ -82,7 +83,7 @@ export function cacheBackgroundScrim(key, opacity) {
 
 export function setAmbientBackgroundColor(color, key) {
     if (typeof document === 'undefined') return;
-    const safeColor = typeof color === 'string' && /^#[\da-f]{6}$/i.test(color)
+    const safeColor = typeof color === 'string' && hex_color.test(color)
         ? color
         : DEFAULT_AMBIENT_BACKGROUND_COLOR;
     after_wallpaper_spread(() => applyAmbientBackgroundColor(safeColor, key));
@@ -95,15 +96,13 @@ function applyAmbientBackgroundColor(safeColor, key) {
         root.style.setProperty('--patter_background_base', safeColor);
         for (const animation of document.getAnimations()) {
             if (existing_animations.has(animation) || !('transitionProperty' in animation)) continue;
-            if (!/^(?:color|background-color|outline-color|border-(?:top|right|bottom|left)-color|box-shadow|text-shadow|fill|stroke)$/.test(animation.transitionProperty)) continue;
+            if (!palette_transition.test(animation.transitionProperty)) continue;
             if (animation.effect?.target?.matches?.('.patter_ambient_background')) continue;
-            const duration = Number(animation.effect?.getTiming().duration);
-            const quick_duration = Math.max(1, motionDuration('short', 150));
-            if (Number.isFinite(duration) && duration > quick_duration) animation.updatePlaybackRate(duration / quick_duration);
+            animation.finish();
         }
     }
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', safeColor);
-    if (!key || !/^#[\da-f]{6}$/i.test(safeColor) || typeof localStorage === 'undefined') return;
+    if (!key || typeof localStorage === 'undefined') return;
     try {
         const colors = readColorCache();
         delete colors[key];
