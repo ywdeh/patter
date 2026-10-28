@@ -268,8 +268,11 @@
         const line = source.slice(line_start, line_end < 0 ? source.length : line_end);
         const bullet = /^([-*]) /u.exec(line);
         const numbered = /^(\d+)\. /u.exec(line);
-        const caption = /^(>{1,2}) (?:#{1,3} )?/u.exec(line);
-        if (caption) return { line_start, prefix: caption[0], next: '' };
+        const caption = /^(>{1,2}) (?:(#{1,3}) )?/u.exec(line);
+        if (caption) return {
+            line_start, prefix: caption[0], next: '',
+            remove_from: line_start + (caption[2] ? caption[1].length + 1 : 0)
+        };
         if (!bullet && !numbered) return null;
         const prefix = bullet ? `${bullet[1]} ` : `${numbered[1]}. `;
         return { line_start, prefix, next: bullet ? prefix : `${Number(numbered[1]) + 1}. ` };
@@ -328,7 +331,8 @@
                 if (inputType === 'deleteContentBackward') {
                     const paragraph = paragraph_at(start);
                     if (paragraph && start === paragraph.line_start + paragraph.prefix.length) {
-                        commit(source.slice(0, paragraph.line_start) + source.slice(start), paragraph.line_start, 'delete');
+                        const remove_from = paragraph.remove_from ?? paragraph.line_start;
+                        commit(source.slice(0, remove_from) + source.slice(start), remove_from, 'format');
                         return;
                     }
                 }
