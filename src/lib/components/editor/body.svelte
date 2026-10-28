@@ -349,7 +349,7 @@
     <EditorToolbar />
     <div class="flex min-h-0 min-w-0 w-full flex-1 gap-2 overflow-hidden">
         <div bind:this={scrollEl} class="editor_body_scroll h-full w-full min-h-0 flex-1 patter_font_body overflow-y-auto scrollbar-thumb-mauve-100/12 scrollbar-thin" style={`--editor-mask: ${hasScrolledDown ? topAndBottomFadeMask : bottomFadeMask}`} onscroll={handleEditorScroll}>
-            <MarkdownEditor bind:this={markdownEditor} onchange={handleInput} onkey={handleEditorKeydown} {placeholder} />
+            <MarkdownEditor bind:this={markdownEditor} onchange={handleInput} onrender={() => updateCounts(markdownEditor.getVisibleText())} onkey={handleEditorKeydown} {placeholder} />
         </div>
     </div>
     <div class="editor_stats patter_editor_controls flex w-full shrink-0 flex-col items-start gap-2 px-4 patter_text_subtle sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8" data-zen-mode-ui="editor-stats">

@@ -1,7 +1,7 @@
 import { motionDuration } from './motion.js';
 import { render_markdown_line } from './markdown_render.js';
 
-export function recovery_preview(editor) {
+export function recovery_preview(editor, initial_markdown = true) {
     const scroll = editor.parentElement;
     const host = scroll.parentElement;
     const old_position = host.style.position;
@@ -12,6 +12,7 @@ export function recovery_preview(editor) {
     let requested = null;
     let current = null;
     let destroyed = false;
+    let markdown_enabled = initial_markdown;
     host.style.position = 'relative';
 
     function duration() {
@@ -42,7 +43,7 @@ export function recovery_preview(editor) {
             opacity: '0', transition: `opacity ${duration()}ms ease-out`
         });
         const fragment = document.createDocumentFragment();
-        text.split('\n').forEach((line, index) => fragment.append(render_markdown_line(line, index)));
+        text.split('\n').forEach((line, index) => fragment.append(render_markdown_line(line, index, markdown_enabled)));
         content.append(fragment);
         node.append(content);
         host.append(node);
@@ -96,7 +97,14 @@ export function recovery_preview(editor) {
     scroll.addEventListener('pointerdown', clear_immediately);
     editor.addEventListener('beforeinput', clear_immediately);
     editor.addEventListener('patter-document-replaced', document_replaced);
-    return { destroy() {
+    return { update(enabled) {
+        if (enabled === markdown_enabled) return;
+        markdown_enabled = enabled;
+        const text = requested;
+        clear_immediately();
+        requested = text;
+        apply(text);
+    }, destroy() {
         destroyed = true;
         window.removeEventListener('patter-preview-snapshot', preview);
         scroll.removeEventListener('pointerdown', clear_immediately);

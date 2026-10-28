@@ -150,7 +150,9 @@ export function mountCustomCaret(scroller, editor) {
 		}
 
 		const bounds = scroller.getBoundingClientRect();
-		const color = getComputedStyle(editor).color;
+		const anchor = selection.anchorNode;
+		const text_element = anchor.nodeType === Node.ELEMENT_NODE ? anchor : anchor.parentElement;
+		const color = getComputedStyle(text_element ?? editor).color;
 		const isEmpty = editor.dataset.empty === 'true';
 		const left = rect.left - bounds.left + scroller.scrollLeft - scroller.clientLeft
 			+ CARET_LEFT_PADDING - (isEmpty ? EMPTY_CARET_LEFT_OFFSET : 0);

@@ -8,7 +8,7 @@
     import { DEFAULT_EDITOR_PLACEHOLDER } from '$lib/state/editor_placeholders.js';
     import { placeholder_ink } from '$lib/state/placeholder_ink.js';
 
-    let { onchange = () => {}, onkey = () => {}, placeholder = DEFAULT_EDITOR_PLACEHOLDER } = $props();
+    let { onchange = () => {}, onrender = () => {}, onkey = () => {}, placeholder = DEFAULT_EDITOR_PLACEHOLDER } = $props();
     const history_limit = 100;
     const grapheme_segmenter = typeof Intl.Segmenter === 'function'
         ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
@@ -19,7 +19,8 @@
     let indexed_source = null;
     let source_lines = [];
     let line_offsets = [];
-    let composing = false;
+    let composing = $state(false);
+    let markdown_enabled = background_values.markdown;
     let history = [{ text: '', start: 0, end: 0 }];
     let history_index = 0;
     let last_edit = null;
@@ -46,23 +47,23 @@
         }
         return first;
     }
-    function render() {
+    function render(force = false) {
         if (!editor) return;
         index_source();
         const lines = source_lines;
         const existing = Array.from(editor.children);
         let first = 0;
-        while (first < lines.length && first < existing.length && existing[first]._source_text === lines[first]) first++;
+        while (!force && first < lines.length && first < existing.length && existing[first]._source_text === lines[first]) first++;
         let old_end = existing.length - 1;
         let new_end = lines.length - 1;
-        while (old_end >= first && new_end >= first && existing[old_end]._source_text === lines[new_end]) {
+        while (!force && old_end >= first && new_end >= first && existing[old_end]._source_text === lines[new_end]) {
             old_end--;
             new_end--;
         }
 
         for (let index = first; index <= old_end; index++) existing[index].remove();
         const fragment = document.createDocumentFragment();
-        for (let index = first; index <= new_end; index++) fragment.append(render_line(lines[index], index));
+        for (let index = first; index <= new_end; index++) fragment.append(render_line(lines[index], index, markdown_enabled));
         editor.insertBefore(fragment, editor.children[first] ?? null);
         if (existing.length !== lines.length) {
             for (let index = new_end + 1; index < editor.children.length; index++) editor.children[index].dataset.line = String(index);
@@ -154,7 +155,7 @@
 
             const prefix = line.firstElementChild;
             if (prefix?.classList.contains('markdown_syntax') &&
-                (line.classList.contains('list_line') || line.className.includes('heading_'))) {
+                (line.classList.contains('list_line') || line.classList.contains('caption_line') || line.className.includes('heading_'))) {
                 const prefix_end = point_offset(line, 1);
                 const line_end = point_offset(line, line.childNodes.length);
                 if (start <= prefix_end && end >= line_end) {
@@ -260,12 +261,15 @@
         commit(source.slice(0, start) + normalized + source.slice(end), start + normalized.length, kind);
     }
 
-    function list_at(offset) {
+    function paragraph_at(offset) {
+        if (!markdown_enabled) return null;
         const line_start = source.lastIndexOf('\n', Math.max(0, offset - 1)) + 1;
         const line_end = source.indexOf('\n', offset);
         const line = source.slice(line_start, line_end < 0 ? source.length : line_end);
         const bullet = /^([-*]) /u.exec(line);
         const numbered = /^(\d+)\. /u.exec(line);
+        const caption = /^(>{1,2}) (?:#{1,3} )?/u.exec(line);
+        if (caption) return { line_start, prefix: caption[0], next: '' };
         if (!bullet && !numbered) return null;
         const prefix = bullet ? `${bullet[1]} ` : `${numbered[1]}. `;
         return { line_start, prefix, next: bullet ? prefix : `${Number(numbered[1]) + 1}. ` };
@@ -310,9 +314,9 @@
         if (inputType === 'insertParagraph' || inputType === 'insertLineBreak') {
             event.preventDefault();
             const { start, end } = source_selection();
-            const list = inputType === 'insertParagraph' ? list_at(start) : null;
-            const next_line = list && start >= list.line_start + list.prefix.length
-                ? `\n${list.next}`
+            const paragraph = inputType === 'insertParagraph' ? paragraph_at(start) : null;
+            const next_line = paragraph && start >= paragraph.line_start + paragraph.prefix.length
+                ? `\n${paragraph.next}`
                 : '\n';
             commit(source.slice(0, start) + next_line + source.slice(end), start + next_line.length, 'paragraph');
             return;
@@ -322,9 +326,9 @@
             let { start, end } = source_selection();
             if (start === end) {
                 if (inputType === 'deleteContentBackward') {
-                    const list = list_at(start);
-                    if (list && start === list.line_start + list.prefix.length) {
-                        commit(source.slice(0, list.line_start) + source.slice(start), list.line_start, 'delete');
+                    const paragraph = paragraph_at(start);
+                    if (paragraph && start === paragraph.line_start + paragraph.prefix.length) {
+                        commit(source.slice(0, paragraph.line_start) + source.slice(start), paragraph.line_start, 'delete');
                         return;
                     }
                 }
@@ -447,12 +451,28 @@
         set_selection(source.length);
     }
 
-    onMount(render);
+    onMount(() => render());
+
+    $effect(() => {
+        const enabled = background_values.markdown;
+        if (!editor || composing || enabled === markdown_enabled) return;
+        const selection = document.getSelection();
+        const has_selection = selection?.rangeCount && editor.contains(selection.anchorNode) && editor.contains(selection.focusNode);
+        const offsets = has_selection ? selection_offsets() : null;
+        const scroll = editor.parentElement;
+        const scroll_top = scroll.scrollTop;
+        markdown_enabled = enabled;
+        render(true);
+        if (offsets) set_selection(offsets.start, offsets.end);
+        scroll.scrollTop = scroll_top;
+        onrender();
+        editor.dispatchEvent(new Event('input'));
+    });
 </script>
 
 <div
     bind:this={editor}
-    use:recovery_preview
+    use:recovery_preview={background_values.markdown}
     use:placeholder_ink={placeholder}
     use:editor_font_transition={{ font: editor_fonts[background_values.editorFont], size: background_values.textSize }}
     data-patter-body
@@ -482,6 +502,8 @@
     .markdown_surface :global(.heading_1) { font-size: 1.65em; font-weight: 700; }
     .markdown_surface :global(.heading_2) { font-size: 1.35em; font-weight: 700; }
     .markdown_surface :global(.heading_3) { font-size: 1.15em; font-weight: 700; }
+    .markdown_surface :global(.caption_line) { color: #f2d77a; text-align: start; text-shadow: -1px 0 2px rgb(0 0 0 / 70%), 1px 0 2px rgb(0 0 0 / 70%), 0 -1px 2px rgb(0 0 0 / 70%), 0 1px 2px rgb(0 0 0 / 70%), 0 0 5px rgb(0 0 0 / 45%); }
+    .markdown_surface :global(.caption_centered) { text-align: center; }
     .markdown_surface :global(.list_line) { position: relative; padding-left: 1.5em; }
     .markdown_surface :global(.list_line::before) { content: attr(data-list-marker); position: absolute; left: 0; opacity: var(--patter_opacity_secondary); }
 </style>

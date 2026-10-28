@@ -219,6 +219,8 @@
                     <InputPill text="Text size" min={mobile_mode ? 16 : 14} max={24} step={1} value={mobile_mode ? Math.max(16, background_values.textSize) : background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => { background_values.textSize = value; persistBackgroundValues({ textSize: value }); track_setting('textSize', value); }} />
                     <div class="options_divider" aria-hidden="true"></div>
                     <InputPill text="Controls" mode="toggle" falseLabel="Wide" trueLabel="Narrow" value={!background_values.cornerControls} defaultValue={!defaults.cornerControls} onchange={(value) => { background_values.cornerControls = !value; persistBackgroundValues({ cornerControls: !value }); track_setting('corner_controls', !value); }} />
+                    <div class="options_divider" aria-hidden="true"></div>
+                    <ToggleButton text="Markdown" bind:value={background_values.markdown} onchange={(value) => { persistBackgroundValues({ markdown: value }); track_setting('markdown', value); }} />
                 </div>
                 <div id="options_content_audio" role="tabpanel" aria-labelledby="options_tab_audio" inert={active_tab !== 'Audio'} aria-hidden={active_tab !== 'Audio'} class:tab_inactive={active_tab !== 'Audio'} class="tab_content">
                     <AmbientMixer bind:this={mixer} embedded />

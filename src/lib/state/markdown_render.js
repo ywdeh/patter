@@ -64,21 +64,33 @@ const inline_markers = ['***', '**', '*'];
         flush();
     }
 
-    export function render_markdown_line(line, index) {
+    export function render_markdown_line(line, index, markdown = true) {
         const element = document.createElement('div');
         element.dataset.line = String(index);
         element.className = 'markdown_line';
         element._source_text = line;
+        if (!markdown) {
+            element.textContent = line;
+            if (!line) element.append(document.createElement('br'));
+            element._visible_text = line;
+            return element;
+        }
 
+        const caption = /^(>{1,2}) (?:(#{1,3}) )?(.*)$/u.exec(line);
         const heading = /^(#{1,3}) (.*)$/u.exec(line);
         const bullet = /^([-*]) (.*)$/u.exec(line);
         const numbered = /^(\d+\.) (.*)$/u.exec(line);
         let visible_content = line;
-        if (heading) {
-            element.classList.add(`heading_${heading[1].length}`);
-            syntax(element, `${heading[1]} `);
-            append_inline(element, heading[2]);
-            visible_content = heading[2];
+        if (caption || heading) {
+            visible_content = caption ? caption[3] : heading[2];
+            const heading_marker = caption ? caption[2] : heading[1];
+            if (caption) {
+                element.classList.add('caption_line');
+                if (caption[1] === '>>') element.classList.add('caption_centered');
+            }
+            if (heading_marker) element.classList.add(`heading_${heading_marker.length}`);
+            syntax(element, line.slice(0, line.length - visible_content.length));
+            append_inline(element, visible_content);
         } else if (bullet || numbered) {
             const match = bullet ?? numbered;
             element.classList.add('list_line');

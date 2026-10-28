@@ -18,6 +18,7 @@ export const defaults = {
     grain: 2,
     textSize: 18,
     editorFont: 0,
+    markdown: true,
     cornerControls: true,
     position: 'center',
     background: defaultBackground,
@@ -79,6 +80,7 @@ function load() {
             values[key] = typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
                 ? value : defaults[key];
         }
+        values.markdown = typeof values.markdown === 'boolean' ? values.markdown : defaults.markdown;
         values.cornerControls = typeof values.cornerControls === 'boolean' ? values.cornerControls : defaults.cornerControls;
         values.position = ['top', 'center', 'bottom'].includes(values.position) ? values.position : defaults.position;
         values.background = validBackground(values.background);
@@ -181,6 +183,7 @@ export function resetBackgroundValues() {
     background_values.grain = defaults.grain;
     background_values.textSize = defaults.textSize;
     background_values.editorFont = defaults.editorFont;
+    background_values.markdown = defaults.markdown;
     background_values.cornerControls = defaults.cornerControls;
     background_values.position = defaults.position;
     selectBuiltInBackground(defaults.background);
