@@ -111,7 +111,8 @@
 
     function updateEmpty(text = markdownEditor?.getSource() ?? '') {
         if (!bodyEl) return;
-        bodyEl.dataset.empty = String(text.trim() === '');
+        const empty = String(text.trim() === '');
+        if (bodyEl.dataset.empty !== empty) bodyEl.dataset.empty = empty;
     }
 
     function apply_counts(counts) {
@@ -228,9 +229,10 @@
         track_writing();
         onwriting();
         updateEmpty(bodyText);
-        updateCounts(markdownEditor.getVisibleText());
+        const visible_text = markdownEditor.getVisibleText();
+        updateCounts(visible_text);
         schedule_save(bodyText);
-        schedule_recovery_snapshot(bodyText, markdownEditor.getVisibleText());
+        schedule_recovery_snapshot(bodyText, visible_text);
         scheduleCaretScroll();
     }
 
@@ -242,8 +244,9 @@
         bodyEl.dispatchEvent(new Event('patter-document-replaced'));
         autosave.cancel();
         if (!save(bodyText)) autosave.schedule(bodyText);
-        reset_recovery_buffer(bodyText, markdownEditor.getVisibleText());
-        updateCounts(markdownEditor.getVisibleText());
+        const visible_text = markdownEditor.getVisibleText();
+        reset_recovery_buffer(bodyText, visible_text);
+        updateCounts(visible_text);
     }
 
     onMount(() => {

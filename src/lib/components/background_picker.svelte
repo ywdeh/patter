@@ -3,9 +3,9 @@
     import { onMount } from 'svelte';
     import { optimize_background_upload } from '$lib/state/background_upload.js';
     import { fade } from 'svelte/transition';
-    import { background_values, backgrounds, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
-    import { clearBackgroundUploads, listBackgroundUploads, replaceBackgroundUpload } from '$lib/state/background_media.js';
-    import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, ensureImagePoster, getBackgroundPoster } from '$lib/state/background_posters.js';
+    import { background_values, backgrounds, defaults, get_background_upload, set_background_upload, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
+    import { clearBackgroundUploads, replaceBackgroundUpload } from '$lib/state/background_media.js';
+    import { createImagePoster, removeBackgroundPoster, saveBackgroundPoster, getBackgroundPoster } from '$lib/state/background_posters.js';
     import BackgroundThumbnail from '$lib/components/background_thumbnail.svelte';
     import { backgroundFileAccept, backgroundKindFromFilename } from '$lib/state/background_formats.js';
     import { playSound } from '$lib/state/sound.js';
@@ -16,46 +16,18 @@
     let uploadOrigin;
     let processing_upload = $state(false);
     let uploadError = $state('');
-    let uploads = $state([]);
-    let hasUserAction = false;
+    const uploaded_background = $derived(get_background_upload());
+    const uploads = $derived(uploaded_background ? [uploaded_background] : []);
     let lastWheelBackgroundChange = -Infinity;
     let { sound = 'paper_turn', compact = false, onpickerchange = () => {} } = $props();
 
     onMount(() => {
-        let cancelled = false;
-        const onClearSavedData = () => {
-            hasUserAction = true;
-            for (const record of uploads) URL.revokeObjectURL(record.url);
-            uploads = [];
+        const clear = () => {
+            set_background_upload(null);
             uploadError = '';
         };
-        window.addEventListener('patter-clear-saved-data', onClearSavedData);
-        listBackgroundUploads().then((records) => {
-            if (cancelled || hasUserAction) return;
-            const selectedId = background_values.background.startsWith('upload:')
-                ? background_values.background.slice('upload:'.length)
-                : null;
-            const record = selectedId ? records.find((item) => item.id === selectedId) : records[0];
-            if (!record) {
-                if (selectedId) selectBuiltInBackground(defaults.background);
-                return;
-            }
-            const url = URL.createObjectURL(record.blob);
-            const posterKey = `upload:${record.id}`;
-            uploads = [{ ...record, url, poster: getBackgroundPoster(posterKey) }];
-            if (record.kind === 'image') {
-                void ensureImagePoster(posterKey, record.blob).then(() => {
-                    if (cancelled || hasUserAction) return;
-                    const poster = getBackgroundPoster(posterKey);
-                    if (poster) uploads = uploads.map((item) => item.id === record.id ? { ...item, poster } : item);
-                }).catch(() => {});
-            }
-        }).catch(() => {});
-        return () => {
-            cancelled = true;
-            window.removeEventListener('patter-clear-saved-data', onClearSavedData);
-            for (const record of uploads) URL.revokeObjectURL(record.url);
-        };
+        window.addEventListener('patter-clear-saved-data', clear);
+        return () => window.removeEventListener('patter-clear-saved-data', clear);
     });
 
     function playClick(paperVolumeScale = 1) {
@@ -66,7 +38,6 @@
     function select(item, event) {
         if (background_values.background === item.src) return;
         set_spread_origin(item.src, event);
-        hasUserAction = true;
         playClick();
         selectBuiltInBackground(item.src, item.kind);
         track_event('background_changed', { background: backgroundLabel(item.src).toLowerCase() });
@@ -75,7 +46,6 @@
     function selectUpload(item, event) {
         if (background_values.background === `upload:${item.id}`) return;
         set_spread_origin(`upload:${item.id}`, event);
-        hasUserAction = true;
         playClick();
         selectUploadedBackground(item.id, item.kind, item.url);
         track_event('background_changed', { background: `custom_${item.kind}` });
@@ -90,7 +60,6 @@
             if (now - lastWheelBackgroundChange < motionDuration('standard', 200)) return false;
             lastWheelBackgroundChange = now;
         }
-        hasUserAction = true;
         if (changesBackground) set_spread_origin(selectedBackground, event);
         playClick(0.5);
         background_values.position = position;
@@ -125,7 +94,6 @@
             return;
         }
 
-        hasUserAction = true;
         playClick();
         processing_upload = true;
         try {
@@ -133,12 +101,8 @@
             const id = crypto.randomUUID();
             const kind = backgroundKindFromFilename(file.name);
             await replaceBackgroundUpload({ id, kind, name: optimized.name, blob: optimized });
-            const url = URL.createObjectURL(optimized);
-            for (const oldUpload of uploads) {
-                URL.revokeObjectURL(oldUpload.url);
-                removeBackgroundPoster(`upload:${oldUpload.id}`);
-            }
-            uploads = [{ id, kind, name: optimized.name, blob: optimized, url, poster: null }];
+            if (uploaded_background) removeBackgroundPoster('upload:' + uploaded_background.id);
+            const { url } = set_background_upload({ id, kind, name: optimized.name, blob: optimized, poster: null });
             set_spread_origin(`upload:${id}`, uploadOrigin);
             selectUploadedBackground(id, kind, url);
             track_event('background_uploaded', { type: kind });
@@ -148,7 +112,7 @@
                 createImagePoster(optimized).then((poster) => {
                     if (poster) {
                         saveBackgroundPoster(`upload:${id}`, poster);
-                        uploads = uploads.map((item) => item.id === id ? { ...item, poster } : item);
+                        if (uploaded_background?.id === id) set_background_upload({ ...uploaded_background, poster });
                     }
                 }).catch(() => {});
             }
@@ -162,17 +126,15 @@
 
     async function removeUpload(event) {
         const origin = capture_spread_origin(event);
-        if (uploads.length === 0) return;
-        hasUserAction = true;
+        const upload = uploaded_background;
+        if (!upload) return;
         playClick();
         try {
             await clearBackgroundUploads();
-            for (const uploadItem of uploads) {
-                URL.revokeObjectURL(uploadItem.url);
-                removeBackgroundPoster(`upload:${uploadItem.id}`);
-            }
-            const removedActiveBackground = uploads.some((item) => background_values.background === `upload:${item.id}`);
-            uploads = [];
+            const key = 'upload:' + upload.id;
+            const removedActiveBackground = background_values.background === key;
+            removeBackgroundPoster(key);
+            if (uploaded_background?.id === upload.id) set_background_upload(null);
             track_event('background_removed');
             if (removedActiveBackground) {
                 set_spread_origin(defaults.background, origin);

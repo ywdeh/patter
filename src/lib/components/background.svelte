@@ -3,20 +3,11 @@
     import { onDestroy, onMount } from 'svelte';
     import { untrack } from 'svelte';
     import { tick } from 'svelte';
-    import { active_background, background_values, defaults, selectBuiltInBackground, selectUploadedBackground } from '$lib/state/background_state.svelte.js';
-    import { getBackgroundUpload } from '$lib/state/background_media.js';
+    import { active_background, background_values, background_startup, defaults, release_unused_background_uploads, selectBuiltInBackground } from '$lib/state/background_state.svelte.js';
     import { loadBackgroundImage } from '$lib/state/background_preloader.js';
     import { createVideoPoster, getBackgroundPoster, saveBackgroundPoster } from '$lib/state/background_posters.js';
-    import {
-        BACKGROUND_AMBIENT_COLOR_ENABLED,
-        DEFAULT_AMBIENT_BACKGROUND_COLOR,
-        cacheBackgroundScrim,
-        getCachedBackgroundScrim,
-        getCachedAmbientBackgroundColor,
-        sampleBackgroundScrim,
-        sampleAmbientBackgroundColor,
-        setAmbientBackgroundColor
-    } from '$lib/state/background_ambient_color.js';
+    import { setAmbientBackgroundColor } from '$lib/state/background_ambient_color.js';
+    import { prepare_background } from '$lib/state/background_preparation.js';
     import { motionDuration } from '$lib/state/motion.js';
     import { begin_wallpaper_spread, complete_wallpaper_spread, spread_wallpaper, take_spread_origin } from '$lib/state/background_spread.js';
     import grain_image from '$lib/media/grain.gif'
@@ -25,34 +16,31 @@
 
 
     let layerId = 0;
-    let visible_backgrounds = $state([{
-        id: layerId,
-        kind: active_background.kind,
-        url: active_background.url,
-        posterKey: background_values.background,
-        backgroundKey: background_values.background,
-        position: background_values.position,
-        opacity: 1,
-        videoOpacity: active_background.kind === 'video' ? 0 : 1,
-        useBackgroundVariable: true
-    }]);
+    let visible_backgrounds = $state([create_layer(active_background, true)]);
+
+    function create_layer(background, initial = false) {
+        return {
+            id: initial ? 0 : ++layerId,
+            kind: background.kind,
+            url: background.url,
+            key: background.key ?? background_values.background,
+            position: background.position ?? untrack(() => background_values.position),
+            opacity: initial ? 1 : 0,
+            videoOpacity: initial && background.kind === 'video' ? 0 : 1,
+            useBackgroundVariable: initial
+        };
+    }
+
     let transitionTimer;
     let transitionId = 0;
     let transitionInProgress = $state(false);
     let prefersReducedMotion = false;
     let destroyed = false;
-    const restored_upload_urls = new Set();
     const video_frame_waiters = new Set();
     const spread_controllers = new Set();
 
     $effect(() => {
-        const used_urls = new Set([active_background.url, ...visible_backgrounds.map((background) => background.url)]);
-        for (const url of restored_upload_urls) {
-            if (!used_urls.has(url)) {
-                URL.revokeObjectURL(url);
-                restored_upload_urls.delete(url);
-            }
-        }
+        release_unused_background_uploads([active_background.url, ...visible_backgrounds.map((layer) => layer.url)]);
     });
 
     onDestroy(() => {
@@ -60,56 +48,42 @@
         for (const controller of spread_controllers) controller.abort();
         spread_controllers.clear();
         for (const cancel of video_frame_waiters) cancel();
-        for (const url of restored_upload_urls) URL.revokeObjectURL(url);
-        restored_upload_urls.clear();
     });
 
     $effect(() => {
         const position = background_values.position;
-        const backgroundKey = background_values.background;
+        const key = background_values.background;
         const activeLayer = untrack(() => visible_backgrounds.at(-1));
-        if (!transitionInProgress && activeLayer?.backgroundKey === backgroundKey) {
+        if (!transitionInProgress && activeLayer?.key === key) {
             activeLayer.position = position;
         }
     });
 
     async function updateAmbientColor(source, key, kind = 'image') {
         if (destroyed || background_values.background !== key) return;
-        if (BACKGROUND_AMBIENT_COLOR_ENABLED) {
-            const cachedColor = getCachedAmbientBackgroundColor(key);
-            const color = cachedColor ?? await sampleAmbientBackgroundColor(source, kind);
-            if (destroyed || background_values.background !== key) return;
-            if (color) setAmbientBackgroundColor(color, key);
-        } else {
-            setAmbientBackgroundColor(DEFAULT_AMBIENT_BACKGROUND_COLOR);
-        }
-
-        const cachedScrim = getCachedBackgroundScrim(key);
-        const scrim = cachedScrim ?? await sampleBackgroundScrim(source, kind);
+        const { color, scrim } = await prepare_background(source, key, kind);
         if (destroyed || background_values.background !== key) return;
-        if (scrim !== null) {
-            document.documentElement.style.setProperty('--patter_background_scrim', `${scrim}`);
-            if (cachedScrim === null) cacheBackgroundScrim(key, scrim);
-        }
+        if (color) setAmbientBackgroundColor(color, key);
+        if (scrim !== null) document.documentElement.style.setProperty('--patter_background_scrim', String(scrim));
     }
 
     function handleVideoReady(background, video) {
         if (prefersReducedMotion) video.pause();
         else video.play().catch(() => {});
-        void updateAmbientColor(video, background.posterKey || background.url, 'video');
+        void updateAmbientColor(video, background.key || background.url, 'video');
         void wait_for_page_reveal().then(() => {
             if (destroyed) return;
             const layer = untrack(() => visible_backgrounds.find((item) => item.id === background.id));
             if (layer) layer.videoOpacity = 1;
         });
 
-        const posterKey = background.posterKey || background.url;
-        if (getBackgroundPoster(posterKey)) return;
+        const key = background.key || background.url;
+        if (getBackgroundPoster(key)) return;
         try {
             const poster = createVideoPoster(video);
             if (!poster) return;
-            saveBackgroundPoster(posterKey, poster);
-            if (background_values.background === posterKey) {
+            saveBackgroundPoster(key, poster);
+            if (background_values.background === key) {
                 document.documentElement.style.setProperty('--patter_background', `url("${poster}")`);
             }
         } catch {
@@ -132,7 +106,7 @@
 
     function handleVideoError(background) {
         if (background.url === defaults.background) return;
-        if (untrack(() => background_values.background) !== background.backgroundKey) return;
+        if (untrack(() => background_values.background) !== background.key) return;
         selectBuiltInBackground(defaults.background);
     }
 
@@ -168,17 +142,7 @@
 
         const outgoing = background;
         outgoing.opacity = 1;
-        const incoming = {
-            id: ++layerId,
-            kind: 'video',
-            url: background.url,
-            posterKey: background.posterKey,
-            backgroundKey: background.backgroundKey,
-            position: background.position,
-            opacity: 0,
-            videoOpacity: 1,
-            useBackgroundVariable: false
-        };
+        const incoming = create_layer(background);
         transitionInProgress = true;
         visible_backgrounds = [outgoing, incoming];
 
@@ -202,15 +166,15 @@
     }
 
     $effect(() => {
-        const next = { kind: active_background.kind, url: active_background.url, posterKey: background_values.background };
+        const next = { kind: active_background.kind, url: active_background.url, key: background_values.background };
         const current = untrack(() => visible_backgrounds.at(-1));
         if (!next.url) return;
         const spread_sequence = begin_wallpaper_spread();
         if (next.kind === current.kind && next.url === current.url) {
-            complete_wallpaper_spread(next.posterKey, spread_sequence);
+            complete_wallpaper_spread(next.key, spread_sequence);
             return;
         }
-        const spread_origin = take_spread_origin(next.posterKey);
+        const spread_origin = take_spread_origin(next.key);
 
         const id = ++transitionId;
         const spread_controller = new AbortController();
@@ -221,7 +185,7 @@
                 try {
                     await loadBackgroundImage(next.url);
                 } catch {
-                    if (id === transitionId && background_values.background === next.posterKey) {
+                    if (id === transitionId && background_values.background === next.key) {
                         selectBuiltInBackground(defaults.background);
                     }
                     return;
@@ -230,7 +194,7 @@
             if (id !== transitionId) return;
 
             if (next.kind === 'image') {
-                await updateAmbientColor(next.url, next.posterKey);
+                await updateAmbientColor(next.url, next.key);
                 if (id !== transitionId) return;
             }
 
@@ -240,17 +204,7 @@
             const outgoing = untrack(() => visible_backgrounds.at(-1));
             if (!outgoing) return;
             outgoing.opacity = 1;
-            const incoming = {
-                id: ++layerId,
-                kind: next.kind,
-                url: next.url,
-                posterKey: next.posterKey,
-                backgroundKey: next.posterKey,
-                position: untrack(() => background_values.position),
-                opacity: 0,
-                videoOpacity: 1,
-                useBackgroundVariable: false
-            };
+            const incoming = create_layer(next);
             transitionInProgress = true;
             visible_backgrounds = [...untrack(() => visible_backgrounds), incoming];
             await tick();
@@ -275,7 +229,7 @@
             spread_controllers.add(spread_controller);
             await spread_wallpaper(spread_node, {
                 duration: motionDuration('ink', 800),
-                key: next.posterKey,
+                key: next.key,
                 sequence: spread_sequence,
                 origin: spread_origin,
                 signal: spread_controller.signal
@@ -300,51 +254,15 @@
         };
     });
 
-    onMount(async () => {
-        const initialLayer = visible_backgrounds[0];
-        const selection = background_values.background;
-        if (!selection.startsWith('upload:')) {
-            if (initialLayer) {
-                initialLayer.kind = active_background.kind;
-                initialLayer.url = active_background.url;
-                initialLayer.posterKey = selection;
-                initialLayer.videoOpacity = active_background.kind === 'video' ? 0 : 1;
-                initialLayer.useBackgroundVariable = true;
-            }
-            if (active_background.kind === 'image') {
-                try {
-                    await loadBackgroundImage(active_background.url);
-                } catch {
-                    if (background_values.background === selection && selection !== defaults.background) {
-                        selectBuiltInBackground(defaults.background);
-                    }
-                    return;
-                }
-                if (initialLayer) initialLayer.useBackgroundVariable = false;
-                void updateAmbientColor(active_background.url, selection);
-            }
-            return;
-        }
-        try {
-            const record = await getBackgroundUpload(selection.slice('upload:'.length));
+    onMount(() => {
+        void background_startup.then(async () => {
             if (destroyed) return;
-            if (record && background_values.background === selection) {
-                const poster = getBackgroundPoster(selection);
-                if (initialLayer) {
-                    if (poster) initialLayer.url = poster;
-                    initialLayer.useBackgroundVariable = false;
-                }
-                const uploadUrl = URL.createObjectURL(record.blob);
-                restored_upload_urls.add(uploadUrl);
-                selectUploadedBackground(record.id, record.kind, uploadUrl);
-                if (record.kind === 'image') void updateAmbientColor(uploadUrl, selection);
-            } else {
-                if (initialLayer) initialLayer.useBackgroundVariable = false;
-                if (background_values.background === selection) selectBuiltInBackground(defaults.background);
+            const initial = untrack(() => visible_backgrounds[0]);
+            if (initial?.kind === 'image' && initial.url === active_background.url) {
+                initial.useBackgroundVariable = false;
+                await updateAmbientColor(initial.url, initial.key);
             }
-        } catch (error) {
-            console.error('Could not restore uploaded background', error);
-        }
+        }).catch(() => {});
     });
 
 </script>

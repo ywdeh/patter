@@ -117,6 +117,7 @@ export function mountCustomCaret(scroller, editor) {
 	let frame = 0;
 	let lastPosition = null;
 	let destroyed = false;
+	let blink;
 
 	function showNativeCaret() {
 		caret.style.visibility = 'hidden';
@@ -124,7 +125,10 @@ export function mountCustomCaret(scroller, editor) {
 	}
 
 	function restartBlink() {
-		for (const animation of caret.getAnimations()) animation.currentTime = 0;
+		if (!blink || blink.playState === 'idle') {
+			blink = caret.getAnimations().find((animation) => animation.animationName === 'patter-caret-blink');
+		}
+		if (blink) blink.currentTime = 0;
 	}
 
 	function update() {
@@ -146,6 +150,7 @@ export function mountCustomCaret(scroller, editor) {
 		}
 
 		const bounds = scroller.getBoundingClientRect();
+		const color = getComputedStyle(editor).color;
 		const isEmpty = editor.dataset.empty === 'true';
 		const left = rect.left - bounds.left + scroller.scrollLeft - scroller.clientLeft
 			+ CARET_LEFT_PADDING - (isEmpty ? EMPTY_CARET_LEFT_OFFSET : 0);
@@ -159,7 +164,7 @@ export function mountCustomCaret(scroller, editor) {
 		caret.style.left = `${left}px`;
 		caret.style.top = `${top}px`;
 		caret.style.height = `${height}px`;
-		caret.style.color = getComputedStyle(editor).color;
+		caret.style.color = color;
 		caret.style.setProperty(
 			'--patter_custom_caret_ink_opacity',
 			isEmpty ? 'var(--patter_opacity_placeholder, 0.4)' : '1'

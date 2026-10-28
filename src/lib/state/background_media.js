@@ -13,13 +13,6 @@ export function clearBackgroundUploads() {
     return transact((store) => { store.clear(); });
 }
 
-export function getBackgroundUpload(id) {
-    return transact((store, done) => {
-        const request = store.get(id);
-        request.onsuccess = () => done(request.result);
-    }, 'readonly');
-}
-
 export function listBackgroundUploads() {
     return transact((store, done) => {
         const request = store.getAll();

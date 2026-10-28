@@ -1,7 +1,8 @@
 import { editor_fonts } from './editor_fonts.js';
 import backgroundsFromFolder from 'virtual:patter-backgrounds';
 import { getBackgroundPoster } from '$lib/state/background_posters.js';
-import { preloadBackgroundImages } from '$lib/state/background_preloader.js';
+import { listBackgroundUploads } from './background_media.js';
+import { prepare_background, prepare_uploaded_background, wait_for_background_preparation } from './background_preparation.js';
 
 const STORAGE_KEY = "background-values";
 export const backgrounds = backgroundsFromFolder;
@@ -29,28 +30,40 @@ const validBackground = (value) => {
 };
 
 export const active_background = $state({ kind: 'image', url: defaults.background });
+let uploaded_background = $state(null);
+
+export function get_background_upload() { return uploaded_background; }
+let upload_version = 0;
+const retired_uploads = new Set();
 
 function builtInBackground(src) {
     return backgrounds.find((item) => item.src === src);
 }
 
+function set_style(property, value) {
+    const style = document.documentElement.style;
+    if (style.getPropertyValue(property) !== value) style.setProperty(property, value);
+}
+
 function applyToDocument(values) {
     if (typeof document === "undefined") return;
     document.documentElement.toggleAttribute('data-corner-controls', values.cornerControls);
-    document.documentElement.style.setProperty("--patter_focus", `${values.focus}px`);
-    document.documentElement.style.setProperty("--patter_tint", `${values.tint / 100}`);
-    document.documentElement.style.setProperty('--patter_tint_color', values.tintShade === 2 ? 'oklch(15.3% 0.025 135)' : values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
-    document.documentElement.style.setProperty("--patter_grain", `${values.grain / 100}`);
-    document.documentElement.style.setProperty('--patter_editor_font', editor_fonts[values.editorFont]);
-    document.documentElement.style.setProperty('--patter_body_text_size', `${values.textSize}px`);
-    document.documentElement.style.setProperty('--patter_background_position', values.position);
-    if (!values.background.startsWith('upload:')) {
-        const item = builtInBackground(values.background);
-        const preview = item?.kind === 'video'
-            ? getBackgroundPoster(values.background) ?? defaults.background
-            : values.background;
-        document.documentElement.style.setProperty("--patter_background", `url("${preview}")`);
-    }
+    set_style("--patter_focus", `${values.focus}px`);
+    set_style("--patter_tint", `${values.tint / 100}`);
+    set_style('--patter_tint_color', values.tintShade === 2 ? 'oklch(15.3% 0.025 135)' : values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
+    set_style("--patter_grain", `${values.grain / 100}`);
+    set_style('--patter_editor_font', editor_fonts[values.editorFont]);
+    set_style('--patter_body_text_size', `${values.textSize}px`);
+    set_style('--patter_background_position', values.position);
+}
+
+function sync_background() {
+    if (typeof document === 'undefined') return;
+    const key = background_values.background;
+    const preview = active_background.kind === 'image' && !key.startsWith('upload:')
+        ? active_background.url
+        : uploaded_background?.poster ?? getBackgroundPoster(key) ?? defaults.background;
+    set_style('--patter_background', `url("${preview}")`);
 }
 
 function load() {
@@ -102,8 +115,6 @@ if (!background_values.background.startsWith('upload:')) {
     active_background.url = background_values.background;
 }
 
-preloadBackgroundImages(backgrounds, active_background.url);
-
 export function selectBuiltInBackground(url, kind = builtInBackground(url)?.kind ?? 'image') {
     const requested = validBackground(url);
     const stored = persistBackgroundValues({ background: requested });
@@ -123,6 +134,46 @@ export function selectUploadedBackground(id, kind, url) {
     active_background.url = selected === requested ? url : selected;
 }
 
+export function set_background_upload(record) {
+    upload_version++;
+    const previous = uploaded_background;
+    uploaded_background = record ? { ...record, url: record.url ?? URL.createObjectURL(record.blob) } : null;
+    if (previous?.url && previous.url !== uploaded_background?.url) retired_uploads.add(previous.url);
+    return uploaded_background;
+}
+
+export function release_unused_background_uploads(urls) {
+    const used = new Set([uploaded_background?.url, ...urls]);
+    for (const url of retired_uploads) {
+        if (!used.has(url)) { URL.revokeObjectURL(url); retired_uploads.delete(url); }
+    }
+}
+
+async function restore_background_upload() {
+    const version = upload_version;
+    const selection = background_values.background;
+    const selected_id = selection.startsWith('upload:') ? selection.slice(7) : null;
+    const records = await listBackgroundUploads();
+    if (version !== upload_version) return;
+    const record = selected_id ? records.find((item) => item.id === selected_id) : records[0];
+    if (!record) {
+        if (selected_id && background_values.background === selection) selectBuiltInBackground(defaults.background);
+        return;
+    }
+    const upload = set_background_upload({ ...record, poster: getBackgroundPoster('upload:' + record.id) });
+    if (selected_id && background_values.background === selection) selectUploadedBackground(upload.id, upload.kind, upload.url);
+    await prepare_uploaded_background(upload, upload.url);
+    if (uploaded_background?.id === upload.id) {
+        set_background_upload({ ...upload, poster: getBackgroundPoster('upload:' + upload.id) });
+    }
+}
+
+export const background_startup = typeof window === 'undefined' ? Promise.resolve() : wait_for_background_preparation([
+    ...backgrounds.filter((item) => item.kind === 'image').map((item) =>
+        prepare_background(item.src, item.src, 'image', item.src === background_values.background ? 'high' : 'auto')),
+    restore_background_upload()
+]);
+
 export function resetBackgroundValues() {
     background_values.focus = defaults.focus;
     background_values.tint = defaults.tint;
@@ -136,18 +187,11 @@ export function resetBackgroundValues() {
 }
 
 applyToDocument(background_values);
+sync_background();
 
 if (typeof window !== 'undefined') {
     $effect.root(() => {
-        $effect(() => {
-            applyToDocument(background_values);
-            const posterKey = background_values.background;
-            const poster = getBackgroundPoster(posterKey);
-            const preview = poster ?? (active_background.kind === 'image' && !posterKey.startsWith('upload:')
-                ? active_background.url
-                : defaults.background);
-            document.documentElement.style.setProperty('--patter_background', `url("${preview}")`);
-        });
+        $effect(() => applyToDocument(background_values));
+        $effect(sync_background);
     });
 }
-

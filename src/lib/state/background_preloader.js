@@ -1,5 +1,3 @@
-import { schedule_idle_task } from './browser_tasks.js';
-
 const preloadedImages = new Map();
 const image_cache_limit = 8;
 
@@ -23,21 +21,16 @@ export function loadBackgroundImage(src, priority = 'high') {
     const image = new Image();
     image.decoding = 'async';
     image.fetchPriority = priority;
-    const promise = new Promise((resolve, reject) => {
-        image.onload = async () => {
-            try {
-                if (typeof image.decode === 'function') await image.decode();
-                resolve(image);
-            } catch (error) {
-                if (image.naturalWidth > 0) resolve(image);
-                else reject(error);
-            }
-        };
+    const loaded = new Promise((resolve, reject) => {
+        image.onload = resolve;
         image.onerror = () => reject(new Error(`Could not load background image: ${src}`));
         image.src = src;
-        if (image.complete && image.naturalWidth > 0) {
-            void image.decode?.().then(() => resolve(image), () => resolve(image));
-        }
+        if (image.complete && image.naturalWidth > 0) resolve();
+    });
+    const promise = loaded.then(async () => {
+        try { await image.decode?.(); }
+        catch (error) { if (!image.naturalWidth) throw error; }
+        return image;
     });
 
     const entry = { image, promise, settled: false };
@@ -49,24 +42,4 @@ export function loadBackgroundImage(src, priority = 'high') {
         if (preloadedImages.get(src) === entry) preloadedImages.delete(src);
     });
     return promise;
-}
-
-export function preloadBackgroundImages(backgrounds, selected_src) {
-    if (typeof window === 'undefined') return;
-    const selected = loadBackgroundImage(selected_src);
-    const remaining = backgrounds.filter((item) => item.kind === 'image' && item.src !== selected_src);
-    const warm_next = () => {
-        const background = remaining.shift();
-        if (!background) return;
-        const warm = () => {
-            void loadBackgroundImage(background.src, 'low').catch(() => {}).finally(warm_next);
-        };
-        schedule_idle_task(warm);
-    };
-    const start = () => {
-        if (navigator.connection?.saveData || /^(slow-)?2g$/.test(navigator.connection?.effectiveType ?? '')) return;
-        void selected.catch(() => {}).then(warm_next);
-    };
-    if (document.readyState === 'complete') start();
-    else window.addEventListener('load', start, { once: true });
 }

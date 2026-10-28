@@ -1,4 +1,5 @@
 import { getEditorPlaceholder } from './editor_placeholders.js';
+import { subscribe_wallpaper_spread } from './background_spread.js';
 
 export function placeholder_ink(node, initial_text) {
     const reduced_motion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -51,6 +52,7 @@ export function placeholder_ink(node, initial_text) {
     }
 
     function finish() {
+        if (!overlay && displayed === target) return;
         overlay?.remove();
         overlay = null;
         overlay_bounds = null;
@@ -65,8 +67,7 @@ export function placeholder_ink(node, initial_text) {
         if (resetting || node.dataset.empty !== 'true' || reduced_motion.matches) finish();
     }
 
-    function on_spread(event) {
-        const detail = event.detail;
+    function on_spread(detail) {
         if (resetting) { finish(); return; }
         if (!overlay && displayed === target && getEditorPlaceholder(detail.key) === target) return;
         if (node.dataset.empty !== 'true' || reduced_motion.matches) {
@@ -113,8 +114,9 @@ export function placeholder_ink(node, initial_text) {
         const bounds = overlay_bounds ??= overlay.getBoundingClientRect();
         const points = detail.points.map(([x, y]) => `${(x + detail.left - bounds.left).toFixed(1)}px ${(y + detail.top - bounds.top).toFixed(1)}px`);
         const outer = `0px 0px, ${bounds.width}px 0px, ${bounds.width}px ${bounds.height}px, 0px ${bounds.height}px, 0px 0px`;
-        reveal.incoming.style.clipPath = `polygon(${points.join(',')})`;
-        reveal.outgoing.style.clipPath = `polygon(evenodd, ${outer}, ${points.join(',')}, ${points[0]}, 0px 0px)`;
+        const polygon = points.join(',');
+        reveal.incoming.style.clipPath = `polygon(${polygon})`;
+        reveal.outgoing.style.clipPath = `polygon(evenodd, ${outer}, ${polygon}, ${points[0]}, 0px 0px)`;
     }
 
     const observer = new MutationObserver(() => {
@@ -131,7 +133,7 @@ export function placeholder_ink(node, initial_text) {
     node.addEventListener('patter-document-replaced', finish);
     window.addEventListener('patter-editor-reset-start', reset_start);
     window.addEventListener('patter-editor-reset-end', reset_end);
-    window.addEventListener('patter-wallpaper-spread', on_spread);
+    const unsubscribe_spread = subscribe_wallpaper_spread(on_spread);
     return {
         update,
         destroy() {
@@ -142,7 +144,7 @@ export function placeholder_ink(node, initial_text) {
             node.removeEventListener('patter-document-replaced', finish);
             window.removeEventListener('patter-editor-reset-start', reset_start);
             window.removeEventListener('patter-editor-reset-end', reset_end);
-            window.removeEventListener('patter-wallpaper-spread', on_spread);
+            unsubscribe_spread();
             finish();
             node.style.removeProperty('--patter_placeholder_frame');
         }

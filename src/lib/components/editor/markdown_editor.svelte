@@ -16,14 +16,40 @@
 
     let editor;
     let source = '';
+    let indexed_source = null;
+    let source_lines = [];
+    let line_offsets = [];
     let composing = false;
     let history = [{ text: '', start: 0, end: 0 }];
     let history_index = 0;
     let last_edit = null;
 
+    function index_source() {
+        if (source === indexed_source) return;
+        indexed_source = source;
+        source_lines = source.split('\n');
+        let offset = 0;
+        line_offsets = source_lines.map((line) => {
+            const start = offset;
+            offset += line.length + 1;
+            return start;
+        });
+    }
+
+    function line_at(offset) {
+        index_source();
+        let first = 0, last = line_offsets.length - 1;
+        while (first < last) {
+            const middle = Math.ceil((first + last) / 2);
+            if (line_offsets[middle] <= offset) first = middle;
+            else last = middle - 1;
+        }
+        return first;
+    }
     function render() {
         if (!editor) return;
-        const lines = source.split('\n');
+        index_source();
+        const lines = source_lines;
         const existing = Array.from(editor.children);
         let first = 0;
         while (first < lines.length && first < existing.length && existing[first]._source_text === lines[first]) first++;
@@ -38,13 +64,15 @@
         const fragment = document.createDocumentFragment();
         for (let index = first; index <= new_end; index++) fragment.append(render_line(lines[index], index));
         editor.insertBefore(fragment, editor.children[first] ?? null);
-        for (let index = first; index < editor.children.length; index++) editor.children[index].dataset.line = String(index);
+        if (existing.length !== lines.length) {
+            for (let index = new_end + 1; index < editor.children.length; index++) editor.children[index].dataset.line = String(index);
+        }
     }
 
     function point_offset(node, offset) {
         if (node === editor) {
-            const lines = source.split('\n');
-            return Math.min(source.length, lines.slice(0, offset).reduce((total, value) => total + value.length + 1, 0));
+            index_source();
+            return line_offsets[offset] ?? source.length;
         }
         const line = node?.nodeType === Node.ELEMENT_NODE
             ? node.closest?.('[data-line]')
@@ -52,8 +80,8 @@
         if (!line || !editor.contains(line)) return 0;
 
         const line_number = Number(line.dataset.line);
-        const lines = source.split('\n');
-        const before_line = lines.slice(0, line_number).reduce((total, value) => total + value.length + 1, 0);
+        index_source();
+        const before_line = line_offsets[line_number];
         const range = document.createRange();
         range.selectNodeContents(line);
         try {
@@ -71,7 +99,7 @@
         }
         const range = selection.getRangeAt(0);
         const start = editor.contains(range.startContainer) ? point_offset(range.startContainer, range.startOffset) : 0;
-        const end = editor.contains(range.endContainer) ? point_offset(range.endContainer, range.endOffset) : source.length;
+        const end = range.collapsed ? start : editor.contains(range.endContainer) ? point_offset(range.endContainer, range.endOffset) : source.length;
         if (selection.isCollapsed) {
             const line = selection.anchorNode?.nodeType === Node.ELEMENT_NODE
                 ? selection.anchorNode.closest?.('[data-line]')
@@ -87,8 +115,9 @@
                     trailing_markers += node.length;
                 }
                 const line_number = Number(line.dataset.line);
-                const lines = source.split('\n');
-                const line_end = lines.slice(0, line_number).reduce((total, value) => total + value.length + 1, 0)
+                index_source();
+                const lines = source_lines;
+                const line_end = line_offsets[line_number]
                     + lines[line_number].length;
                 if (trailing_markers && start === line_end - trailing_markers) {
                     return { start: line_end, end: line_end };
@@ -102,8 +131,8 @@
         let { start, end } = selection_offsets();
         if (start === end || (start === 0 && end === source.length)) return { start, end };
 
-        const first_line = source.slice(0, start).split('\n').length - 1;
-        const last_line = source.slice(0, end).split('\n').length - 1;
+        const first_line = line_at(start);
+        const last_line = line_at(end);
         for (const index of new Set([first_line, last_line])) {
             const line = editor.children[index];
             if (!line) continue;
@@ -138,15 +167,10 @@
     }
 
     function place_point(raw_offset) {
-        const lines = source.split('\n');
-        let line_index = 0;
-        let remaining = Math.max(0, Math.min(raw_offset, source.length));
-        while (line_index < lines.length - 1 && remaining > lines[line_index].length) {
-            remaining -= lines[line_index].length + 1;
-            line_index++;
-        }
-
-        const line = editor.querySelector(`[data-line="${line_index}"]`);
+        const offset = Math.max(0, Math.min(raw_offset, source.length));
+        const line_index = line_at(offset);
+        let remaining = offset - line_offsets[line_index];
+        const line = editor.children[line_index];
         if (!line) return { node: editor, offset: 0 };
         const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
         let node;
@@ -172,7 +196,7 @@
             range.selectNodeContents(editor);
         } else {
             const first = place_point(start);
-            const last = place_point(end);
+            const last = start === end ? first : place_point(end);
             range.setStart(first.node, first.offset);
             range.setEnd(last.node, last.offset);
         }
@@ -220,9 +244,7 @@
     function previous_character(offset) {
         if (offset <= 0) return 0;
         if (!grapheme_segmenter) return offset - 1;
-        let previous = 0;
-        for (const part of grapheme_segmenter.segment(source.slice(0, offset))) previous = part.index;
-        return previous;
+        return grapheme_segmenter.segment(source.slice(0, offset)).containing(offset - 1)?.index ?? 0;
     }
 
     function next_character(offset) {

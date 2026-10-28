@@ -3,6 +3,12 @@ let spread_sequence = 0;
 let latest_spread = 0;
 let spread_pending = false;
 let after_spread = null;
+const spread_listeners = new Set();
+
+export function subscribe_wallpaper_spread(listener) {
+    spread_listeners.add(listener);
+    return () => spread_listeners.delete(listener);
+}
 
 export function begin_wallpaper_spread() {
     spread_pending = true;
@@ -41,7 +47,9 @@ export function take_spread_origin(key) {
 
 export function complete_wallpaper_spread(key, sequence = latest_spread) {
     queueMicrotask(() => {
-        window.dispatchEvent(new CustomEvent('patter-wallpaper-spread', { detail: { key, sequence, latest: sequence === latest_spread, complete: true } }));
+        const detail = { key, sequence, latest: sequence === latest_spread, complete: true };
+        for (const listener of spread_listeners) listener(detail);
+        window.dispatchEvent(new CustomEvent('patter-wallpaper-spread', { detail }));
         if (sequence === latest_spread) {
             spread_pending = false;
             const callback = after_spread;
@@ -95,17 +103,20 @@ export function spread_wallpaper(node, { duration, signal, origin, key, sequence
             const cos_progress = Math.cos(progress);
             const sin_slow = Math.sin(progress * 0.7);
             const cos_slow = Math.cos(progress * 0.7);
-            const points = edges.map((point) => {
+            const points = spread_listeners.size ? [] : null;
+            const polygon = edges.map((point) => {
                 const displacement = (point.sin3 * cos_progress + point.cos3 * sin_progress) * 0.18
                     + (point.sin7 * cos_slow + point.cos7 * sin_slow) * 0.1 + point.fixed;
                 const edge = size * (1 + displacement * strength);
-                return [center_x + point.x * edge, center_y + point.y * edge];
+                const x = center_x + point.x * edge;
+                const y = center_y + point.y * edge;
+                points?.push([x, y]);
+                return `${x.toFixed(1)}px ${y.toFixed(1)}px`;
             });
-            node.style.clipPath = `polygon(${points.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(',')})`;
-            if (key) {
-                window.dispatchEvent(new CustomEvent('patter-wallpaper-spread', {
-                    detail: { key, sequence, points, left: bounds.left, top: bounds.top }
-                }));
+            node.style.clipPath = `polygon(${polygon.join(',')})`;
+            if (key && points) {
+                const detail = { key, sequence, points, left: bounds.left, top: bounds.top };
+                for (const listener of spread_listeners) listener(detail);
             }
         };
 

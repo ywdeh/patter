@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { background_startup } from '$lib/state/background_state.svelte.js';
     import { route_navigation_is_urgent } from '$lib/state/route_navigation.js';
     import { begin_page_reveal, finish_page_reveal } from '$lib/state/page_ready.js';
     import { mount_mobile_viewport } from '$lib/state/mobile_viewport.js';
@@ -29,7 +30,7 @@
 
 	function revealSurfaceWhenFontsReady(initial = false) {
 		const version = ++routeRevealVersion;
-		void document.fonts.ready.then(async () => {
+		void Promise.all([document.fonts.ready, background_startup]).then(async () => {
 			if (version !== routeRevealVersion) return;
 			await fade_page_in(get_page_motion_targets());
             if (version !== routeRevealVersion) return;
