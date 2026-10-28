@@ -180,7 +180,7 @@
     </span>
 </button>
 {#if open}
-    <div bind:this={menu} use:portal data-patter-panel="1" id={menu_id} role="menu" tabindex="-1" aria-label={ariaLabel} class="dropdown_menu patter_text_main fixed z-500 rounded-xl p-1" inert={!open} transition:menu_motion
+    <div bind:this={menu} use:portal data-patter-panel="3" id={menu_id} role="menu" tabindex="-1" aria-label={ariaLabel} class="dropdown_menu patter_text_main fixed z-500 rounded-xl p-1" inert={!open} transition:menu_motion
         style={`top:${position.top}px;left:${position.left}px;min-width:${position.minWidth}px;width:${menuWidth ?? 'max-content'};--dropdown-max-height:${position.maxHeight === null ? 'calc(var(--patter_viewport_height, 100dvh) - 2rem)' : `${position.maxHeight}px`};--dropdown-enter-y:${position.top < (trigger?.getBoundingClientRect().top ?? 0) ? '-4px' : '4px'}`}
         onpointerenter={cancel_close} onpointerleave={schedule_close} onkeydown={menu_key} onfocusout={schedule_close}>
         <span aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl patter_surface_gradient"></span>
