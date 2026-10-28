@@ -170,7 +170,7 @@
 </script>
 
 <button use:smooth_width data-ui-hover-sound={Boolean(sound)} bind:this={trigger} type="button" {disabled} aria-label={ariaLabel} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menu_id : undefined}
-    class="patter_control patter_control_text group/hitbox relative inline-flex min-h-(--patter_control_height) items-center px-3 py-2 cursor-pointer disabled:cursor-default disabled:pointer-events-none"
+    class="patter_control patter_text_main group/hitbox relative inline-flex min-h-(--patter_control_height) items-center px-3 py-2 cursor-pointer disabled:cursor-default disabled:pointer-events-none"
     onclick={toggle_menu} onpointerenter={(event) => { if (event.pointerType === 'mouse') void open_menu(); }} onpointerleave={schedule_close}
     onkeydown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); void open_menu(true); } }}>
     <span aria-hidden="true" class="patter_surface patter_hover {disabled ? '' : 'patter_active'} absolute inset-0 rounded-xl patter_surface_gradient"></span>
@@ -180,7 +180,7 @@
     </span>
 </button>
 {#if open}
-    <div bind:this={menu} use:portal data-patter-panel="1" id={menu_id} role="menu" tabindex="-1" aria-label={ariaLabel} class="dropdown_menu patter_control_text fixed z-500 rounded-xl p-1" inert={!open} transition:menu_motion
+    <div bind:this={menu} use:portal data-patter-panel="1" id={menu_id} role="menu" tabindex="-1" aria-label={ariaLabel} class="dropdown_menu patter_text_main fixed z-500 rounded-xl p-1" inert={!open} transition:menu_motion
         style={`top:${position.top}px;left:${position.left}px;min-width:${position.minWidth}px;width:${menuWidth ?? 'max-content'};--dropdown-max-height:${position.maxHeight === null ? 'calc(var(--patter_viewport_height, 100dvh) - 2rem)' : `${position.maxHeight}px`};--dropdown-enter-y:${position.top < (trigger?.getBoundingClientRect().top ?? 0) ? '-4px' : '4px'}`}
         onpointerenter={cancel_close} onpointerleave={schedule_close} onkeydown={menu_key} onfocusout={schedule_close}>
         <span aria-hidden="true" class="patter_surface pointer-events-none absolute inset-0 rounded-xl patter_surface_gradient"></span>
@@ -188,7 +188,7 @@
         {#each options as option (option.value)}
             {#if option.separator}
                 <div class="dropdown_separator" role="separator" aria-label={option.separatorLabel ?? undefined}>
-                    {#if option.separatorLabel}<span class="patter_font_ui patter_text_subtle">{option.separatorLabel}</span>{/if}
+                    {#if option.separatorLabel}<span class="patter_text_small patter_text_muted">{option.separatorLabel}</span>{/if}
                 </div>
             {/if}
             {#if option.empty}
@@ -198,7 +198,7 @@
             <button data-ui-hover-sound={Boolean(sound)} type="button" role="menuitem" tabindex="-1" class="dropdown_item relative block w-full rounded-lg px-3 py-2 text-left cursor-pointer" class:has_timestamp={Boolean(option.meta)} onclick={() => choose(option)}
                 onpointerenter={() => onpreview?.(option.value)} onpointerleave={(event) => { if (document.activeElement !== event.currentTarget) onpreview?.(null); }}
                 onfocus={() => onpreview?.(option.value)} onblur={(event) => { if (!event.currentTarget.matches(':hover')) onpreview?.(null); }}>
-                <span class="dropdown_option_title">{option.menuLabel ?? option.label}</span>{#if option.meta}<span class="dropdown_option_time patter_font_ui patter_text_subtle">{option.meta}</span>{/if}
+                <span class="dropdown_option_title">{option.menuLabel ?? option.label}</span>{#if option.meta}<span class="dropdown_option_time patter_text_small patter_text_muted">{option.meta}</span>{/if}
             </button>
             {#if option.dismissible && ondismiss}
                 <div class="dropdown_dismiss" role="none">

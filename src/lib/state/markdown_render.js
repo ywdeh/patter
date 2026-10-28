@@ -1,5 +1,3 @@
-const inline_markers = ['***', '**', '*'];
-
     function syntax(parent, value) {
         const marker = document.createElement('span');
         marker.className = 'markdown_syntax';
@@ -7,61 +5,110 @@ const inline_markers = ['***', '**', '*'];
         parent.append(marker);
     }
 
-    function closing_marker(text, marker, from) {
-        let index = text.indexOf(marker, from);
-        while (index !== -1) {
-            if (index > from && text[index - 1] !== '\\' && (marker !== '*' || (text[index - 1] !== '*' && text[index + 1] !== '*'))) return index;
-            index = text.indexOf(marker, index + marker.length);
-        }
-        return -1;
-    }
-
-    function append_inline(parent, text, depth = 0) {
-        if (depth > 8) {
-            parent.append(document.createTextNode(text));
-            return;
-        }
-
-        let plain = '';
+    function append_inline(parent, text) {
+        const whitespace = (value) => !value || /\s/u.test(value);
+        const punctuation = (value) => /[\p{P}\p{S}]/u.test(value);
+        const bottoms = Array(6).fill(null);
+        let last = null;
+        let first = null;
         let index = 0;
-        const flush = () => {
-            if (plain) parent.append(document.createTextNode(plain));
-            plain = '';
-        };
+        let plain_start = 0;
 
         while (index < text.length) {
-            if (text[index] === '\\' && text[index + 1] === '*') {
-                plain += text.slice(index, index + 2);
+            if (text[index] === '\\' && (text[index + 1] === '*' || text[index + 1] === '\\')) {
                 index += 2;
                 continue;
             }
-
-            const marker = inline_markers.find((value) => text.startsWith(value, index));
-            if (!marker) {
-                plain += text[index++];
+            if (text[index] !== '*') {
+                index++;
                 continue;
             }
-
-            const end = closing_marker(text, marker, index + marker.length);
-            if (end < 0 || !text.slice(index + marker.length, end).trim()) {
-                plain += marker;
-                index += marker.length;
-                continue;
-            }
-
-            flush();
-            syntax(parent, marker);
-            const formatted = document.createElement(marker === '*' ? 'em' : 'strong');
-            if (marker === '***') {
-                const italic = document.createElement('em');
-                append_inline(italic, text.slice(index + marker.length, end), depth + 1);
-                formatted.append(italic);
-            } else append_inline(formatted, text.slice(index + marker.length, end), depth + 1);
-            parent.append(formatted);
-            syntax(parent, marker);
-            index = end + marker.length;
+            if (index > plain_start) parent.append(document.createTextNode(text.slice(plain_start, index)));
+            const start = index;
+            while (text[index] === '*') index++;
+            const before = text[start - 1] ?? '';
+            const after = text[index] ?? '';
+            const before_space = whitespace(before);
+            const after_space = whitespace(after);
+            const before_punctuation = punctuation(before);
+            const after_punctuation = punctuation(after);
+            const node = document.createTextNode(text.slice(start, index));
+            parent.append(node);
+            const delimiter = {
+                node, length: index - start, original_length: index - start,
+                open: !after_space && (!after_punctuation || before_space || before_punctuation),
+                close: !before_space && (!before_punctuation || after_space || after_punctuation),
+                previous: last, next: null
+            };
+            if (last) last.next = delimiter;
+            else first = delimiter;
+            last = delimiter;
+            plain_start = index;
         }
-        flush();
+        if (plain_start < text.length) parent.append(document.createTextNode(text.slice(plain_start)));
+
+        const remove = (delimiter) => {
+            if (delimiter.previous) delimiter.previous.next = delimiter.next;
+            if (delimiter.next) delimiter.next.previous = delimiter.previous;
+        };
+        let closer = first;
+        while (closer) {
+            if (!closer.close) {
+                closer = closer.next;
+                continue;
+            }
+            const bottom_index = (closer.open ? 3 : 0) + closer.original_length % 3;
+            let opener = closer.previous;
+            while (opener && opener !== bottoms[bottom_index]) {
+                const odd_match = (opener.close || closer.open)
+                    && (opener.original_length + closer.original_length) % 3 === 0
+                    && (opener.original_length % 3 !== 0 || closer.original_length % 3 !== 0);
+                if (opener.open && !odd_match) break;
+                opener = opener.previous;
+            }
+            if (!opener || opener === bottoms[bottom_index]) {
+                bottoms[bottom_index] = closer.previous;
+                const next = closer.next;
+                if (!closer.open) remove(closer);
+                closer = next;
+                continue;
+            }
+
+            const count = opener.length >= 2 && closer.length >= 2 ? 2 : 1;
+            const formatted = document.createElement(count === 2 ? 'strong' : 'em');
+            let node = opener.node.nextSibling;
+            while (node !== closer.node) {
+                const next = node.nextSibling;
+                formatted.append(node);
+                node = next;
+            }
+            const container = closer.node.parentNode;
+            const opening = document.createDocumentFragment();
+            syntax(opening, '*'.repeat(count));
+            opening.append(formatted);
+            syntax(opening, '*'.repeat(count));
+            container.insertBefore(opening, closer.node);
+            opener.length -= count;
+            closer.length -= count;
+            opener.node.data = '*'.repeat(opener.length);
+            closer.node.data = '*'.repeat(closer.length);
+            let middle = opener.next;
+            while (middle !== closer) {
+                const next = middle.next;
+                remove(middle);
+                middle = next;
+            }
+            if (!opener.length) {
+                remove(opener);
+                opener.node.remove();
+            }
+            if (!closer.length) {
+                const next = closer.next;
+                remove(closer);
+                closer.node.remove();
+                closer = next;
+            }
+        }
     }
 
     export function render_markdown_line(line, index, markdown = true) {

@@ -220,7 +220,7 @@
         </button>
     </div>
 </div>
-{#if uploadError}<p class="patter_text_small px-2 text-red-200/80" role="status">{uploadError}</p>{/if}
+{#if uploadError}<p class="patter_text_small px-2 patter_text_error" role="status">{uploadError}</p>{/if}
 
 <style>
     .upload_slot { display: grid; min-width: 0; aspect-ratio: 16 / 9; }

@@ -29,9 +29,9 @@ export function editorHasContent() {
     return getEditorDocument().trim() !== '';
 }
 
-export function exportEditorDocument(format = 'txt') {
+export function exportEditorDocument(format = 'txt', text = getEditorDocument()) {
     const body = getEditorDocument();
     if (!body.trim()) return;
-	downloadTextExport(body, format, body);
+	downloadTextExport(text, format, body);
     track_event('document_exported', { format: format === 'md' ? 'md' : 'txt' });
 }

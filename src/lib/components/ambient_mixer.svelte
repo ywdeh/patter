@@ -65,7 +65,7 @@
                         onchange={(volume) => update_track(track.id, { volume })} />
                 {/each}
             </div>
-            {#if error}<p class="patter_text_small" role="alert">{error}</p>{/if}
+            {#if error}<p class="patter_text_small patter_text_error" role="alert">{error}</p>{/if}
     </div>
 </section>
 

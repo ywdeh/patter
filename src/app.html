@@ -91,7 +91,7 @@ caret-mauve-100" spellcheck="false">
                 root.style.setProperty('--patter_tint_color', saved.tintShade === 2 ? 'oklch(15.3% 0.025 135)' : saved.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
 				root.style.setProperty('--patter_grain', `${defaults.grain / 100}`);
 				root.style.setProperty('--patter_body_text_size', `${defaults.textSize}px`);
-                const editorFonts = ['var(--patter_font_body)', 'var(--patter_font_ui)', 'Consolas, "Cascadia Mono", "Liberation Mono", monospace', '"Dyslexic", sans-serif'];
+                const editorFonts = ['var(--patter_font_body)', 'Consolas, "Cascadia Mono", "Liberation Mono", monospace', 'var(--patter_font_ui)', '"Dyslexic", sans-serif'];
                 root.style.setProperty('--patter_editor_font', editorFonts[Number.isInteger(saved.editorFont) && saved.editorFont >= 0 && saved.editorFont < editorFonts.length ? saved.editorFont : 0]);
 				root.style.setProperty('--patter_background_position', backgroundPosition);
 				root.style.setProperty('--patter_background', `url("${fallbackBackground}")`);

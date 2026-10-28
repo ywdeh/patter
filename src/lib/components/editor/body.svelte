@@ -346,13 +346,13 @@
 </script>
 
 <div class="flex h-full min-h-0 min-w-0 w-full flex-col gap-4 overflow-visible">
-    <EditorToolbar />
+    <EditorToolbar get_export_text={(format) => markdownEditor.getExportText(format)} />
     <div class="flex min-h-0 min-w-0 w-full flex-1 gap-2 overflow-hidden">
         <div bind:this={scrollEl} class="editor_body_scroll h-full w-full min-h-0 flex-1 patter_font_body overflow-y-auto" style={`--editor-mask: ${hasScrolledDown ? topAndBottomFadeMask : bottomFadeMask}`} onscroll={handleEditorScroll}>
             <MarkdownEditor bind:this={markdownEditor} onchange={handleInput} onrender={() => updateCounts(markdownEditor.getVisibleText())} onkey={handleEditorKeydown} {placeholder} />
         </div>
     </div>
-    <div class="editor_stats patter_editor_controls flex w-full shrink-0 flex-col items-start gap-2 px-4 patter_text_subtle sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8" data-zen-mode-ui="editor-stats">
+    <div class="editor_stats patter_editor_controls flex w-full shrink-0 flex-col items-start gap-2 px-4 patter_text_small patter_text_muted sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8" data-zen-mode-ui="editor-stats">
         <div class="flex items-center gap-2"><p><StatValue value={shownWords} /> {shownWords === 1 ? 'word' : 'words'}</p><p><StatValue value={shownCharacters} /> {shownCharacters === 1 ? 'character' : 'characters'}</p></div>
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
             <div class="flex items-center gap-1"><p>Reading time</p><p><StatValue value={shownReadingTime} /></p></div>

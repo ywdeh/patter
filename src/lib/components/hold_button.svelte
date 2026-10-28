@@ -135,7 +135,7 @@
     onkeydown={key_down}
     onkeyup={key_up}
     onblur={release}
-    class="patter_control patter_control_text group/hitbox relative flex w-fit cursor-pointer select-none touch-none items-center patter_font_body"
+    class="patter_control patter_text_main group/hitbox relative flex w-fit cursor-pointer select-none touch-none items-center"
 >
     <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-xl patter_surface_gradient">
         <span class="fill_clip hold_progress absolute inset-0 overflow-hidden" class:completed={phase === 'complete'}>

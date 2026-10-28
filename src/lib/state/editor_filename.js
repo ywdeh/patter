@@ -1,9 +1,4 @@
-function titleCaseFirstWords(value, count = 5) {
-    return value.match(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu)
-        ?.slice(0, count)
-        .map((word) => word[0].toLocaleUpperCase() + word.slice(1))
-        .join(' ') ?? '';
-}
+import { render_markdown_line } from './markdown_render.js';
 
 function cleanFilename(value) {
     const cleaned = value
@@ -20,26 +15,16 @@ function localHourMinute(date) {
     return `${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-function stripInlineMarkdown(value) {
-	return value
-		.replace(/!?\[([^\]]*)\]\([^)]*\)/gu, '$1')
-		.replace(/(`{1,3})(.*?)\1/gu, '$2')
-		.replace(/(\*\*|__)(.*?)\1/gu, '$2')
-		.replace(/([*_~])([^*_~]+)\1/gu, '$2')
-		.replace(/\\([\\`*_{}\[\]()#+\-.!>])/gu, '$1')
-		.trim();
-}
-
 export function createExportFilename(source, format = 'txt', date = new Date()) {
-	const normalized = String(source ?? '').replace(/\r\n?/gu, '\n').trimStart();
-	const heading = normalized.match(/^ {0,3}#{1,3}[\t ]+(.+?)[\t ]*(?:\n|$)/u)?.[1];
-	const visibleText = stripInlineMarkdown(heading ?? normalized.split('\n', 1)[0]);
-	const firstVisibleCharacter = Array.from(visibleText.trimStart())[0] ?? '';
-	const name = heading
-		? visibleText
-		: /^[\p{L}\p{N}]/u.test(firstVisibleCharacter)
-			? titleCaseFirstWords(visibleText)
-			: `Patter document ${localHourMinute(date)}`;
-	const extension = format === 'md' ? 'md' : 'txt';
-	return `${cleanFilename(name) || `Patter document ${localHourMinute(date)}`}.${extension}`;
+    const lines = String(source ?? '').replace(/\r\n?/gu, '\n').split('\n');
+    let name = '';
+    for (const line of lines) {
+        const text = render_markdown_line(line.trim(), 0)._visible_text;
+        const words = text.match(/[\p{L}\p{N}][\p{L}\p{N}\p{M}]*(?:['’][\p{L}\p{N}][\p{L}\p{N}\p{M}]*)*/gu);
+        if (!words) continue;
+        name = words.slice(0, 5).join(' ');
+        break;
+    }
+    const extension = format === 'md' ? 'md' : 'txt';
+    return `${cleanFilename(name) || `Patter document ${localHourMinute(date)}`}.${extension}`;
 }

@@ -8,6 +8,7 @@
 	import { editorHasContent, exportEditorDocument } from '$lib/state/editor_export.js';
 	import { readTextImport } from '$lib/state/editor_import.js';
 
+    let { get_export_text } = $props();
 	let hasContent = $state(false);
 	let importInput;
     let recent_snapshots = [];
@@ -93,9 +94,9 @@
 <div class="patter_editor_controls flex w-full shrink-0 min-w-0 flex-wrap items-center justify-between gap-3 px-2 sm:flex-nowrap sm:gap-4 sm:px-8" data-zen-mode-ui="editor-toolbar">
 	<Button round icon="/chevron_left.svg" ariaLabel="Back home" href="/" />
 	<div class="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-4">
-		<DropdownButton text="Save" options={exportOptions} disabled={!hasContent} onexport={(format) => exportEditorDocument(format)} />
+		<DropdownButton text="Save" options={exportOptions} disabled={!hasContent} onexport={(format) => exportEditorDocument(format, get_export_text(format))} />
 		<DropdownButton text="Open" ariaLabel="Open options" options={open_options} menuWidth="18.5rem" disabled={restoring} onopen={refresh_snapshots} onpreview={preview_snapshot} ondismiss={dismiss_snapshot} onselect={select_open} />
 	</div>
 	<input bind:this={importInput} class="sr-only" type="file" accept=".txt,.md,text/plain,text/markdown" onchange={importDocument} aria-label="Open a text or Markdown file" tabindex="-1" />
 </div>
-{#if importError}<p class="patter_text_small px-4 sm:px-8 pt-2 text-right text-red-200/80" role="status">{importError}</p>{/if}
+{#if importError}<p class="patter_text_small px-4 sm:px-8 pt-2 text-right patter_text_error" role="status">{importError}</p>{/if}

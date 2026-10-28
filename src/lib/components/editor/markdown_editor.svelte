@@ -270,7 +270,7 @@
         const numbered = /^(\d+)\. /u.exec(line);
         const caption = /^(>{1,2}) (?:(#{1,3}) )?/u.exec(line);
         if (caption) return {
-            line_start, prefix: caption[0], next: '',
+            line_start, prefix: caption[0], next: caption[0],
             remove_from: line_start + (caption[2] ? caption[1].length + 1 : 0)
         };
         if (!bullet && !numbered) return null;
@@ -406,6 +406,13 @@
 
     export function getSource() {
         return source;
+    }
+
+    export function getExportText(format) {
+        if (format === 'md') return source;
+        if (markdown_enabled) return getVisibleText();
+        index_source();
+        return source_lines.map((line, index) => render_line(line, index)._visible_text).join('\n');
     }
 
     export function getVisibleText() {

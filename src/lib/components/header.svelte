@@ -28,12 +28,12 @@
     <div class="mobile_landing_content col-start-1 row-start-1 flex min-h-dvh w-full flex-col items-center justify-center gap-16 text-center sm:gap-24">
 
         <div class="flex flex-col gap-4">
-            <h1 aria-label="Patter" class="patter_font_header text-7xl tracking-tight sm:text-8xl md:text-9xl">
+            <h1 aria-label="Patter" class="patter_text_logo">
                 {#each ['P', 'a', 't', 't', 'e', 'r'] as letter}
                     <span aria-hidden="true" class="inline-block" data-landing-intro-letter>{letter}</span>
                 {/each}
             </h1>
-            <div class="patter_text_secondary" data-landing-intro-reveal>
+            <div class="patter_text_main patter_text_secondary" data-landing-intro-reveal>
                 <p>An ambient text editor for you to focus on writing.</p>
                 <p class="mask-[linear-gradient(to_right,rgba(0,0,0,1)_0%,rgba(0,0,0,0.4)_100%)]">
                     Everything else stays out of sight
@@ -53,7 +53,7 @@
         </div>
 
     </div>
-    <footer data-landing-intro-reveal class="col-start-1 row-start-1 z-10 flex w-full flex-col-reverse items-center gap-1 self-end px-6 pt-8 pb-6 text-center patter_text_subtle">
+    <footer data-landing-intro-reveal class="col-start-1 row-start-1 z-10 flex w-full flex-col-reverse items-center gap-1 self-end px-6 pt-8 pb-6 text-center patter_text_small patter_text_muted">
         <p class="max-w-full opacity-80">Patter is in active development. Back up your files, just in case</p>
         <div data-selectable-text class="flex justify-center gap-2">
                 <p class="opacity-(--patter_opacity_secondary)">feedback <a href="mailto:itshedwy@icloud.com" class="transition-[border-color] border-b-2 border-transparent hover:border-inherit">itshedwy@icloud.com</a>, <a href="https://reddit.com/r/patterapp" target="_blank" class="transition-[border-color] border-b-2 border-transparent hover:border-inherit">reddit</a></p>
