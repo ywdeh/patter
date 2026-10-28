@@ -23,8 +23,8 @@ export function editor_font_transition(node, initial) {
             return;
         }
         if (font_changed) {
-            if (next.font.includes('OpenDyslexic')) {
-                await document.fonts.load('18px OpenDyslexic').catch(() => {});
+            if (next.font.includes('Dyslexic')) {
+                await document.fonts.load('18px "Dyslexic"').catch(() => {});
                 if (request !== version) return;
             }
             animation = node.animate([{ opacity }, { opacity: 0 }], {
