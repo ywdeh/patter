@@ -200,7 +200,7 @@
         </header>
         <div bind:this={tab_list} class="options_tabs" style={`--active-tab: ${tabs.indexOf(active_tab)}`} role="tablist" aria-label="Customize your space">
             {#each tabs as tab, index}
-                <button data-ui-hover-sound="true" type="button" role="tab" id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} disabled={tab === 'sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
+                <button data-ui-hover-sound="true" type="button" role="tab" class="patter_font_ui" id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} disabled={tab === 'sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
             {/each}
         </div>
         <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll" data-wheel-controls={has_overflow ? 'disabled' : undefined}>

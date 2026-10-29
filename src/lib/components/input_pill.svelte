@@ -213,7 +213,7 @@
         <div class="min-w-16 h-6 relative overflow-hidden rounded-full" style="--patter_focus_radius: 9999px" role="button" tabindex="0" aria-label={`${displayValue}; press Enter or Space, or double-click, to reset to default`} onclick={playResetClick} onkeydown={handleValueKeydown} ondblclick={() => reset(false)} {@attach attachNonPassiveWheel}>
             {#key value}
                 <p
-                    class="absolute inset-0"
+                    class="absolute inset-0 patter_font_ui"
                     style:font-family={displayFonts?.[value]}
                     use:fit_label={{ value, font: displayFonts?.[value] }}
                     in:fly={{ x: direction * 20, duration: inDuration, delay: outDuration }}
