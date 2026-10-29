@@ -13,6 +13,7 @@
 	let importInput;
     let recent_snapshots = [];
     let restoring = $state(false);
+    let saving_picture = $state(false);
     let open_options = $state([{ label: 'Open file', value: 'file' }]);
     const snapshot_date = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
@@ -61,9 +62,29 @@
     }
 	let importError = $state('');
 	const exportOptions = [
-		{ label: 'Save as .txt', menuLabel: 'as txt', value: 'txt', primary: true },
-		{ label: 'Save as .md', menuLabel: 'as md', value: 'md' }
+		{ label: 'Markdown file', value: 'md', primary: true },
+		{ label: 'Plain text', value: 'txt' },
+        { label: 'Picture', value: 'png' }
 	];
+
+    async function save_document(format) {
+        if (saving_picture) return;
+        importError = '';
+        if (format !== 'png') {
+            exportEditorDocument(format, get_export_text(format));
+            return;
+        }
+        saving_picture = true;
+        try {
+            const { export_editor_picture } = await import('$lib/state/editor_picture.js');
+            await export_editor_picture();
+            track_event('document_exported', { format: 'png' });
+        } catch {
+            importError = 'The picture could not be saved. Please try again.';
+        } finally {
+            saving_picture = false;
+        }
+    }
 
 	onMount(() => {
 		const update = (event) => { hasContent = event.detail?.hasContent ?? editorHasContent(); };
@@ -94,7 +115,7 @@
 <div class="patter_editor_controls flex w-full shrink-0 min-w-0 flex-wrap items-center justify-between gap-3 px-2 sm:flex-nowrap sm:gap-4 sm:px-8" data-zen-mode-ui="editor-toolbar">
 	<Button round icon="/chevron_left.svg" ariaLabel="Back home" href="/" />
 	<div class="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-4">
-		<DropdownButton text="Save" options={exportOptions} disabled={!hasContent} onexport={(format) => exportEditorDocument(format, get_export_text(format))} />
+		<DropdownButton text={saving_picture ? 'Saving…' : 'Save as'} options={exportOptions} disabled={!hasContent || saving_picture} onexport={save_document} />
 		<DropdownButton text="Open" ariaLabel="Open options" options={open_options} menuWidth="18.5rem" disabled={restoring} onopen={refresh_snapshots} onpreview={preview_snapshot} ondismiss={dismiss_snapshot} onselect={select_open} />
 	</div>
 	<input bind:this={importInput} class="sr-only" type="file" accept=".txt,.md,text/plain,text/markdown" onchange={importDocument} aria-label="Open a text or Markdown file" tabindex="-1" />

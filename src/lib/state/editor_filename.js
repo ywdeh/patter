@@ -25,6 +25,6 @@ export function createExportFilename(source, format = 'txt', date = new Date()) 
         name = words.slice(0, 5).join(' ');
         break;
     }
-    const extension = format === 'md' ? 'md' : 'txt';
+    const extension = format === 'md' || format === 'png' ? format : 'txt';
     return `${cleanFilename(name) || `Patter document ${localHourMinute(date)}`}.${extension}`;
 }

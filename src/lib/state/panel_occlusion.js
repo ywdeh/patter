@@ -1,5 +1,7 @@
 const panel_selector = '[data-patter-panel]';
-const excluded = 'script, style, link, [data-patter-background]';
+const excluded = 'script, style, link, [data-patter-background], [data-patter-mask-defs]';
+const svg_namespace = 'http://www.w3.org/2000/svg';
+let mask_id = 0;
 const mask_properties = ['maskImage', 'maskSize', 'maskPosition', 'maskRepeat', 'maskClip'];
 const paint_only = /^(?:color|background(?:-[a-z]+)?|(?:border|outline)(?:-[a-z]+)*-color|box-shadow|text-shadow|(?:fill|stroke)(?:-opacity)?|caret-color|text-decoration-color|accent-color)$/;
 const keyframe_metadata = new Set(['offset', 'computedOffset', 'easing', 'composite']);
@@ -16,6 +18,7 @@ function relevant_animation(animation) {
 }
 
 export function mount_panel_occlusion() {
+    const inline_masks = /Gecko\//u.test(navigator.userAgent);
     const targets = new Map();
     const animations = new Set();
     const pending_nodes = new Set();
@@ -24,6 +27,8 @@ export function mount_panel_occlusion() {
     let rescan = true;
     let frame = 0;
     let destroyed = false;
+    let mask_definitions;
+    let mask_container;
     const sizes = new ResizeObserver(schedule);
 
     function write(target, values, signature = null) {
@@ -32,6 +37,32 @@ export function mount_panel_occlusion() {
         }
         target.signature = signature;
         target.inline = target.node.getAttribute('style');
+    }
+
+    function update_mask(target, width, height, area, holes) {
+        if (!mask_container) {
+            mask_definitions = document.createElementNS(svg_namespace, 'svg');
+            mask_definitions.setAttribute('data-patter-mask-defs', '');
+            mask_definitions.setAttribute('aria-hidden', 'true');
+            mask_definitions.style.cssText = 'position:fixed;width:0;height:0;pointer-events:none';
+            mask_container = document.createElementNS(svg_namespace, 'defs');
+            mask_definitions.append(mask_container);
+            document.body.append(mask_definitions);
+        }
+        if (!target.mask) {
+            target.mask = document.createElementNS(svg_namespace, 'mask');
+            target.mask.id = `patter_panel_mask_${++mask_id}`;
+            target.mask.setAttribute('maskUnits', 'userSpaceOnUse');
+            target.mask.setAttribute('maskContentUnits', 'userSpaceOnUse');
+            target.mask.style.maskType = 'luminance';
+            target.mask.setAttribute('x', '-32');
+            target.mask.setAttribute('y', '-32');
+            mask_container.append(target.mask);
+        }
+        target.mask.setAttribute('width', String(width));
+        target.mask.setAttribute('height', String(height));
+        target.mask.innerHTML = `<rect ${area} fill="white"/>${holes}`;
+        return `url("#${target.mask.id}")`;
     }
 
     function collect() {
@@ -51,7 +82,7 @@ export function mount_panel_occlusion() {
         }
         for (const child of document.body.children) walk(child);
         for (const [node, target] of targets) {
-            if (!next.has(node)) { write(target, target.original); targets.delete(node); }
+            if (!next.has(node)) { write(target, target.original); target.mask?.remove(); targets.delete(node); }
         }
         for (const node of next) {
             if (!targets.has(node)) targets.set(node, {
@@ -115,9 +146,14 @@ export function mount_panel_occlusion() {
             const signature = `${width},${height}:${holes_markup}`;
             if (target.signature === signature) continue;
             const area = `x="-32" y="-32" width="${width}" height="${height}"`;
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="-32 -32 ${width} ${height}"><defs><mask id="cut" maskUnits="userSpaceOnUse" ${area} style="mask-type:luminance"><rect ${area} fill="white"/>${holes_markup}</mask></defs><rect ${area} fill="white" mask="url(#cut)"/></svg>`;
-            write(target, { maskImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
-                maskSize: `${width}px ${height}px`, maskPosition: '-32px -32px', maskRepeat: 'no-repeat', maskClip: 'no-clip' }, signature);
+            if (inline_masks) {
+                const maskImage = update_mask(target, width, height, area, holes_markup);
+                write(target, { ...target.original, maskImage, maskClip: 'no-clip' }, signature);
+            } else {
+                const svg = `<svg xmlns="${svg_namespace}" width="${width}" height="${height}" viewBox="-32 -32 ${width} ${height}"><defs><mask id="cut" maskUnits="userSpaceOnUse" ${area} style="mask-type:luminance"><rect ${area} fill="white"/>${holes_markup}</mask></defs><rect ${area} fill="white" mask="url(#cut)"/></svg>`;
+                write(target, { maskImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
+                    maskSize: `${width}px ${height}px`, maskPosition: '-32px -32px', maskRepeat: 'no-repeat', maskClip: 'no-clip' }, signature);
+            }
         }
         if (moving) schedule();
     }
@@ -163,6 +199,7 @@ export function mount_panel_occlusion() {
         window.removeEventListener('resize', schedule);
         window.removeEventListener('scroll', schedule, true);
         for (const target of targets.values()) write(target, target.original);
+        mask_definitions?.remove();
         targets.clear();
     };
 }

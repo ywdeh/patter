@@ -148,7 +148,7 @@
             }
         }
         window.dispatchEvent(new CustomEvent('patter-editor-content-change', {
-            detail: { hasContent: bodyText.trim() !== '', text: bodyText }
+            detail: { hasContent: markdownEditor.getSource().trim() !== '', text: bodyText }
         }));
     }
 
@@ -252,6 +252,7 @@
     onMount(() => {
         const stop_time_tracking = mount_editor_time_tracking();
         const initialText = load();
+        setEditorDocument(initialText);
         bodyEl = markdownEditor.getElement();
         markdownEditor.setSource(initialText);
         bodyEl.dataset.empty = 'true';

@@ -14,10 +14,14 @@ export function downloadTextExport(body, format = 'txt', filenameSource = body) 
 	const normalizedFormat = format === 'md' ? 'md' : 'txt';
 	const mimeType = normalizedFormat === 'md' ? 'text/markdown;charset=utf-8' : 'text/plain;charset=utf-8';
 	const file = new Blob([buildTextExport(body)], { type: mimeType });
+    download_file(file, createExportFilename(filenameSource, normalizedFormat));
+}
+
+export function download_file(file, filename) {
     const url = URL.createObjectURL(file);
     const link = document.createElement('a');
     link.href = url;
-	link.download = createExportFilename(filenameSource, normalizedFormat);
+    link.download = filename;
     link.hidden = true;
     document.body.append(link);
     link.click();
