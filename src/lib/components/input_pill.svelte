@@ -186,7 +186,7 @@
 <svelte:window onblur={endHold} />
 
 <div data-setting-control role="group" aria-label={text ?? 'Setting controls'} class="flex gap-3 items-center w-full">
-    <p class="flex-1">{text}</p>
+    <p class="flex-1 patter_font_body">{text}</p>
 
     <div class="flex flex-[1.5] gap-3 justify-between items-center patter_pill_gradient rounded-full text-center">
         <button data-ui-hover-sound={Boolean(sound)}

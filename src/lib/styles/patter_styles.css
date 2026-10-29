@@ -20,7 +20,7 @@
 	color: var(--patter_color_text, oklch(99% 0.003 325.6));
 	--patter_font_header: 'Amarante', serif;
 	--patter_font_body: 'Bitter', serif;
-	--patter_font_ui: 'Google Sans', sans-serif;
+	--patter_font_ui: 'Source Sans 3', sans-serif;
 	--patter_font_size_small: 0.75rem;
 	--patter_line_height_small: 1rem;
 	--patter_font_size_control: 16px;
@@ -88,8 +88,8 @@
 }
 
 @font-face {
-	font-family: 'Google Sans';
-	src: url('/fonts/google_sans.woff2') format('woff2');
+	font-family: 'Source Sans 3';
+	src: url('/fonts/source_sans_3_regular.woff2') format('woff2');
 	font-display: swap;
 }
 

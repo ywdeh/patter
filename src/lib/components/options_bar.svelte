@@ -180,7 +180,7 @@
     <span aria-hidden="true" class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient"></span>
     <svg class="patter_icon relative size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={touch_open ? 'm6 6 12 12M18 6 6 18' : 'M4 7h16M4 17h16M8 4v6m8 4v6'} stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
 </button>
-<div bind:this={shell} class:touch_open={touch_open} inert={mobile_mode && !touch_open} aria-hidden={mobile_mode && !touch_open ? true : undefined} class:panel_pinned={panel_pinned} class="options_shell patter_text_main patter_unselectable patter_options_motion transition ease-in-out" class:options_intro={intro}
+<div bind:this={shell} class:touch_open={touch_open} inert={mobile_mode && !touch_open} aria-hidden={mobile_mode && !touch_open ? true : undefined} class:panel_pinned={panel_pinned} class="options_shell patter_text_main patter_font_ui patter_unselectable patter_options_motion transition ease-in-out" class:options_intro={intro}
     onpointerenter={onintroend} onpointerleave={() => { if (!picker_active) panel_pinned = false; }} onfocusin={onintroend} role="group" aria-label="Options bar"
     data-zen-mode-ui="options" ondragstart={(event) => event.preventDefault()}>
     <section data-patter-panel="2" id="patter_options_panel" class="options_panel" aria-label="Customization">
@@ -200,7 +200,7 @@
         </header>
         <div bind:this={tab_list} class="options_tabs" style={`--active-tab: ${tabs.indexOf(active_tab)}`} role="tablist" aria-label="Customize your space">
             {#each tabs as tab, index}
-                <button data-ui-hover-sound="true" type="button" role="tab" class="patter_font_ui" id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} disabled={tab === 'sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
+                <button data-ui-hover-sound="true" type="button" role="tab" id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} disabled={tab === 'sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
             {/each}
         </div>
         <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
