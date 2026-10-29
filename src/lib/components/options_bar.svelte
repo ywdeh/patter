@@ -18,7 +18,8 @@
     import { onMount, tick } from 'svelte';
 
     let { intro = false, onintroend = () => {} } = $props();
-    const tabs = ['Screen', 'Editor', 'Sounds'];
+    const tab_labels = { screen: 'Screen', editor: 'Editor', sound: 'Sound' };
+    const tabs = Object.keys(tab_labels);
     const tint_labels = { 0: 'Off' };
     const grain_labels = { 0: 'Off', 1: 'Subtle', 2: 'Gentle', 3: 'Noticeable', 4: 'Strong' };
     let picker_active = $state(false);
@@ -33,7 +34,7 @@
         panel_pinned = active;
     }
 
-    let active_tab = $state('Room');
+    let active_tab = $state('screen');
     let is_fullscreen = $state(false);
     let fullscreen_pending = $state(false);
     let fullscreen_supported = $state(true);
@@ -90,9 +91,9 @@
     });
 
     async function select_tab(tab) {
-        if (active_tab === tab || (tab === 'Sound' && !sound_enabled.value)) return;
+        if (active_tab === tab || (tab === 'sound' && !sound_enabled.value)) return;
         active_tab = tab;
-        track_event('options_tab_changed', { tab: tab.toLowerCase() });
+        track_event('options_tab_changed', { tab: tab });
         playSound('click');
         await tick();
         scroll_area.scrollTop = 0;
@@ -100,7 +101,7 @@
     }
 
     function handle_tab_key(event, index) {
-        const available = tabs.filter((tab) => tab !== 'Sound' || sound_enabled.value);
+        const available = tabs.filter((tab) => tab !== 'sound' || sound_enabled.value);
         const current = available.indexOf(tabs[index]);
         let next;
         if (event.key === 'ArrowRight') next = (current + 1) % available.length;
@@ -114,8 +115,8 @@
     }
 
     $effect(() => {
-        if (!sound_enabled.value && active_tab === 'Sound') {
-            active_tab = 'Room';
+        if (!sound_enabled.value && active_tab === 'sound') {
+            active_tab = 'screen';
             if (scroll_area) scroll_area.scrollTop = 0;
             update_scroll();
         }
@@ -199,12 +200,12 @@
         </header>
         <div bind:this={tab_list} class="options_tabs" style={`--active-tab: ${tabs.indexOf(active_tab)}`} role="tablist" aria-label="Customize your space">
             {#each tabs as tab, index}
-                <button data-ui-hover-sound="true" type="button" role="tab" id={'options_tab_' + tab.toLowerCase()} aria-controls={'options_content_' + tab.toLowerCase()} aria-selected={active_tab === tab} disabled={tab === 'Sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab}</button>
+                <button data-ui-hover-sound="true" type="button" role="tab" id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} disabled={tab === 'sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
             {/each}
         </div>
         <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
             <div bind:this={content} class="tab_stack">
-                <div id="options_content_room" role="tabpanel" aria-labelledby="options_tab_room" inert={active_tab !== 'Room'} aria-hidden={active_tab !== 'Room'} class:tab_inactive={active_tab !== 'Room'} class="tab_content">
+                <div id="options_content_screen" role="tabpanel" aria-labelledby="options_tab_screen" inert={active_tab !== 'screen'} aria-hidden={active_tab !== 'screen'} class:tab_inactive={active_tab !== 'screen'} class="tab_content">
                     <BackgroundPicker sound="paper_turn" compact onpickerchange={handle_picker} />
                     <div class="options_divider" aria-hidden="true"></div>
                     <div class="setting_rows">
@@ -214,7 +215,7 @@
                         <InputPill text="Grain" min={0} max={4} step={1} bind:value={background_values.grain} defaultValue={defaults.grain} displayValues={grain_labels} onchange={(value) => { persistBackgroundValues({ grain: value }); track_setting('grain', value); }} />
                     </div>
                 </div>
-                <div id="options_content_editor" role="tabpanel" aria-labelledby="options_tab_editor" inert={active_tab !== 'Editor'} aria-hidden={active_tab !== 'Editor'} class:tab_inactive={active_tab !== 'Editor'} class="tab_content">
+                <div id="options_content_editor" role="tabpanel" aria-labelledby="options_tab_editor" inert={active_tab !== 'editor'} aria-hidden={active_tab !== 'editor'} class:tab_inactive={active_tab !== 'editor'} class="tab_content">
                     <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} displayFonts={editor_fonts} onchange={(value) => { persistBackgroundValues({ editorFont: value }); track_setting('editorFont', value); }} />
                     <InputPill text="Text size" min={mobile_mode ? 16 : 14} max={24} step={1} value={mobile_mode ? Math.max(16, background_values.textSize) : background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => { background_values.textSize = value; persistBackgroundValues({ textSize: value }); track_setting('textSize', value); }} />
                     <div class="options_divider" aria-hidden="true"></div>
@@ -222,7 +223,7 @@
                     <div class="options_divider" aria-hidden="true"></div>
                     <ToggleButton text="Markdown" bind:value={background_values.markdown} onchange={(value) => { persistBackgroundValues({ markdown: value }); track_setting('markdown', value); }} />
                 </div>
-                <div id="options_content_sound" role="tabpanel" aria-labelledby="options_tab_sound" inert={active_tab !== 'Sound'} aria-hidden={active_tab !== 'Sound'} class:tab_inactive={active_tab !== 'Sound'} class="tab_content">
+                <div id="options_content_sound" role="tabpanel" aria-labelledby="options_tab_sound" inert={active_tab !== 'sound'} aria-hidden={active_tab !== 'sound'} class:tab_inactive={active_tab !== 'sound'} class="tab_content">
                     <AmbientMixer bind:this={mixer} embedded />
                     <div class="options_divider" aria-hidden="true"></div>
                     <div class="system_sounds">
