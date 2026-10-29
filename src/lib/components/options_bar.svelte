@@ -18,9 +18,9 @@
     import { onMount, tick } from 'svelte';
 
     let { intro = false, onintroend = () => {} } = $props();
-    const tabs = ['Room', 'Editor', 'Sound'];
-    const tint_labels = { 0: 'None' };
-    const grain_labels = { 0: 'None', 1: 'Subtle', 2: 'Gentle', 3: 'Noticeable', 4: 'Strong' };
+    const tabs = ['Screen', 'Editor', 'Sounds'];
+    const tint_labels = { 0: 'Off' };
+    const grain_labels = { 0: 'Off', 1: 'Subtle', 2: 'Gentle', 3: 'Noticeable', 4: 'Strong' };
     let picker_active = $state(false);
     let panel_pinned = $state(false);
     let shell;
