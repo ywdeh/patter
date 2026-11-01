@@ -113,6 +113,17 @@
         release();
     }
 
+    $effect(() => {
+        if (!disabled) return;
+        cancelAnimationFrame(frame);
+        clearTimeout(completion_timer);
+        frame = 0;
+        pointer_id = null;
+        active_key = null;
+        progress = 0;
+        phase = 'idle';
+    });
+
     onDestroy(() => {
         if (frame) cancelAnimationFrame(frame);
         clearTimeout(completion_timer);

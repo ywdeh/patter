@@ -23,20 +23,41 @@ caret-mauve-100" spellcheck="false">
 		<meta name="twitter:title" content="Patter" />
 		<meta name="twitter:description" content="An ambient writing editor that keeps everything else out of sight while you write." />
 		<meta name="twitter:image" content="https://patter.hedwy.art/patter-og.jpg" />
-		<script>
-			window.patter_analytics_enabled = location.hostname === 'patter.hedwy.art';
-			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
-			if (window.patter_analytics_enabled) {
-				gtag('set', { page_title: 'Patter', page_location: location.origin + location.pathname });
-				gtag('js', new Date());
-				gtag('config', 'G-2LFQ1HS7XW', { page_title: 'Patter' });
-				const analytics = document.createElement('script');
-				analytics.async = true;
-				analytics.src = 'https://www.googletagmanager.com/gtag/js?id=G-2LFQ1HS7XW';
-				document.head.append(analytics);
-			}
-		</script>
+        <script>
+            window.patter_analytics_enabled = location.hostname === 'patter.hedwy.art';
+            window.patter_analytics_queue = [];
+            window.patter_umami_before_send = (type, payload) => {
+                const strip_url = (value) => {
+                    if (!value) return '';
+                    try {
+                        const url = new URL(value, location.origin);
+                        return url.origin === location.origin ? url.pathname : url.origin + url.pathname;
+                    } catch { return ''; }
+                };
+                return { ...payload, title: 'Patter', url: strip_url(payload.url), referrer: strip_url(payload.referrer) };
+            };
+            if (window.patter_analytics_enabled) {
+                const analytics = document.createElement('script');
+                analytics.defer = true;
+                analytics.src = 'https://cloud.umami.is/script.js';
+                analytics.dataset.websiteId = '8c54eb70-569b-49f5-9c30-dc66eb2dd1ec';
+                analytics.dataset.domains = 'patter.hedwy.art';
+                analytics.dataset.excludeSearch = 'true';
+                analytics.dataset.excludeHash = 'true';
+                analytics.dataset.beforeSend = 'patter_umami_before_send';
+                analytics.onload = () => {
+                    const pending = window.patter_analytics_queue.splice(0);
+                    for (const [name, data] of pending) {
+                        try { window.umami?.track(name, data)?.catch?.(() => {}); } catch {}
+                    }
+                };
+                analytics.onerror = () => {
+                    window.patter_analytics_enabled = false;
+                    window.patter_analytics_queue.length = 0;
+                };
+                document.head.append(analytics);
+            }
+        </script>
 
 		<script>
 			(() => {

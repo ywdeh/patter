@@ -16,7 +16,7 @@ export function recovery_preview(editor, initial_markdown = true) {
     host.style.position = 'relative';
 
     function duration() {
-        return motionDuration(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'standard' : 'slow', 400);
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : motionDuration('slow', 400);
     }
     function remove_layer(text, layer) {
         clearTimeout(layer.removal);

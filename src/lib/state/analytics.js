@@ -20,7 +20,11 @@ export function track_event(name, parameters = {}) {
     try {
         const safe = Object.fromEntries(fields[name].filter((key) => parameters[key] !== undefined)
             .map((key) => [key, parameters[key]]));
-        window.gtag?.('event', name, safe);
+        if (window.umami?.track) {
+            window.umami.track(name, safe)?.catch?.(() => {});
+        } else if (window.patter_analytics_queue?.length < 50) {
+            window.patter_analytics_queue.push([name, safe]);
+        }
     } catch {  }
 }
 

@@ -200,7 +200,7 @@
         </header>
         <div bind:this={tab_list} class="options_tabs" style={`--active-tab: ${tabs.indexOf(active_tab)}`} role="tablist" aria-label="Customize your space">
             {#each tabs as tab, index}
-                <button data-ui-hover-sound="true" type="button" role="tab" id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} disabled={tab === 'sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
+                <button data-ui-hover-sound="true" type="button" role="tab" tabindex={active_tab === tab ? 0 : -1} id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} disabled={tab === 'sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
             {/each}
         </div>
         <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
@@ -258,7 +258,7 @@
         opacity: var(--patter_opacity_secondary);
         transform: translateX(calc(100% - 5 * var(--patter_control_height) - 2rem));
     }
-    .options_shell:hover, .options_shell:focus-within, .options_shell.panel_pinned {
+    .options_shell:focus-within, .options_shell.panel_pinned {
         opacity: 1;
         transform: translateX(0);
         filter: saturate(1);
@@ -274,9 +274,10 @@
         min-height: 0;
         max-height: calc(100dvh - 3rem);
         padding: var(--patter_space_4);
-        border-radius: 0.75rem;
+        border-radius: var(--patter_radius_control);
     }
     @media (min-width: 640px) and (hover: hover) and (pointer: fine) {
+        .options_shell:hover { opacity: 1; transform: translateX(0); filter: saturate(1); }
         .options_panel::before { content: ''; position: absolute; z-index: -1; inset-block: calc(var(--patter_space_3) * -1); inset-inline: calc(var(--patter_space_6) * -1); pointer-events: auto; }
     }
     .options_glass { position: absolute; inset: 0; z-index: -1; }
@@ -309,7 +310,8 @@
         opacity: var(--patter_opacity_secondary);
         transition: opacity var(--patter_motion_standard) ease-out, var(--patter_focus_transition);
     }
-    .options_tabs button:hover, .options_tabs button[aria-selected='true'] { opacity: 1; }
+    .options_tabs button[aria-selected='true'] { opacity: 1; }
+    @media (hover: hover) and (pointer: fine) { .options_tabs button:hover { opacity: 1; } }
     .options_tabs button:disabled { opacity: var(--patter_opacity_disabled); cursor: default; pointer-events: none; }
     .options_divider, .options_tabs::after {
         height: 2px;

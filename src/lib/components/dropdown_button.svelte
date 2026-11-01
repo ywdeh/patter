@@ -57,19 +57,27 @@
         };
 
     }
-    async function open_menu(focus = false) {
+    function focus_item(last = false) {
+        const buttons = menu?.querySelectorAll('button:not(:disabled)');
+        buttons?.[last ? buttons.length - 1 : 0]?.focus();
+    }
+    async function open_menu(focus = false, last = false) {
         cancel_close();
         if (disabled) return;
-        if (open) { if (focus) menu?.querySelector('button')?.focus(); return; }
+        if (open) { if (focus) focus_item(last); return; }
         keyboard_open = focus;
         open = true;
         await tick();
         if (!open || disabled) return;
         position_menu();
-        if (focus) menu?.querySelector('button')?.focus();
+        if (focus) focus_item(last);
+        const focused = document.activeElement;
         await onopen?.();
         await tick();
-        if (open && !disabled) position_menu();
+        if (open && !disabled) {
+            position_menu();
+            if (focus && last && document.activeElement === focused) focus_item(true);
+        }
     }
     function menu_motion(node) {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -122,7 +130,8 @@
             if (event.shiftKey) event.preventDefault();
             return;
         }
-        const buttons = Array.from(menu?.querySelectorAll('button') ?? []);
+        const buttons = Array.from(menu?.querySelectorAll('button:not(:disabled)') ?? []);
+        if (!buttons.length) return;
         const index = buttons.indexOf(document.activeElement);
         let next;
         if (event.key === 'ArrowDown') next = (index + 1) % buttons.length;
@@ -172,7 +181,7 @@
 <button use:smooth_width data-ui-hover-sound={Boolean(sound)} bind:this={trigger} type="button" {disabled} aria-label={ariaLabel} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menu_id : undefined}
     class="patter_control patter_text_main group/hitbox relative inline-flex min-h-(--patter_control_height) items-center px-3 py-2 cursor-pointer disabled:cursor-default disabled:pointer-events-none"
     onclick={toggle_menu} onpointerenter={(event) => { if (event.pointerType === 'mouse') void open_menu(); }} onpointerleave={schedule_close}
-    onkeydown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); void open_menu(true); } }}>
+    onkeydown={(event) => { if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); void open_menu(true, event.key === 'ArrowUp'); } }}>
     <span aria-hidden="true" class="patter_surface patter_hover {disabled ? '' : 'patter_active'} absolute inset-0 rounded-xl patter_surface_gradient"></span>
     <span data-control-content class="relative inline-flex w-max shrink-0 items-center gap-2 pointer-events-none">
         <span>{text}</span>
@@ -248,7 +257,8 @@
     .dropdown_row > .dropdown_item:first-child { flex: 1; min-width: 0; }
     .dropdown_dismiss { align-self: center; margin-inline: var(--patter_space_1); }
     .dropdown_item { display: flex; align-items: baseline; white-space: nowrap; transition: var(--patter_focus_transition); }
-    .dropdown_item:hover, .dropdown_item:focus-visible { background: var(--patter_surface_normal); }
+    .dropdown_item:focus-visible { background: var(--patter_surface_normal); }
+    @media (hover: hover) and (pointer: fine) { .dropdown_item:hover { background: var(--patter_surface_normal); } }
     .dropdown_item:active { background: var(--patter_surface_hover); }
 
 </style>

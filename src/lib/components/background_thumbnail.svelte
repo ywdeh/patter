@@ -210,7 +210,7 @@
         outline: 2px solid transparent;
         outline-offset: 2px;
     }
-    .position_choice:hover { background: var(--patter_surface_hover); }
+    @media (hover: hover) and (pointer: fine) { .position_choice:hover { background: var(--patter_surface_hover); } }
     .position_choice.position_selected {
         background: var(--patter_surface_selected);
         outline-color: var(--patter_surface_selected);
@@ -231,9 +231,12 @@
         transition: clip-path var(--patter_motion_standard) ease-out;
     }
 
-    button:hover .media_viewport,
     button:focus-visible .media_viewport {
         clip-path: inset(0.25rem round 0.5rem);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        button:hover .media_viewport:not(.is-selected) { clip-path: inset(0.25rem round var(--patter_radius_compact)); }
     }
 
     button:active .media_viewport:not(.is-selected),
@@ -242,7 +245,6 @@
     }
 
     .media_viewport.is-selected,
-    button:hover .media_viewport.is-selected,
     button:focus-visible .media_viewport.is-selected {
         clip-path: inset(0 round 0.5rem);
     }

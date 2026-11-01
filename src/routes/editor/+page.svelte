@@ -58,6 +58,7 @@
     onMount(() => {
         const handleContentChange = (event) => updatePageTitle(event.detail?.text ?? '');
         window.addEventListener('patter-editor-content-change', handleContentChange);
+        updatePageTitle(document.querySelector('[data-patter-body]')?.innerText ?? '');
 
         function handleKeyboardNavigation(event) {
             if (zenMode && (event.key === 'Tab' || event.key === 'Escape')) setZenMode(false);
@@ -99,7 +100,7 @@
     <title>{pageTitle}</title>
 </svelte:head>
 
-<main aria-label="Editor" class="mobile_editor_shell flex h-dvh w-full flex-col px-3 py-4 sm:px-12 sm:py-12">
+<main aria-label="Editor" class="mobile_editor_shell patter_page_frame flex h-dvh w-full flex-col">
     <h1 class="sr-only">Patter editor</h1>
     <div class="w-full h-full max-w-3xl self-center min-h-0" data-editor-container>
         <EditorBody onwriting={handleWriting} sound="typing" />
@@ -108,7 +109,7 @@
 
 <style>
     @media (max-width: 639px), (hover: none), (pointer: coarse) {
-        .mobile_editor_shell { height: var(--patter_viewport_height, 100dvh); padding-top: max(var(--patter_space_4), env(safe-area-inset-top)); padding-left: max(var(--patter_space_3), env(safe-area-inset-left)); padding-right: max(var(--patter_space_3), env(safe-area-inset-right)); padding-bottom: max(var(--patter_space_4), env(safe-area-inset-bottom)); }
+        .mobile_editor_shell { height: var(--patter_viewport_height, 100dvh); }
     }
     :global([data-zen-mode-ui]) {
         transition-duration: var(--patter_motion_slow) !important;

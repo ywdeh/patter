@@ -16,12 +16,13 @@ export function mountLandingIntro(root) {
 	}
 	const reveal_opacities = [...revealItems].map((element) => Number.parseFloat(getComputedStyle(element).opacity));
 
+	root.classList.add('landing_intro_running');
 	const context = gsap.context(() => {
 		gsap.set(letters, { y: -14, autoAlpha: 0 });
 		gsap.set(revealItems, { y: 5, opacity: 0 });
 		root.classList.remove('landing_intro_pending');
 
-		const timeline = gsap.timeline();
+		const timeline = gsap.timeline({ onComplete: () => root.classList.remove('landing_intro_running') });
 		timeline.to(letters, {
 			y: 0,
 			autoAlpha: 1,
@@ -40,5 +41,8 @@ export function mountLandingIntro(root) {
 		});
 	}, root);
 
-	return () => context.revert();
+	return () => {
+        context.revert();
+        root.classList.remove('landing_intro_running');
+    };
 }

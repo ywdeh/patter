@@ -3,4 +3,6 @@
 
 </script>
 
+<svelte:head><title>Patter</title></svelte:head>
+
 <Header />

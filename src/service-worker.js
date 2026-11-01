@@ -2,7 +2,7 @@ import { base, build, files, version } from '$service-worker';
 
 const cache_prefix = 'patter-offline-';
 const cache_name = `${cache_prefix}${version}`;
-const pages = [`${base}/`, `${base}/editor`];
+const pages = [`${base}/`, `${base}/editor`, `${base}/privacy`];
 const static_files = files.filter((file) =>
     /\.(?:css|js|woff2?|webp|avif|png|jpe?g|svg|ico|mp3|webmanifest)$/i.test(file)
 );
@@ -75,7 +75,7 @@ self.addEventListener('fetch', (event) => {
     }
 
     if (request.mode === 'navigate') {
-        const path = url.pathname === `${base}/editor/` ? `${base}/editor` : url.pathname;
+        const path = url.pathname === `${base}/` ? url.pathname : url.pathname.replace(/\/$/u, '');
         if (pages.includes(path)) event.respondWith(cached_response(request, path));
         return;
     }

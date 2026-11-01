@@ -1,7 +1,7 @@
 import { track_event } from './analytics.js';
-import { getEditorDocument } from '$lib/state/editor_document.js';
-import { EXPORT_SIGNATURE } from '$lib/state/editor_signature.js';
-import { createExportFilename } from '$lib/state/editor_filename.js';
+import { getEditorDocument } from './editor_document.js';
+import { EXPORT_SIGNATURE } from './editor_signature.js';
+import { createExportFilename } from './editor_filename.js';
 
 export function buildTextExport(body) {
     const cleanBody = String(body ?? '').replace(/\r\n?/gu, '\n');

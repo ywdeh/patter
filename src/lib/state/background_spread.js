@@ -63,6 +63,7 @@ export function spread_wallpaper(node, { duration, signal, origin, key, sequence
     if (signal.aborted) return Promise.resolve();
     if (!node || window.matchMedia('(prefers-reduced-motion: reduce)').matches
         || !CSS.supports('clip-path', 'polygon(0 0, 100% 0, 100% 100%)')) {
+        node?.style.removeProperty('clip-path');
         if (key) complete_wallpaper_spread(key, sequence);
         return Promise.resolve();
     }

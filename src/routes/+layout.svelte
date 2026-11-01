@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { page } from '$app/state';
     import { background_startup } from '$lib/state/background_state.svelte.js';
     import { route_navigation_is_urgent } from '$lib/state/route_navigation.js';
     import { begin_page_reveal, finish_page_reveal } from '$lib/state/page_ready.js';
@@ -108,6 +109,8 @@
 <Background />
 
 <div class="route_surface route_initial_hidden">
-	<OptionsBar intro={optionsIntro} onintroend={stopOptionsIntro} />
+    {#if page.url.pathname !== '/privacy'}
+        <OptionsBar intro={optionsIntro} onintroend={stopOptionsIntro} />
+    {/if}
 	{@render children()}
 </div>

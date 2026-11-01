@@ -1,4 +1,4 @@
-import { createExportSignaturePattern } from '$lib/state/editor_signature.js';
+import { createExportSignaturePattern } from './editor_signature.js';
 
 export function parseTextImport(value) {
     const text = String(value ?? '').replace(/\r\n?/gu, '\n').trimStart();

@@ -1,5 +1,6 @@
 import { after_wallpaper_spread } from './background_spread.js';
 import { loadBackgroundImage } from './background_preloader.js';
+import { read_storage_record } from './storage_record.js';
 
 export const BACKGROUND_AMBIENT_COLOR_ENABLED = true;
 
@@ -10,18 +11,10 @@ const MAX_CACHED_COLORS = 32;
 const hex_color = /^#[\da-f]{6}$/i;
 const palette_transition = /^(?:color|background-color|outline-color|border-(?:top|right|bottom|left)-color|box-shadow|text-shadow|fill|stroke)$/;
 
-function read_cache(storage_key) {
-    if (typeof localStorage === 'undefined') return {};
-    try {
-        const value = JSON.parse(localStorage.getItem(storage_key) || '{}');
-        return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-    } catch { return {}; }
-}
-
 function cache_value(storage_key, key, value) {
     if (!key || typeof localStorage === 'undefined') return;
     try {
-        const values = read_cache(storage_key);
+        const values = read_storage_record(storage_key);
         delete values[key];
         values[key] = value;
         while (Object.keys(values).length > MAX_CACHED_COLORS) delete values[Object.keys(values)[0]];
@@ -30,7 +23,7 @@ function cache_value(storage_key, key, value) {
 }
 
 export function getCachedAmbientBackgroundColor(key) {
-    const color = read_cache(CACHE_KEY)[key];
+    const color = read_storage_record(CACHE_KEY)[key];
     return typeof color === 'string' && hex_color.test(color) ? color : null;
 }
 
@@ -39,8 +32,8 @@ export function cacheAmbientBackgroundColor(key, color) {
 }
 
 export function getCachedBackgroundScrim(key) {
-    const opacity = Number(read_cache(SCRIM_CACHE_KEY)[key]);
-    return Number.isFinite(opacity) ? Math.min(0.62, Math.max(0, opacity)) : null;
+    const opacity = read_storage_record(SCRIM_CACHE_KEY)[key];
+    return typeof opacity === 'number' && Number.isFinite(opacity) ? Math.min(0.62, Math.max(0, opacity)) : null;
 }
 
 export function cacheBackgroundScrim(key, opacity) {

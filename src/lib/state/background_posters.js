@@ -1,10 +1,12 @@
+import { read_storage_record } from './storage_record.js';
+
 const STORAGE_KEY = 'patter-video-posters';
 const MAX_POSTERS = 16;
 
 export function getBackgroundPoster(key) {
     if (typeof window === 'undefined') return null;
     try {
-        const posters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        const posters = read_storage_record(STORAGE_KEY);
         return typeof posters[key] === 'string' ? posters[key] : null;
     } catch {
         return null;
@@ -14,7 +16,7 @@ export function getBackgroundPoster(key) {
 export function saveBackgroundPoster(key, dataUrl) {
     if (typeof window === 'undefined') return;
     try {
-        const posters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        const posters = read_storage_record(STORAGE_KEY);
         delete posters[key];
         posters[key] = dataUrl;
         while (Object.keys(posters).length > MAX_POSTERS) {
@@ -28,7 +30,7 @@ export function saveBackgroundPoster(key, dataUrl) {
 export function removeBackgroundPoster(key) {
     if (typeof window === 'undefined') return;
     try {
-        const posters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        const posters = read_storage_record(STORAGE_KEY);
         delete posters[key];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(posters));
     } catch {

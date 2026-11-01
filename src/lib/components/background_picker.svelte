@@ -15,6 +15,7 @@
     let uploadInput;
     let uploadOrigin;
     let processing_upload = $state(false);
+    let removing_upload = $state(false);
     let uploadError = $state('');
     const uploaded_background = $derived(get_background_upload());
     const uploads = $derived(uploaded_background ? [uploaded_background] : []);
@@ -85,7 +86,7 @@
     async function upload(event) {
         const file = event.currentTarget.files?.[0];
         event.currentTarget.value = '';
-        if (!file || processing_upload) return;
+        if (!file || processing_upload || removing_upload) return;
 
         const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
         if (!backgroundFileAccept.split(',').some((entry) => entry === `.${extension}`)) {
@@ -127,7 +128,8 @@
     async function removeUpload(event) {
         const origin = capture_spread_origin(event);
         const upload = uploaded_background;
-        if (!upload) return;
+        if (!upload || processing_upload || removing_upload) return;
+        removing_upload = true;
         playClick();
         try {
             await clearBackgroundUploads();
@@ -143,6 +145,8 @@
             uploadError = '';
         } catch {
             uploadError = 'This background could not be removed from browser storage.';
+        } finally {
+            removing_upload = false;
         }
     }
 </script>
@@ -194,6 +198,7 @@
         {:else}
             <button data-ui-hover-sound="true"
                 type="button"
+                disabled={processing_upload || removing_upload}
                 onclick={(event) => { uploadOrigin = capture_spread_origin(event); onpickerchange(true); uploadInput?.click(); }}
                 class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small">
 
@@ -209,7 +214,7 @@
         <button data-ui-hover-sound="true"
             type="button"
             onclick={removeUpload}
-            disabled={uploads.length === 0}
+            disabled={uploads.length === 0 || processing_upload || removing_upload}
             aria-label="Remove uploaded background"
             class="upload_action patter_control patter_control_compact group transition w-full aspect-video group/inputpill relative cursor-pointer flex flex-col items-center justify-center gap-1 text-mauve-100/65 hover:text-mauve-100 transition-colors patter_duration_standard patter_text_small disabled:cursor-default  disabled:pointer-events-none">
             <span class="upload_surface patter_surface_dashed patter_hover patter_active absolute inset-0 rounded-lg patter_surface_gradient"></span>
