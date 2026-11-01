@@ -55,17 +55,7 @@
     </div>
     <div class="landing_footer_anchor col-start-1 row-start-1 z-10 w-full max-w-3xl self-end justify-self-center">
     <footer data-landing-intro-reveal class="landing_footer patter_editor_controls px-4 sm:px-8 pt-8 patter_text_small">
-        <div class="footer_links">
-            <div class="footer_socials">
-                <a class="social_link" href="https://linkedin.com/in/hedwy" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn" data-ui-hover-sound="true">
-                    <span class="social_icon patter_mask_icon" aria-hidden="true" style="mask-image: url('/linkedin_official.png'); -webkit-mask-image: url('/linkedin_official.png')"></span>
-                </a>
-                <a class="social_link" href="https://reddit.com/r/patterapp" target="_blank" rel="noopener noreferrer" aria-label="Patter on Reddit" title="Reddit" data-ui-hover-sound="true">
-                    <span class="social_icon social_icon_reddit patter_mask_icon" aria-hidden="true" style="mask-image: url('/reddit_official.svg'); -webkit-mask-image: url('/reddit_official.svg')"></span>
-                </a>
-            </div>
-            <a data-selectable-text aria-label="Send feedback by email" href="mailto:patter@hedwy.art" class="landing_subtext transition-[border-color] border-b-2 border-transparent hover:border-inherit">patter@hedwy.art</a>
-        </div>
+        <a data-selectable-text aria-label="Send feedback by email" href="mailto:patter@hedwy.art" class="landing_subtext transition-[border-color] border-b-2 border-transparent hover:border-inherit">patter@hedwy.art</a>
         <a href="/privacy" class="footer_privacy landing_subtext transition-[border-color] border-b-2 border-transparent hover:border-inherit">privacy policy</a>
     </footer>
     </div>
@@ -75,19 +65,7 @@
     .mobile_landing { padding-inline: var(--patter_page_left) var(--patter_page_right); }
     .landing_subtext { opacity: var(--patter_landing_subtext_opacity); }
     .landing_footer { display: flex; align-items: center; justify-content: space-between; gap: var(--patter_space_6); padding-bottom: var(--patter_page_bottom); text-align: left; }
-    .footer_links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--patter_space_3); min-width: 0; }
-    .footer_socials { display: flex; align-items: center; gap: var(--patter_space_2); }
-    .social_link { position: relative; display: grid; place-items: center; width: var(--patter_space_4); height: var(--patter_space_4); flex-shrink: 0; }
-    .social_icon { position: relative; width: var(--patter_space_3); height: var(--patter_space_3); opacity: var(--patter_landing_subtext_opacity); transition: opacity var(--patter_motion_standard) ease-out; pointer-events: none; }
-    .social_icon_reddit { mask-size: 125%; -webkit-mask-size: 125%; }
-    .social_link:focus-visible .social_icon, .social_link:active .social_icon { opacity: 1; }
-    @media (pointer: coarse) {
-        .footer_socials { gap: 0; }
-        .social_link { width: var(--patter_control_height); }
-        .social_link::after { content: ''; position: absolute; inset: calc((var(--patter_space_4) - var(--patter_control_height)) / 2) 0; border-radius: 50%; }
-    }
     .footer_privacy { flex-shrink: 0; }
-    @media (hover: hover) and (pointer: fine) { .social_link:hover .social_icon { opacity: 1; } }
     @media (max-width: 639px) {
         .landing_footer { align-items: flex-end; gap: var(--patter_space_4); }
         .footer_privacy { max-width: 6rem; text-align: right; }
