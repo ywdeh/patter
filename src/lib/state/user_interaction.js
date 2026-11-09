@@ -8,7 +8,13 @@ export function can_use_wheel_controls(event) {
 }
 
 export function mount_user_interaction() {
-    if (typeof window === 'undefined' || navigator.userActivation) return () => {};
+    if (typeof window === 'undefined') return () => {};
+    const prevent_image_drag = (event) => {
+        if (event.target instanceof Element && event.target.closest('img, picture, video, canvas, svg')) event.preventDefault();
+    };
+    document.addEventListener('dragstart', prevent_image_drag);
+    const cleanup_images = () => document.removeEventListener('dragstart', prevent_image_drag);
+    if (navigator.userActivation) return cleanup_images;
     const events = ['click', 'pointerdown', 'pointerup', 'keydown'];
     function cleanup() {
         for (const name of events) window.removeEventListener(name, activate, true);
@@ -21,5 +27,5 @@ export function mount_user_interaction() {
         cleanup();
     }
     for (const name of events) window.addEventListener(name, activate, true);
-    return cleanup;
+    return () => { cleanup(); cleanup_images(); };
 }

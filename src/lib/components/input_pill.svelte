@@ -2,12 +2,13 @@
     import { fit_label } from '$lib/state/fit_label.js';
     import { can_use_wheel_controls } from '$lib/state/user_interaction.js';
     import { onDestroy, untrack } from "svelte";
-    import { fly } from "svelte/transition";
+    import { fly, fade } from "svelte/transition";
     import { playSound } from '$lib/state/sound.js';
     import { motionDuration } from '$lib/state/motion.js';
 
     let {
         text = null,
+        label = null,
         value = $bindable(60),
         mode = "stepper",
         defaultValue = null,
@@ -23,6 +24,7 @@
         ontrue = null,
         onfalse = null,
         onchange = null,
+        onplay = null,
         sound = 'click'
     } = $props();
     const initialValue = untrack(() => value);
@@ -186,7 +188,7 @@
 <svelte:window onblur={endHold} />
 
 <div data-setting-control role="group" aria-label={text ?? 'Setting controls'} class="flex gap-3 items-center w-full">
-    <p class="flex-1 patter_font_body">{text}</p>
+    <p class="min-w-0 flex-1 patter_font_body">{#if label}{@render label()}{:else}{text}{/if}</p>
 
     <div class="flex flex-[1.5] gap-3 justify-between items-center patter_pill_gradient rounded-full text-center">
         <button data-ui-hover-sound={Boolean(sound)}
@@ -225,14 +227,15 @@
         </div>
 
         <button data-ui-hover-sound={Boolean(sound)}
-            aria-label={mode === "toggle" ? `${text ?? "Setting"}: ${trueLabel}` : `Increase ${text ?? "value"}`}
-            onclick={() => handleClick(increment)}
-            onpointerdown={(event) => { if (event.button === 0) startHold(increment); }}
+            data-setting-increase
+            aria-label={onplay ? `Play ${text ?? "track"}` : mode === "toggle" ? `${text ?? "Setting"}: ${trueLabel}` : `Increase ${text ?? "value"}`}
+            onclick={() => { if (onplay) { playClick(); onplay(); } else handleClick(increment); }}
+            onpointerdown={(event) => { if (event.button === 0 && !onplay) startHold(increment); }}
             onpointerup={endHold}
             onpointerleave={endHold}
             onpointercancel={endHold}
             onblur={endHold}
-            disabled={Number(value) >= upper || togglePending}
+            disabled={(!onplay && Number(value) >= upper) || togglePending}
             class:wheel_pressed={wheelPressedDirection === 1}
             class="patter_control patter_control_round group transition h-(--patter_pill_height) aspect-square shrink-0 group/inputpill flex items-center justify-center relative cursor-pointer  disabled:pointer-events-none">
             <span
@@ -240,8 +243,12 @@
                 class="patter_surface patter_hover patter_active absolute inset-0 rounded-full patter_surface_gradient">
             </span>
 
-            <span class="flex items-center gap-2 relative px-2 pointer-events-none">
-                {@render chevron("right")}
+            <span class="grid items-center relative px-2 pointer-events-none">
+                {#key Boolean(onplay)}
+                    <span class="col-start-1 row-start-1 flex" transition:fade={{ duration: motionDuration('standard', 200) }}>
+                        {#if onplay}<span aria-hidden="true" class="patter_icon patter_mask_icon size-4" style="mask-image: url(/play.svg); -webkit-mask-image: url(/play.svg)"></span>{:else}{@render chevron("right")}{/if}
+                    </span>
+                {/key}
             </span>
         </button>
 

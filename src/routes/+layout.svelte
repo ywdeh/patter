@@ -8,6 +8,7 @@
     import { mount_ui_hover_sound } from '$lib/state/ui_hover_sound.js';
 	import Background from '$lib/components/background.svelte';
 	import OptionsBar from '$lib/components/options_bar.svelte';
+    import SoundPanel from '$lib/components/sound_panel.svelte';
 	import '$lib/styles/patter_styles.css';
 	import { afterNavigate, beforeNavigate, onNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -111,6 +112,7 @@
 <div class="route_surface route_initial_hidden">
     {#if page.url.pathname !== '/privacy'}
         <OptionsBar intro={optionsIntro} onintroend={stopOptionsIntro} />
+        <SoundPanel />
     {/if}
 	{@render children()}
 </div>

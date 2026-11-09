@@ -19,7 +19,6 @@ export const defaults = {
     textSize: 18,
     editorFont: 0,
     markdown: true,
-    cornerControls: true,
     position: 'center',
     background: defaultBackground,
 };
@@ -30,7 +29,7 @@ const validBackground = (value) => {
         : defaults.background;
 };
 
-export const active_background = $state({ kind: 'image', url: defaults.background });
+export const active_background = $state({ kind: backgrounds.find((item) => item.src === defaults.background)?.kind ?? 'image', url: defaults.background });
 let uploaded_background = $state(null);
 
 export function get_background_upload() { return uploaded_background; }
@@ -48,7 +47,6 @@ function set_style(property, value) {
 
 function applyToDocument(values) {
     if (typeof document === "undefined") return;
-    document.documentElement.toggleAttribute('data-corner-controls', values.cornerControls);
     set_style("--patter_focus", `${values.focus}px`);
     set_style("--patter_tint", `${values.tint / 100}`);
     set_style('--patter_tint_color', values.tintShade === 2 ? 'oklch(15.3% 0.025 135)' : values.tintShade === 1 ? 'oklch(14.7% 0.004 49.3)' : 'oklch(12.9% 0.042 264.695)');
@@ -63,7 +61,7 @@ function sync_background() {
     const key = background_values.background;
     const preview = active_background.kind === 'image' && !key.startsWith('upload:')
         ? active_background.url
-        : uploaded_background?.poster ?? getBackgroundPoster(key) ?? defaults.background;
+        : uploaded_background?.poster ?? getBackgroundPoster(key) ?? '/backgrounds/book.webp';
     set_style('--patter_background', `url("${preview}")`);
 }
 
@@ -81,7 +79,6 @@ function load() {
                 ? value : defaults[key];
         }
         values.markdown = typeof values.markdown === 'boolean' ? values.markdown : defaults.markdown;
-        values.cornerControls = typeof values.cornerControls === 'boolean' ? values.cornerControls : defaults.cornerControls;
         values.position = ['top', 'center', 'bottom'].includes(values.position) ? values.position : defaults.position;
         values.background = validBackground(values.background);
         return values;
@@ -184,7 +181,6 @@ export function resetBackgroundValues() {
     background_values.textSize = defaults.textSize;
     background_values.editorFont = defaults.editorFont;
     background_values.markdown = defaults.markdown;
-    background_values.cornerControls = defaults.cornerControls;
     background_values.position = defaults.position;
     selectBuiltInBackground(defaults.background);
 }

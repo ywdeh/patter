@@ -4,9 +4,12 @@ import { normalize_ambient_buffer } from './ambient_normalization.js';
 const master_volume = 0.7;
 
 export const ambient_tracks = Object.freeze([
-    { id: 'rain', label: 'Rain', src: '/ambience/rain.mp3', volume: 0 },
-    { id: 'flute', label: 'Flute', src: '/ambience/flute.mp3', volume: 0 },
-    { id: 'campfire', label: 'Campfire', src: '/ambience/campfire.mp3', volume: 0 }
+    { id: 'rain', category: 'ambience', label: 'Rain', src: '/ambience/rain.mp3', volume: 0 },
+    { id: 'campfire', category: 'ambience', label: 'Campfire', src: '/ambience/campfire.mp3', volume: 0 },
+    { id: 'street_chatter', category: 'ambience', label: 'Street', src: '/ambience/street_chatter.mp3', volume: 0 },
+    { id: 'flute', category: 'music', label: 'Flute', src: '/ambience/flute.mp3', cover: '/backgrounds/thumbnails/lantern_in_the_forest.webp.webp', volume: 0 },
+    { id: 'fantasy_music', category: 'music', label: 'Reverie', src: '/ambience/fantasy_music.mp3', cover: '/backgrounds/thumbnails/castle.webp.webp', volume: 0 },
+    { id: 'sad_music', category: 'music', label: 'Solitude', src: '/ambience/sad_music.mp3', cover: '/backgrounds/thumbnails/winter_street.webp.webp', volume: 0 }
 ]);
 
 export function create_ambient_player(on_status) {
@@ -17,22 +20,25 @@ export function create_ambient_player(on_status) {
     let destroyed = false;
     let mix = [];
     const channels = new Map();
+    const volume_ramps = new WeakMap();
 
-    function ramp_volume(parameter, value) {
+    function ramp_volume(parameter, value, duration = motionDuration('quick', 100)) {
         const now = context.currentTime;
-        if (parameter.cancelAndHoldAtTime) parameter.cancelAndHoldAtTime(now);
-        else {
-            const current = parameter.value;
-            parameter.cancelScheduledValues(now);
-            parameter.setValueAtTime(current, now);
-        }
-        parameter.linearRampToValueAtTime(value, now + motionDuration('slow', 400) / 1000);
+        const previous = volume_ramps.get(parameter);
+        const progress = previous && previous.end > previous.start
+            ? Math.max(0, Math.min(1, (now - previous.start) / (previous.end - previous.start))) : 1;
+        const current = previous ? previous.from + (previous.to - previous.from) * progress : parameter.value;
+        const end = now + duration / 1000;
+        parameter.cancelScheduledValues(now);
+        parameter.setValueAtTime(current, now);
+        parameter.linearRampToValueAtTime(value, end);
+        volume_ramps.set(parameter, { from: current, to: value, start: now, end });
     }
 
     function fade_out_channel(channel) {
         if (channel.target !== 0) {
             channel.target = 0;
-            ramp_volume(channel.gain.gain, 0);
+            ramp_volume(channel.gain.gain, 0, motionDuration('slow', 400));
         }
         if (channel.source && !channel.stop_timer) {
             channel.stop_timer = setTimeout(() => stop_channel(channel), motionDuration('slow', 400));
@@ -87,7 +93,7 @@ export function create_ambient_player(on_status) {
         channel.source = null;
     }
 
-    async function update_channel(track) {
+    async function update_channel(track, fade_in = motionDuration('slow', 400)) {
         const channel = channels.get(track.id);
         const wanted = playing && track.volume > 0;
         if (!wanted) {
@@ -96,11 +102,14 @@ export function create_ambient_player(on_status) {
         }
         clearTimeout(channel.stop_timer);
         channel.stop_timer = null;
-        if (channel.target !== track.volume / 100) {
-            channel.target = track.volume / 100;
-            ramp_volume(channel.gain.gain, channel.target);
+        const target = track.volume / 100;
+        const changed = channel.target !== target;
+        channel.target = target;
+        if (channel.source) {
+            if (changed) ramp_volume(channel.gain.gain, target);
+            return;
         }
-        if (channel.source || channel.pending) return;
+        if (channel.pending) return;
         if (!channel.buffer) {
             channel.pending = true;
             channel.abort = new AbortController();
@@ -129,9 +138,11 @@ export function create_ambient_player(on_status) {
         channel.source.loop = true;
         channel.source.connect(channel.gain);
         channel.started = context.currentTime;
+        channel.target = current.volume / 100;
         channel.gain.gain.cancelScheduledValues(context.currentTime);
         channel.gain.gain.setValueAtTime(0, context.currentTime);
-        ramp_volume(channel.gain.gain, current.volume / 100);
+        volume_ramps.set(channel.gain.gain, { from: 0, to: 0, start: context.currentTime, end: context.currentTime });
+        ramp_volume(channel.gain.gain, channel.target, fade_in);
         channel.source.start(0, channel.offset);
     }
 
@@ -140,7 +151,9 @@ export function create_ambient_player(on_status) {
             mix = next.map((track) => ({ ...track }));
             if (!context || destroyed) return;
             if (!mix.some((track) => track.volume > 0)) playing = false;
-            for (const track of mix) void update_channel(track);
+            for (const track of mix) {
+                void update_channel(track);
+            }
         },
         async play() {
             if (destroyed || !mix.some((track) => track.volume > 0)) return;
@@ -160,9 +173,24 @@ export function create_ambient_player(on_status) {
             playing = false;
             for (const channel of channels.values()) fade_out_channel(channel);
         },
+        get_track_state(id) {
+            const channel = channels.get(id);
+            if (!channel) return { position: 0, duration: 0, loading: false };
+            const duration = channel.buffer?.duration ?? 0;
+            const elapsed = channel.source ? Math.max(0, context.currentTime - channel.started) : 0;
+            return { duration, position: duration ? (channel.offset + elapsed) % duration : 0, loading: channel.pending };
+        },
+        seek_track(id, position) {
+            const channel = channels.get(id);
+            const track = mix.find((item) => item.id === id);
+            if (!channel?.buffer || !track || destroyed || !Number.isFinite(position)) return;
+            stop_channel(channel);
+            channel.offset = Math.max(0, Math.min(channel.buffer.duration - 1 / channel.buffer.sampleRate, position));
+            void update_channel(track, motionDuration('quick', 100));
+        },
         set_muted(value) {
             muted = value;
-            if (master) ramp_volume(master.gain, muted ? 0 : master_volume);
+            if (master) ramp_volume(master.gain, muted ? 0 : master_volume, motionDuration('slow', 400));
         },
         destroy() {
             destroyed = true;

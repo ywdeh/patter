@@ -7,18 +7,17 @@
     import { set_spread_origin } from '$lib/state/background_spread.js';
     import InputPill from './input_pill.svelte';
     import ToggleButton from './toggle_button.svelte';
-    import AmbientMixer from './ambient_mixer.svelte';
     import BackgroundPicker from './background_picker.svelte';
     import { background_values, persistBackgroundValues, defaults, resetBackgroundValues } from '$lib/state/background_state.svelte.js';
     import { enterFullscreen, exitFullscreen, isFullscreenActive } from '$lib/fullscreen.js';
-    import { sound_enabled, setSoundEnabled, typing_sound_enabled, setTypingSoundEnabled, interaction_sound_enabled, setInteractionSoundEnabled } from '$lib/state/sound_settings.svelte.js';
+    import { setSoundEnabled, setTypingSoundEnabled, setInteractionSoundEnabled } from '$lib/state/sound_settings.svelte.js';
     import { playSound } from '$lib/state/sound.js';
     import { clearBackgroundUploads } from '$lib/state/background_media.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
     import { onMount, tick } from 'svelte';
 
     let { intro = false, onintroend = () => {} } = $props();
-    const tab_labels = { screen: 'Screen', editor: 'Editor', sound: 'Sound' };
+    const tab_labels = { screen: 'Screen', editor: 'Editor' };
     const tabs = Object.keys(tab_labels);
     const tint_labels = { 0: 'Off' };
     const grain_labels = { 0: 'Off', 1: 'Subtle', 2: 'Gentle', 3: 'Noticeable', 4: 'Strong' };
@@ -42,7 +41,6 @@
     let tab_list;
     let scroll_area;
     let content;
-    let mixer;
     let has_overflow = $state(false);
     let top_fade = $state(0);
     let bottom_fade = $state(0);
@@ -91,7 +89,7 @@
     });
 
     async function select_tab(tab) {
-        if (active_tab === tab || (tab === 'sound' && !sound_enabled.value)) return;
+        if (active_tab === tab) return;
         active_tab = tab;
         track_event('options_tab_changed', { tab: tab });
         playSound('click');
@@ -101,7 +99,7 @@
     }
 
     function handle_tab_key(event, index) {
-        const available = tabs.filter((tab) => tab !== 'sound' || sound_enabled.value);
+        const available = tabs;
         const current = available.indexOf(tabs[index]);
         let next;
         if (event.key === 'ArrowRight') next = (current + 1) % available.length;
@@ -113,14 +111,6 @@
         void select_tab(available[next]);
         tab_list.querySelectorAll('[role="tab"]')[tabs.indexOf(available[next])].focus();
     }
-
-    $effect(() => {
-        if (!sound_enabled.value && active_tab === 'sound') {
-            active_tab = 'screen';
-            if (scroll_area) scroll_area.scrollTop = 0;
-            update_scroll();
-        }
-    });
 
     async function toggle_fullscreen() {
         if (fullscreen_pending || browser_fullscreen) return;
@@ -150,7 +140,7 @@
                 setSoundEnabled(true);
                 setTypingSoundEnabled(true);
                 setInteractionSoundEnabled(true);
-                mixer?.reset_mix();
+                window.dispatchEvent(new Event('patter-reset-audio'));
                 if (event.shiftKey) {
                     setEditorDocument('');
                     window.dispatchEvent(new Event('patter-clear-saved-data'));
@@ -168,11 +158,7 @@
         }
     }
 
-    function toggle_sound() {
-        setSoundEnabled(!sound_enabled.value);
-        track_setting('sound', sound_enabled.value);
-        if (sound_enabled.value) playSound('click');
-    }
+
 
 </script>
 
@@ -188,10 +174,7 @@
         <header class="options_header">
             <HoldButton iconOnly text="Reset options; hold Shift to clear writing, recovery history and all app data" oncomplete={reset_options} />
             <div class="quick_actions">
-                <button data-ui-hover-sound="true" type="button" class="icon_button patter_control patter_control_round group/hitbox" aria-label={sound_enabled.value ? 'Mute sound' : 'Enable sound'} aria-pressed={sound_enabled.value} onclick={toggle_sound}>
-                    <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active patter_surface_gradient"></span>
-                    <svg class="patter_icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"  stroke-linecap="round" />{#if sound_enabled.value}<path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"  stroke-linejoin="round" />{:else}<path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"  stroke-linejoin="round" />{/if}</svg>
-                </button>
+
                 <button data-ui-hover-sound="true" type="button" class="icon_button patter_control patter_control_round group/hitbox" aria-label={is_fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} aria-pressed={is_fullscreen} disabled={fullscreen_pending || browser_fullscreen || !fullscreen_supported} onclick={toggle_fullscreen}>
                     <span aria-hidden="true" class="icon_surface patter_surface patter_hover patter_active patter_surface_gradient"></span>
                     <svg class="patter_icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={is_fullscreen ? 'M4 9h5V4m11 5h-5V4M4 15h5v5m11-5h-5v5' : 'M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5'} stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -200,7 +183,7 @@
         </header>
         <div bind:this={tab_list} class="options_tabs" style={`--active-tab: ${tabs.indexOf(active_tab)}`} role="tablist" aria-label="Customize your space">
             {#each tabs as tab, index}
-                <button data-ui-hover-sound="true" type="button" role="tab" tabindex={active_tab === tab ? 0 : -1} id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} disabled={tab === 'sound' && !sound_enabled.value} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
+                <button data-ui-hover-sound="true" type="button" role="tab" tabindex={active_tab === tab ? 0 : -1} id={'options_tab_' + tab} aria-controls={'options_content_' + tab} aria-selected={active_tab === tab} onclick={() => select_tab(tab)} onkeydown={(event) => handle_tab_key(event, index)}>{tab_labels[tab]}</button>
             {/each}
         </div>
         <div bind:this={scroll_area} onscroll={update_scroll} style={`--options-top-fade: ${top_fade}px; --options-bottom-fade: ${bottom_fade}px`} class="options_scroll" data-wheel-controls={has_overflow ? 'disabled' : undefined}>
@@ -219,18 +202,9 @@
                     <InputPill text="Font" min={0} max={3} step={1} bind:value={background_values.editorFont} defaultValue={defaults.editorFont} displayValues={editor_font_labels} displayFonts={editor_fonts} onchange={(value) => { persistBackgroundValues({ editorFont: value }); track_setting('editorFont', value); }} />
                     <InputPill text="Text size" min={mobile_mode ? 16 : 14} max={24} step={1} value={mobile_mode ? Math.max(16, background_values.textSize) : background_values.textSize} defaultValue={defaults.textSize} onchange={(value) => { background_values.textSize = value; persistBackgroundValues({ textSize: value }); track_setting('textSize', value); }} />
                     <div class="options_divider" aria-hidden="true"></div>
-                    <InputPill text="Controls" mode="toggle" falseLabel="Wide" trueLabel="Narrow" value={!background_values.cornerControls} defaultValue={!defaults.cornerControls} onchange={(value) => { background_values.cornerControls = !value; persistBackgroundValues({ cornerControls: !value }); track_setting('corner_controls', !value); }} />
-                    <div class="options_divider" aria-hidden="true"></div>
                     <ToggleButton text="Markdown" bind:value={background_values.markdown} onchange={(value) => { persistBackgroundValues({ markdown: value }); track_setting('markdown', value); }} />
                 </div>
-                <div id="options_content_sound" role="tabpanel" aria-labelledby="options_tab_sound" inert={active_tab !== 'sound'} aria-hidden={active_tab !== 'sound'} class:tab_inactive={active_tab !== 'sound'} class="tab_content">
-                    <AmbientMixer bind:this={mixer} embedded />
-                    <div class="options_divider" aria-hidden="true"></div>
-                    <div class="system_sounds">
-                        <ToggleButton text="Typewriter" bind:value={typing_sound_enabled.value} onchange={(value) => { setTypingSoundEnabled(value); track_setting('typewriter', value); }} />
-                        <ToggleButton text="Interactions" bind:value={interaction_sound_enabled.value} onchange={(value) => { setInteractionSoundEnabled(value); track_setting('interaction_sound', value); }} />
-                    </div>
-                </div>
+
             </div>
         </div>
 
@@ -300,7 +274,7 @@
     .options_tabs {
         position: relative;
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         flex-shrink: 0;
     }
     .options_tabs button {
@@ -328,7 +302,7 @@
         background-image: radial-gradient(ellipse at center, var(--patter_surface_selected), transparent 75%), var(--patter_divider);
         background-size: 50% 100%, 100% 100%;
         background-repeat: no-repeat;
-        background-position: calc(var(--active-tab) * 50%) 0, 0 0;
+        background-position: calc(var(--active-tab) * 100%) 0, 0 0;
         transition: background-position var(--patter_motion_standard) ease-out;
     }
     @media (prefers-reduced-motion: reduce) { .options_tabs::after { transition: none; } }
@@ -343,7 +317,6 @@
         overflow-x: hidden;
         overscroll-behavior: contain;
     }
-    .system_sounds { display: flex; flex-direction: column; gap: var(--patter_setting_gap); padding: var(--patter_space_1); }
     .tab_content, .setting_rows { display: flex; flex-direction: column; gap: var(--patter_setting_gap); }
     .tab_content { padding: var(--patter_space_1); }
     .tab_stack { display: grid; }

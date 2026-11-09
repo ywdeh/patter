@@ -26,8 +26,7 @@
             key: background.key ?? background_values.background,
             position: background.position ?? untrack(() => background_values.position),
             opacity: initial ? 1 : 0,
-            videoOpacity: initial && background.kind === 'video' ? 0 : 1,
-            useBackgroundVariable: initial
+            videoOpacity: initial && background.kind === 'video' ? 0 : 1
         };
     }
 
@@ -100,6 +99,11 @@
             });
         };
         syncMotionPreference();
+        for (const background of untrack(() => visible_backgrounds)) {
+            if (background.kind !== 'video') continue;
+            const video = document.querySelector(`[data-background-id="${background.id}"] video`);
+            if (video?.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) handleVideoReady(background, video);
+        }
         motionPreference.addEventListener('change', syncMotionPreference);
         return () => motionPreference.removeEventListener('change', syncMotionPreference);
     });
@@ -259,7 +263,6 @@
             if (destroyed) return;
             const initial = untrack(() => visible_backgrounds[0]);
             if (initial?.kind === 'image' && initial.url === active_background.url) {
-                initial.useBackgroundVariable = false;
                 await updateAmbientColor(initial.url, initial.key);
             }
         }).catch(() => {});
@@ -273,13 +276,13 @@
         <div
             class="background-layer absolute inset-0 bg-cover bg-center bg-no-repeat"
             data-background-id={background.id}
-            style={`opacity: ${background.opacity}; background-position: center ${background.id === 0 && background.useBackgroundVariable ? 'var(--patter_background_position, center)' : background.position}; transition: opacity var(--patter_motion_slow) ease-in-out`}
-            style:background-image={background.kind === 'video' ? "var(--patter_background), url('/backgrounds/book.webp')" : 'none'}
+            style={`opacity: ${background.opacity}; background-position: center ${background.position}; transition: opacity var(--patter_motion_slow) ease-in-out`}
+            style:background-image={background.kind === 'video' ? `url("${getBackgroundPoster(background.key) ?? '/backgrounds/book.webp'}")` : 'none'}
         >
             {#if background.kind === 'video'}
-                <video class="absolute h-full w-full object-cover" style={`object-position: center ${background.id === 0 && background.useBackgroundVariable ? 'var(--patter_background_position, center)' : background.position}; opacity: ${background.videoOpacity}; transition: object-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--patter_motion_slow) ease-in-out`} src={background.url} muted preload="auto" playsinline disablepictureinpicture aria-hidden="true" onloadeddata={(event) => handleVideoReady(background, event.currentTarget)} onerror={() => handleVideoError(background)} onended={() => handleVideoEnded(background)}></video>
+                <video class="absolute h-full w-full object-cover" style={`object-position: center ${background.position}; opacity: ${background.videoOpacity}; transition: object-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--patter_motion_slow) ease-in-out`} src={background.url} muted preload="auto" playsinline disablepictureinpicture aria-hidden="true" onloadeddata={(event) => handleVideoReady(background, event.currentTarget)} onerror={() => handleVideoError(background)} onended={() => handleVideoEnded(background)}></video>
             {:else}
-                <div class="absolute inset-0 bg-cover" style={`background-position: center ${background.id === 0 && background.useBackgroundVariable ? 'var(--patter_background_position, center)' : background.position}; transition: background-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1); ${background.useBackgroundVariable ? "background-image: var(--patter_background), url('/backgrounds/book.webp')" : `background-image: url("${background.url}")`}`}></div>
+                <div class="absolute inset-0 bg-cover" style={`background-position: center ${background.position}; transition: background-position var(--patter_motion_gentle) cubic-bezier(0.22, 1, 0.36, 1); background-image: url("${background.url}")`}></div>
             {/if}
         </div>
     {/each}

@@ -4,6 +4,7 @@
     import { track_writing, mount_editor_time_tracking } from '$lib/state/analytics.js';
     import { schedule_recovery_snapshot, reset_recovery_buffer, cancel_pending_recovery, resume_recovery_snapshots } from '$lib/state/editor_recovery.js';
     import StatValue from './stat_value.svelte';
+    import MusicBar from '$lib/components/music_bar.svelte';
     import { onMount } from 'svelte';
     import { countEditorText, estimateReadingTime, formatMinutes } from '$lib/state/editor_counts.js';
     import { setEditorDocument } from '$lib/state/editor_document.js';
@@ -353,17 +354,26 @@
             <MarkdownEditor bind:this={markdownEditor} onchange={handleInput} onrender={() => updateCounts(markdownEditor.getVisibleText())} onkey={handleEditorKeydown} {placeholder} />
         </div>
     </div>
-    <div class="editor_stats patter_editor_controls flex w-full shrink-0 flex-col items-start gap-2 px-4 patter_text_small patter_text_muted sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8" data-zen-mode-ui="editor-stats">
-        <div class="flex items-center gap-2"><p><StatValue value={shownWords} /> {shownWords === 1 ? 'word' : 'words'}</p><p><StatValue value={shownCharacters} /> {shownCharacters === 1 ? 'character' : 'characters'}</p></div>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <div class="flex items-center gap-1"><p>Reading time</p><p><StatValue value={shownReadingTime} /></p></div>
-            <div class="flex items-center gap-1"><p>Session time</p><p><StatValue value={sessionTime} /></p></div>
+    <div class="editor_footer">
+        <div class="editor_stats patter_editor_controls flex w-full shrink-0 flex-col items-start gap-2 px-4 patter_text_small patter_text_muted sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8" data-zen-mode-ui="editor-stats">
+            <div class="flex items-center gap-2"><p><StatValue value={shownWords} /> {shownWords === 1 ? 'word' : 'words'}</p><p><StatValue value={shownCharacters} /> {shownCharacters === 1 ? 'character' : 'characters'}</p></div>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <div class="flex items-center gap-1"><p>Reading time</p><p><StatValue value={shownReadingTime} /></p></div>
+                <div class="flex items-center gap-1"><p>Session time</p><p><StatValue value={sessionTime} /></p></div>
+            </div>
         </div>
+        <div class="music_slot" data-zen-mode-ui="music-player"><MusicBar /></div>
     </div>
 
 </div>
 
 <style>
+    .editor_footer { position: relative; width: 100%; flex-shrink: 0; }
+    .music_slot { transition: opacity var(--patter_motion_slow) ease; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 15rem; max-width: calc(100% - var(--patter_space_8)); }
+    @media (max-width: 899px), (pointer: coarse) {
+        .editor_footer { padding-top: calc(var(--patter_space_16) + var(--patter_space_4)); }
+        .music_slot { top: 0; transform: translateX(-50%); }
+    }
     @media (max-width: 639px), (hover: none), (pointer: coarse) {
         .editor_stats { min-height: 44px; justify-content: center; padding-right: calc(44px + var(--patter_space_8)); }
     }

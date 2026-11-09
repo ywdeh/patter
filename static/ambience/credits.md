@@ -1,8 +1,8 @@
 # Ambient recordings
 
-Rain, flute, and campfire recordings supplied by the project owner. Original source and license information were not provided.
+Rain, flute, campfire, street chatter, fantasy music, and sad music recordings supplied by the project owner. Original source and license information were not provided.
 
-Optimized copies retain the full recording and original channel count. Encoded as variable-bitrate MP3 (LAME quality 5, 44.1 kHz), without embedded metadata or artwork.
+Optimized copies retain the original channel count. Rain, flute, campfire, and street chatter retain the full recording. Fantasy music uses 1.95-86.00 seconds of the supplied fantasy_music.mp3, removing its quiet lead-in and fading ending. Sad music uses 0.00-112.00 seconds of sad_music.mp3, removing its fading ending. Street chatter comes from street_chatter.mp3. Encoded as variable-bitrate MP3 (LAME quality 5, 44.1 kHz), without embedded metadata or artwork.
 
 Recordings are loudness-normalized to -23 LUFS with a -3 dBTP encoding target. The player prepares an equal-power overlap between each recording's tail and head once after decoding, using the shared gentle motion duration (600 ms). Native Web Audio looping then repeats that buffer without relying on background timers.
 

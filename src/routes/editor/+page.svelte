@@ -1,7 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import EditorBody from '$lib/components/editor/body.svelte';
-    const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-toolbar"]'];
+    const zenModeUiSelectors = ['[data-zen-mode-ui="options"]', '[data-zen-mode-ui="editor-toolbar"]', '[data-zen-mode-ui="music-player"]'];
     let zenMode = false;
     const previous_inert = new Map();
     let lastPointer = null;

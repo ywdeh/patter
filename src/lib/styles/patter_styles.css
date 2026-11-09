@@ -55,6 +55,7 @@
 	--patter_body_text_size: 18px;
 	--patter_motion_quick: 100ms;
 	--patter_motion_short: 150ms;
+	--patter_motion_disc: 24s;
 	--patter_motion_standard: 200ms;
     --patter_focus_shadow_transition: box-shadow var(--patter_motion_standard) ease-out;
     --patter_focus_transition: background-color var(--patter_motion_standard) ease-out, var(--patter_focus_shadow_transition);
@@ -256,14 +257,10 @@ a[href^="mailto:"] * {
 
 .patter_icon {
     opacity: 0.65;
-    transition: opacity var(--patter_motion_standard) ease-out, scale var(--patter_motion_standard) ease-out;
+    transition: opacity var(--patter_motion_standard) ease-out;
 }
 .patter_control:not(:disabled):focus-visible .patter_icon {
     opacity: 1;
-}
-.patter_control:not(:disabled):active .patter_icon,
-.patter_control.wheel_pressed .patter_icon {
-    scale: 0.9;
 }
 .patter_control:disabled {
     pointer-events: none;
@@ -368,13 +365,16 @@ button, a, [role="button"] { touch-action: manipulation; -webkit-touch-callout: 
 }
 
 .patter_editor_controls {
-    width: 100%;
-    margin-inline: 0;
-    transition: width var(--patter_motion_slow) var(--patter_ease_in_out), margin-inline var(--patter_motion_slow) var(--patter_ease_in_out), opacity var(--patter_motion_slow) ease-out;
-}
-[data-corner-controls] .patter_editor_controls {
+    transition: opacity var(--patter_motion_slow) ease-out;
     --patter_controls_width: calc(100vw - var(--patter_page_left) - var(--patter_page_right));
     width: var(--patter_controls_width);
     padding-inline: 0;
     margin-inline: calc((100% - var(--patter_controls_width)) / 2);
 }
+
+img, picture, video, canvas, svg {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-user-drag: none;
+}
+
